@@ -13,8 +13,8 @@
 
   const DEFAULT_SETTINGS = {
     role: "admin",
-    userName: "Camila Méndez",
-    userEmail: "camila@lashflow.local",
+    userName: "ByAlee",
+    userEmail: "ByAlee@ByAlee.local",
     studioName: "Camila Beauty Studio",
     studioPhone: "0981 000 000",
     city: "San Lorenzo",
@@ -353,7 +353,7 @@
       notificationDot.hidden = requests.length === 0;
       notification.title = requests.length ? `${requests.length} solicitud(es) de cita` : "Sin solicitudes nuevas";
     }
-    document.title = requests.length ? `(${requests.length}) LashFlow — Solicitudes pendientes` : "LashFlow — Mi jornada";
+    document.title = requests.length ? `(${requests.length}) ByAlee — Solicitudes pendientes` : "ByAlee — Mi jornada";
     const popoverList = $("#notificationPopoverList");
     if (popoverList) {
       popoverList.innerHTML = requests.length ? requests.slice(0, 8).map(appointment => {
@@ -1587,7 +1587,7 @@
       showToast("Datos importados correctamente");
     } catch (error) {
       console.error(error);
-      alert("No se pudo importar el archivo. Verifica que sea un respaldo válido de LashFlow.");
+      alert("No se pudo importar el archivo. Verifica que sea un respaldo válido de ByAlee.");
     } finally {
       event.target.value = "";
     }
