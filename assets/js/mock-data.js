@@ -20,7 +20,7 @@
     ],
     appointments: [
       {id:101,date:iso(0),time:"08:30",clientId:1,client:"María Gómez",serviceId:3,source:"WhatsApp",status:"confirmed",deposit:50000,notes:"Usar adhesivo sensible.",phone:"0981 234 567",formStatus:"complete"},
-      {id:102,date:iso(0),time:"12:00",clientId:2,client:"Ana López",serviceId:6,source:"Página web",status:"confirmed",deposit:50000,notes:"Retoque de 3 semanas.",phone:"0972 445 121",formStatus:"complete"},
+      {id:102,date:iso(0),time:"12:00",clientId:2,client:"Ana López",serviceId:6,source:"Página web",status:"pending",deposit:50000,notes:"Retoque de 3 semanas.",phone:"0972 445 121",formStatus:"complete"},
       {id:103,date:iso(0),time:"14:00",clientId:3,client:"Sofía Benítez",serviceId:5,source:"Instagram",status:"pending",deposit:0,notes:"Primera visita.",phone:"0984 903 115",formStatus:"pending"},
       {id:104,date:iso(0),time:"16:00",clientId:4,client:"Lucía Vera",serviceId:1,source:"WhatsApp",status:"confirmed",deposit:50000,notes:"Prefiere resultado natural.",phone:"0991 522 411",formStatus:"complete"},
       {id:105,date:iso(1),time:"09:00",clientId:5,client:"Camila Ortiz",serviceId:4,source:"Página web",status:"confirmed",deposit:100000,notes:"Mega volumen.",phone:"0982 781 232",formStatus:"complete"},
