@@ -1,125 +1,101 @@
-# LashFlow — prototipo de gestión integral v2
+# LashFlow — prototipo de gestión integral v4
 
-Frontend funcional en HTML, CSS y JavaScript puro. No necesita backend para probar sus pantallas y flujos.
+Frontend funcional en HTML, CSS y JavaScript puro. Esta versión sigue sin backend y está pensada para probar el flujo completo antes de conectar una base de datos.
 
-## Cómo abrir
+## Cómo abrirlo
 
 1. Descomprime la carpeta.
-2. Abre la carpeta con Visual Studio Code.
-3. Ejecuta `index.html` con la extensión **Live Server**.
-4. Usa `reservar.html` para probar la experiencia pública de la clienta.
+2. Ábrela con Visual Studio Code.
+3. Ejecuta `index.html` mediante **Live Server**.
+4. Abre `reservar.html` desde el mismo Live Server para simular la reserva de una clienta.
 
-Live Server es importante para que la carga de fotografías, enlaces y almacenamiento del navegador funcionen de forma más estable.
+Es importante que ambas páginas utilicen la misma dirección y el mismo puerto. Por ejemplo:
 
-## Mejoras principales de esta versión
+- `http://127.0.0.1:5500/index.html`
+- `http://127.0.0.1:5500/reservar.html`
 
-### Buscador global funcional
+Así comparten `localStorage`, IndexedDB y las notificaciones entre pestañas.
 
-El buscador superior encuentra:
+## Cambios de la versión 4
 
-- Clientas por nombre, teléfono, correo o Instagram.
-- Servicios por nombre o descripción.
-- Citas por clienta, fecha, hora, origen, servicio o notas.
-- Diseños por efecto, nombre o curvatura.
+### Notificaciones funcionales
 
-Al seleccionar una clienta abre directamente su ficha. Al seleccionar un servicio abre y resalta su tarjeta. Al seleccionar una cita muestra el día correspondiente.
+- La campana permanece visible también en dispositivos móviles.
+- Muestra la cantidad de solicitudes online pendientes.
+- Al presionarla se abre un panel con las solicitudes recientes.
+- El dashboard verifica cambios entre pestañas mediante `BroadcastChannel`, eventos de almacenamiento, foco de ventana y una comprobación periódica liviana.
+- El título de la pestaña muestra la cantidad pendiente, por ejemplo: `(2) LashFlow`.
 
-También puede abrirse con `Ctrl + K`.
+### Agenda con filtro por fecha
 
-### Ficha completa de clienta
+La sección **Agenda** ahora permite:
 
-Cada clienta ahora tiene un resumen con:
+- Elegir una fecha específica.
+- Filtrar por estado de cita.
+- Mostrar solamente las citas de hoy.
+- Limpiar los filtros.
+- Ver cuántos resultados coinciden.
+- Consultar el estado de la seña y abrir un comprobante adjunto.
 
-- Foto de portada.
-- Datos de contacto.
-- Estado de la ficha.
-- Alertas importantes.
-- Servicio habitual calculado desde el historial.
-- Diseño habitual.
-- Curvatura, grosor, volumen y rango.
-- Última visita.
-- Próximo mantenimiento sugerido.
-- Cantidad de visitas, gasto total y ticket promedio.
-- Acciones rápidas para WhatsApp, nueva cita y repetir el último trabajo.
+Se eliminó la repetición de botones globales para crear citas. La acción principal queda en la barra superior, además de las acciones contextuales dentro de la ficha de una clienta.
 
-### Historial editable
+### Reserva pública más flexible
 
-Las visitas se pueden:
+En `reservar.html`:
 
-- Crear.
-- Modificar.
-- Eliminar.
-- Repetir en una nueva cita.
+- Solo son obligatorios el nombre y el WhatsApp para identificar a la clienta.
+- Cumpleaños, correo, Instagram y domicilio están dentro de una sección opcional.
+- La consulta previa explica claramente qué información se debe marcar.
+- La clienta puede agregar detalles o dejarlos para el día de la atención.
+- Puede indicar que la seña fue coordinada por WhatsApp.
+- Puede subir una imagen del comprobante.
+- La imagen se comprime y se guarda en IndexedDB.
+- La solicitud aparece en el dashboard como pendiente de confirmación.
+- El consentimiento tiene una casilla grande y visible con una indicación explícita.
 
-Cada visita guarda fecha, servicio, precio, diseño, rango, curvatura y observaciones.
+### Ficha de clienta mejorada
 
-### Fotografías
+- La ficha abre primero en **Resumen**.
+- Las alertas, servicio habitual, diseño, última visita y mantenimiento aparecen antes que la información secundaria.
+- Los accesos rápidos llevan correctamente a Alertas, Historial, Diseño y Fotos.
+- Se corrigió el problema que hacía que las pestañas no ocultaran las demás secciones.
+- En celulares, la ficha utiliza una vista de pantalla completa, pestañas desplazables y tarjetas más compactas.
 
-Dentro de la ficha aparece una pestaña **Fotos** que permite:
+### Servicios realmente editables
 
-- Tomar una foto desde el celular.
-- Seleccionar varias imágenes desde la galería.
-- Clasificarlas como antes, después, retención, inspiración, ojo izquierdo, ojo derecho y otros tipos.
-- Vincularlas con una visita.
-- Agregar una descripción.
-- Marcar permiso para portafolio.
-- Elegir una foto como portada de la clienta.
-- Abrir o eliminar imágenes.
+El administrador puede presionar el lápiz o **Editar servicio** para cambiar:
 
-Las imágenes se comprimen antes de guardarse y se almacenan con **IndexedDB**, evitando cargar fotografías grandes en `localStorage`.
+- Nombre.
+- Precio.
+- Duración.
+- Preparación.
+- Limpieza.
+- Color.
+- Descripción pública.
+- Disponibilidad para reservas.
 
-### Servicios completamente modificables
+Los controles usan una vinculación directa con el servicio seleccionado para evitar que la pantalla se comporte solamente como alta de servicios.
 
-El usuario administrador puede:
+### Preferencias del administrador
 
-- Crear nuevos servicios.
-- Cambiar el nombre.
-- Modificar el precio.
-- Modificar la duración.
-- Configurar tiempo de preparación y limpieza.
-- Cambiar el color identificador.
-- Agregar una descripción pública.
-- Pausar o reactivar el servicio.
-- Eliminarlo cuando no tiene historial.
+En **Configuración → Horarios y automatización** se puede decidir:
 
-Si un servicio ya tiene citas o visitas, se pausa en lugar de eliminarse para conservar el historial.
+- Si se permiten reservas públicas.
+- Si el consentimiento es obligatorio.
+- Si WhatsApp se abre al confirmar.
+- Si la clienta puede omitir los detalles opcionales.
+- Si se permite subir comprobante de seña.
+- Si se exige elegir una forma de confirmación de la seña.
 
-Los cambios guardados también aparecen en `reservar.html`.
+## Confirmación por WhatsApp
 
-### Citas editables y vinculadas
+Cuando la lashista confirma una solicitud, el prototipo puede abrir WhatsApp con el mensaje preparado. La lashista debe presionar **Enviar**.
 
-Las citas existentes se pueden modificar. Cuando se escribe el nombre exacto de una clienta registrada:
+El envío completamente automático requiere un backend, WhatsApp Business Cloud API y, según el caso, plantillas aprobadas por Meta.
 
-- Se completa su WhatsApp.
-- Se muestra su servicio habitual.
-- Se muestran alertas registradas.
-- Se propone el último servicio.
-- Se carga una nota con el diseño habitual.
+## Almacenamiento utilizado
 
-El botón **Repetir último** crea una nueva cita con los datos técnicos de referencia.
-
-### Configuración para administrador
-
-La sección **Configuración** permite cambiar:
-
-- Nombre del administrador.
-- Correo y teléfono.
-- Nombre del estudio.
-- Ciudad o zona.
-- Moneda.
-- Seña predeterminada.
-- Hora de apertura y cierre.
-- Intervalo de horarios.
-- Días de atención.
-- Días sugeridos para mantenimiento.
-- Disponibilidad de la reserva pública.
-- Requisito de consentimiento.
-- Color principal.
-- Modo claro, oscuro o automático.
-
-También permite exportar e importar un respaldo JSON con datos e imágenes, o restablecer el demo.
-
-## Almacenamiento local utilizado
+### LocalStorage
 
 - `lashflow_demo_appointments`
 - `lashflow_demo_clients`
@@ -127,19 +103,25 @@ También permite exportar e importar un respaldo JSON con datos e imágenes, o r
 - `lashflow_demo_visits`
 - `lashflow_demo_services`
 - `lashflow_demo_settings`
+- `lashflow_demo_sync`
 - `lashflow_theme`
-- IndexedDB: `lashflow_images_db`
 
-## Importante para una versión real
+### IndexedDB
 
-Este prototipo funciona en un solo navegador. Para usarlo en producción con varios usuarios se necesita:
+Base: `lashflow_images_db`
+
+- `images`: fotografías de las fichas.
+- `bookingProofs`: comprobantes de señas.
+
+## Limitaciones del prototipo
+
+Los datos solo están disponibles en el navegador y dispositivo donde fueron guardados. Para una versión real hacen falta:
 
 - Backend y base de datos.
-- Inicio de sesión seguro.
-- Roles y permisos por salón.
-- Almacenamiento de fotografías en servidor o nube.
-- Copias de seguridad automáticas.
-- Enlaces privados con token.
-- Auditoría de consentimientos.
+- Usuarios, contraseñas y permisos.
+- Almacenamiento privado de imágenes.
+- Enlaces públicos seguros.
+- Copias de seguridad.
+- Registro de auditoría de consentimientos.
 - Política de privacidad y conservación de datos.
-- Integración oficial con WhatsApp o un proveedor autorizado.
+- Integración oficial con WhatsApp.

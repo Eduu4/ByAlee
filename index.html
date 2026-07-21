@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Lash — Mi jornada</title>
+  <title>LashFlow — Mi jornada</title>
   <meta name="theme-color" content="#8F5C70">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -17,8 +17,8 @@
       <div class="brand">
         <div class="brand-mark">LF</div>
         <div>
-          <strong>Lash</strong>
-          <span>Studio</span>
+          <strong>LashFlow</strong>
+          <span>Beauty Studio</span>
         </div>
       </div>
 
@@ -34,13 +34,13 @@
         <button class="nav-link" data-view="inventory"><i class="bi bi-box-seam"></i><span>Inventario</span></button>
         <button class="nav-link" data-view="finance"><i class="bi bi-wallet2"></i><span>Finanzas</span></button>
         <button class="nav-link admin-only" data-view="settings"><i class="bi bi-sliders"></i><span>Configuración</span></button>
-        <a class="nav-link" href="reservar.html"><i class="bi bi-link-45deg"></i><span>Enlace de reservas</span></a>
+        <a class="nav-link" href="reservar.html"><i class="bi bi-link-45deg"></i><span>Mi enlace de reservas</span></a>
       </nav>
 
       <div class="sidebar-profile">
-        <div class="avatar">AS</div>
+        <div class="avatar">CM</div>
         <div class="profile-copy">
-          <strong>ByAlee</strong>
+          <strong>Camila Méndez</strong>
           <span>Administradora</span>
         </div>
         <button class="icon-btn admin-only" id="adminSettingsBtn" aria-label="Abrir configuración"><i class="bi bi-gear"></i></button>
@@ -61,17 +61,26 @@
         </div>
         <div class="topbar-actions">
           <a class="btn ghost-btn" href="reservar.html" target="_blank"><i class="bi bi-box-arrow-up-right"></i><span>Ver reserva online</span></a>
-          <button class="icon-btn notification-btn"><i class="bi bi-bell"></i><span></span></button>
+          <button class="icon-btn notification-btn" id="notificationBtn" title="Solicitudes de cita"><i class="bi bi-bell"></i><span id="notificationDot"></span></button>
           <button class="btn primary-btn" id="newAppointmentBtn"><i class="bi bi-plus-lg"></i>Nueva cita</button>
         </div>
       </header>
+
+      <aside class="notification-popover" id="notificationPopover" hidden aria-live="polite">
+        <div class="notification-popover-head">
+          <div><span class="eyebrow">NOTIFICACIONES</span><h3>Solicitudes pendientes</h3></div>
+          <button class="icon-btn" id="closeNotificationPopover" aria-label="Cerrar notificaciones"><i class="bi bi-x-lg"></i></button>
+        </div>
+        <div id="notificationPopoverList" class="notification-popover-list"></div>
+        <button class="btn ghost-btn notification-popover-action" id="viewAllRequestsBtn"><i class="bi bi-calendar-check"></i>Ver solicitudes en el dashboard</button>
+      </aside>
 
       <main class="content">
         <section id="dashboardView" class="view active">
           <div class="hero-row">
             <div>
               <span class="eyebrow" id="todayLabel">MI JORNADA</span>
-              <h1>Buenos días, Alee <span>✨</span></h1>
+              <h1>Buenos días, Camila <span>✨</span></h1>
               <p id="summaryText">Hoy tienes citas programadas.</p>
             </div>
             <div class="day-actions">
@@ -104,6 +113,18 @@
             </article>
           </div>
 
+          <section class="panel booking-requests-panel" id="bookingRequestsPanel">
+            <div class="panel-header compact">
+              <div>
+                <span class="eyebrow">SOLICITUDES ONLINE</span>
+                <h2>Nuevas solicitudes de cita</h2>
+                <p class="muted">Las reservas enviadas desde reservar.html esperan tu confirmación.</p>
+              </div>
+              <span class="request-counter" id="bookingRequestCount">0</span>
+            </div>
+            <div class="booking-request-list" id="bookingRequestList"></div>
+          </section>
+
           <div class="dashboard-grid">
             <section class="panel schedule-panel">
               <div class="panel-header">
@@ -114,6 +135,7 @@
                 <div class="segmented">
                   <button class="active" data-filter="all">Todas</button>
                   <button data-filter="confirmed">Confirmadas</button>
+                  <button data-filter="requested">Solicitudes</button>
                   <button data-filter="pending">Pendientes</button>
                 </div>
               </div>
@@ -165,8 +187,6 @@
       </main>
     </div>
   </div>
-
-  <button class="floating-add" id="floatingAdd"><i class="bi bi-plus-lg"></i><span>Nueva cita</span></button>
 
   <div class="modal-backdrop" id="appointmentModal" aria-hidden="true">
     <div class="modal-card">
@@ -221,6 +241,8 @@
             <select name="status">
               <option value="confirmed">Confirmada</option>
               <option value="pending">Pendiente</option>
+              <option value="requested">Solicitud web</option>
+              <option value="rejected">Rechazada</option>
             </select>
           </label>
 
@@ -294,7 +316,7 @@
       <div class="record-tabs" id="recordTabs">
         <button class="active" data-record-tab="summary"><i class="bi bi-person-vcard"></i>Resumen</button>
         <button data-record-tab="personal"><i class="bi bi-person"></i>Datos</button>
-        <button data-record-tab="consultation"><i class="bi bi-shield-check"></i>Consulta</button>
+        <button data-record-tab="consultation"><i class="bi bi-exclamation-triangle"></i>Alertas</button>
         <button data-record-tab="design"><i class="bi bi-eye"></i>Diseño</button>
         <button data-record-tab="consent"><i class="bi bi-pen"></i>Consentimiento</button>
         <button data-record-tab="history"><i class="bi bi-clock-history"></i>Historial</button>
@@ -315,7 +337,7 @@
     </div>
   </div>
 
-  <div class="toast" id="toast"></div>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="assets/js/mock-data.js"></script>
   <script src="assets/js/app.js"></script>
