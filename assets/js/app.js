@@ -15,7 +15,7 @@
     role: "admin",
     userName: "ByAlee",
     userEmail: "ByAlee@ByAlee.local",
-    studioName: "Camila Beauty Studio",
+    studioName: "ByAlee Beauty Studio",
     studioPhone: "0981 000 000",
     city: "San Lorenzo",
     openingTime: "08:00",
@@ -217,7 +217,7 @@
   }
 
   function applyUserProfile() {
-    const firstName = String(DATA.settings.userName || "Camila").split(" ")[0];
+    const firstName = String(DATA.settings.userName || "ByAlee").split(" ")[0];
     const profileName = $(".profile-copy strong");
     const profileRole = $(".profile-copy span");
     const avatar = $(".sidebar-profile .avatar");

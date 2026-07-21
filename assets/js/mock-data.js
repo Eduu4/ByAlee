@@ -64,10 +64,10 @@
       }
     ],
     visits: [
-      {id:201,clientId:1,date:iso(-42),serviceId:3,professional:"Camila Méndez",source:"WhatsApp",price:240000,design:"Foxy 5D",range:"8–12 mm",curvature:"M",notes:"Retención buena. Sin reacción."},
-      {id:202,clientId:1,date:iso(-21),serviceId:6,professional:"Camila Méndez",source:"WhatsApp",price:130000,design:"Retoque Foxy",range:"8–12 mm",curvature:"M",notes:"Limpieza correcta."},
-      {id:203,clientId:2,date:iso(-24),serviceId:2,professional:"Camila Méndez",source:"Página web",price:190000,design:"Wispy",range:"10–14 mm",curvature:"C + D",notes:"Recomendado no frotar."},
-      {id:204,clientId:4,date:iso(-18),serviceId:1,professional:"Camila Méndez",source:"Instagram",price:150000,design:"Natural",range:"7–10 mm",curvature:"C",notes:"Longitud cómoda con anteojos."}
+      {id:201,clientId:1,date:iso(-42),serviceId:3,professional:"ByAlee",source:"WhatsApp",price:240000,design:"Foxy 5D",range:"8–12 mm",curvature:"M",notes:"Retención buena. Sin reacción."},
+      {id:202,clientId:1,date:iso(-21),serviceId:6,professional:"ByAlee",source:"WhatsApp",price:130000,design:"Retoque Foxy",range:"8–12 mm",curvature:"M",notes:"Limpieza correcta."},
+      {id:203,clientId:2,date:iso(-24),serviceId:2,professional:"ByAlee",source:"Página web",price:190000,design:"Wispy",range:"10–14 mm",curvature:"C + D",notes:"Recomendado no frotar."},
+      {id:204,clientId:4,date:iso(-18),serviceId:1,professional:"ByAlee",source:"Instagram",price:150000,design:"Natural",range:"7–10 mm",curvature:"C",notes:"Longitud cómoda con anteojos."}
     ],
     inventory: [
       {name:"Adhesivo Sensitive Pro",stock:2,min:4,unit:"unidades",category:"Adhesivos"},

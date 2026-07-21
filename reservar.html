@@ -39,11 +39,11 @@
   <div class="booking-shell">
     <aside class="studio-card">
       <div class="studio-cover">ByAlee</div>
-      <span class="eyebrow">CAMILA BEAUTY STUDIO</span>
+      <span class="eyebrow">ByAlee BEAUTY STUDIO</span>
       <h1>Reserva sin mensajes de ida y vuelta</h1>
       <p>Elegí un servicio, mirá los horarios disponibles y enviá solamente la información que quieras agregar.</p>
       <div class="mini-list">
-        <div class="mini-item"><div class="mini-icon"><i class="bi bi-geo-alt"></i></div><div><strong>Ubicación</strong><span>San Lorenzo</span></div></div>
+        <div class="mini-item"><div class="mini-icon"><i class="bi bi-geo-alt"></i></div><div><strong>Ubicación</strong><span>Luque</span></div></div>
         <div class="mini-item"><div class="mini-icon"><i class="bi bi-clock"></i></div><div><strong>Días configurados</strong><span>08:00 a 20:00</span></div></div>
         <div class="mini-item"><div class="mini-icon"><i class="bi bi-cash-coin"></i></div><div><strong>Seña flexible</strong><span>WhatsApp o comprobante</span></div></div>
         <div class="mini-item"><div class="mini-icon"><i class="bi bi-whatsapp"></i></div><div><strong>Confirmación</strong><span>La lashista confirma por WhatsApp</span></div></div>
@@ -149,7 +149,7 @@
       const D = window.LASHFLOW_DATA;
       const KEYS = {appointments:"lashflow_demo_appointments",clients:"lashflow_demo_clients",records:"lashflow_demo_records",services:"lashflow_demo_services",settings:"lashflow_demo_settings"};
       const loadArray = (key,fallback) => { try { const value=JSON.parse(localStorage.getItem(key)||"null"); return Array.isArray(value)?value:fallback; } catch { return fallback; } };
-      const defaultSettings = {studioName:"Camila Beauty Studio",city:"San Lorenzo",openingTime:"08:00",closingTime:"20:00",slotInterval:30,workDays:[1,2,3,4,5,6],currency:"Gs.",primaryColor:"#8f5c70",appearance:"light",bookingEnabled:true,requireConsent:true,defaultDeposit:50000,allowOptionalBookingDetails:true,allowDepositProof:true,requireDepositChoice:true};
+      const defaultSettings = {studioName:"ByAlee Beauty Studio",city:"Luque",openingTime:"08:00",closingTime:"20:00",slotInterval:30,workDays:[1,2,3,4,5,6],currency:"Gs.",primaryColor:"#8f5c70",appearance:"light",bookingEnabled:true,requireConsent:true,defaultDeposit:50000,allowOptionalBookingDetails:true,allowDepositProof:true,requireDepositChoice:true};
       D.appointments=loadArray(KEYS.appointments,D.appointments);D.clients=loadArray(KEYS.clients,D.clients);D.records=loadArray(KEYS.records,D.records);D.services=loadArray(KEYS.services,D.services).map(service=>({active:true,description:"",...service}));
       let settings=defaultSettings;try{settings={...defaultSettings,...JSON.parse(localStorage.getItem(KEYS.settings)||"{}")};}catch{}D.settings=settings;
 
