@@ -13,11 +13,11 @@
 
   const DEFAULT_SETTINGS = {
     role: "admin",
-    userName: "ByAlee",
-    userEmail: "byalee@lash.local",
-    studioName: "ByAlee",
+    userName: "Camila Méndez",
+    userEmail: "camila@lashflow.local",
+    studioName: "Camila Beauty Studio",
     studioPhone: "0981 000 000",
-    city: "Luque",
+    city: "San Lorenzo",
     openingTime: "08:00",
     closingTime: "20:00",
     slotInterval: 30,
@@ -28,6 +28,11 @@
     appearance: "light",
     bookingEnabled: true,
     requireConsent: true,
+    autoOpenConfirmationWhatsApp: false,
+    allowOptionalBookingDetails: true,
+    allowDepositProof: true,
+    requireDepositChoice: true,
+    confirmationMessageTemplate: "Hola {nombre} 😊 Tu cita de {servicio} fue confirmada para el {fecha} a las {hora}. Te esperamos en {estudio}.",
     workDays: [1, 2, 3, 4, 5, 6]
   };
 
@@ -80,12 +85,28 @@
   const totalDuration = service => Number(service?.duration || 0) + Number(service?.prep || 0) + Number(service?.cleanup || 0);
   const clientById = id => DATA.clients.find(client => client.id === Number(id));
   const recordByClient = id => DATA.records.find(record => record.clientId === Number(id));
+  const appointmentStatusLabel = status => ({confirmed:"Confirmada",requested:"Solicitud online",pending:"Pendiente",rejected:"Rechazada",completed:"Finalizada"}[status] || "Pendiente");
+  const appointmentStatusClass = status => ({confirmed:"confirmed",requested:"requested",pending:"pending",rejected:"rejected",completed:"complete"}[status] || "pending");
+  const depositStatusLabel = appointment => {
+    if (appointment.depositStatus === "proof_uploaded") return "Comprobante adjunto";
+    if (appointment.depositStatus === "confirmed_whatsapp") return "Seña confirmada por WhatsApp";
+    if (Number(appointment.deposit || 0) > 0) return "Seña registrada";
+    return "Seña pendiente";
+  };
+  const phoneDigits = phone => {
+    let digits = String(phone || "").replace(/\D/g, "");
+    if (digits.startsWith("0")) digits = `595${digits.slice(1)}`;
+    return digits;
+  };
 
   let selectedDate = todayISO;
   let activeFilter = "all";
+  let agendaDateFilter = "";
+  let agendaStatusFilter = "all";
   let currentRecordClientId = null;
   let editingAppointmentId = null;
   let editingVisitId = null;
+  let sharedAppointmentsSnapshot = localStorage.getItem(KEYS.appointments) || JSON.stringify(DATA.appointments);
 
   const medicalLabels = {
     eyeSurgery: "Cirugía o láser en ojos/rostro",
@@ -115,7 +136,11 @@
     const requested = types.length ? types : Object.keys(KEYS);
     requested.forEach(type => {
       if (type === "settings") localStorage.setItem(KEYS.settings, JSON.stringify(DATA.settings));
-      else if (KEYS[type]) localStorage.setItem(KEYS[type], JSON.stringify(DATA[type]));
+      else if (KEYS[type]) {
+        const serialized = JSON.stringify(DATA[type]);
+        localStorage.setItem(KEYS[type], serialized);
+        if (type === "appointments") sharedAppointmentsSnapshot = serialized;
+      }
     });
   }
 
@@ -143,6 +168,7 @@
       }
       const client = clientById(appointment.clientId);
       appointment.formStatus = client?.formStatus || appointment.formStatus || "pending";
+      appointment.status ||= appointment.source === "Página web" ? "requested" : "pending";
     });
     if (!Array.isArray(DATA.settings.workDays)) DATA.settings.workDays = [1,2,3,4,5,6];
   }
@@ -191,7 +217,7 @@
   }
 
   function applyUserProfile() {
-    const firstName = String(DATA.settings.userName || "Byalee").split(" ")[0];
+    const firstName = String(DATA.settings.userName || "Camila").split(" ")[0];
     const profileName = $(".profile-copy strong");
     const profileRole = $(".profile-copy span");
     const avatar = $(".sidebar-profile .avatar");
@@ -236,7 +262,7 @@
 
   function selectedAppointments() {
     return DATA.appointments
-      .filter(appointment => appointment.date === selectedDate && (activeFilter === "all" || appointment.status === activeFilter))
+      .filter(appointment => appointment.date === selectedDate && appointment.status !== "rejected" && (activeFilter === "all" || appointment.status === activeFilter))
       .sort((a, b) => minutes(a.time) - minutes(b.time));
   }
 
@@ -251,8 +277,13 @@
   }
 
   function renderDashboard() {
-    const all = DATA.appointments.filter(appointment => appointment.date === selectedDate).sort((a, b) => minutes(a.time) - minutes(b.time));
+    const all = DATA.appointments
+      .filter(appointment => appointment.date === selectedDate && appointment.status !== "rejected")
+      .sort((a, b) => minutes(a.time) - minutes(b.time));
     const shown = selectedAppointments();
+    const requests = DATA.appointments
+      .filter(appointment => appointment.status === "requested")
+      .sort((a, b) => a.date.localeCompare(b.date) || minutes(a.time) - minutes(b.time));
     const revenue = all.reduce((sum, appointment) => sum + Number(serviceById(appointment.serviceId).price || 0), 0);
     const occupied = all.reduce((sum, appointment) => sum + totalDuration(serviceById(appointment.serviceId)), 0);
     const workday = Math.max(0, minutes(DATA.settings.closingTime) - minutes(DATA.settings.openingTime));
@@ -267,13 +298,69 @@
       return due >= todayISO && due <= addDays(todayISO, 7);
     }).length;
     $("#statMaintenance").textContent = upcomingMaintenance || DATA.maintenance.filter(item => item.date >= todayISO).length;
+    const dayRequests = all.filter(a => a.status === "requested").length;
+    const dayPending = all.filter(a => a.status === "pending").length;
     $("#summaryText").textContent = all.length
-      ? `Tienes ${all.length} citas, ${all.filter(a => a.status === "pending").length} pendiente(s) y ${all.filter(a => formStatusForAppointment(a) !== "complete").length} ficha(s) por completar.`
-      : "No tienes citas programadas para este día.";
+      ? `Tienes ${all.length} citas, ${dayRequests} solicitud(es) online, ${dayPending} pendiente(s) y ${all.filter(a => formStatusForAppointment(a) !== "complete").length} ficha(s) por completar.`
+      : requests.length
+        ? `No hay citas cargadas para este día, pero tienes ${requests.length} solicitud(es) online por revisar.`
+        : "No tienes citas programadas para este día.";
 
     const dateObj = new Date(`${selectedDate}T12:00:00`);
     $("#selectedDateLabel").textContent = selectedDate === todayISO ? "Hoy" : dateObj.toLocaleDateString("es-PY", {weekday:"short", day:"numeric", month:"short"});
     $("#todayLabel").textContent = dateObj.toLocaleDateString("es-PY", {weekday:"long", day:"numeric", month:"long"}).toUpperCase();
+
+    const requestPanel = $("#bookingRequestsPanel");
+    const requestList = $("#bookingRequestList");
+    const requestCount = $("#bookingRequestCount");
+    if (requestPanel && requestList && requestCount) {
+      requestCount.textContent = requests.length;
+      requestList.innerHTML = requests.length ? requests.map(appointment => {
+        const service = serviceById(appointment.serviceId);
+        const client = clientById(appointment.clientId);
+        const formStatus = formStatusForAppointment(appointment);
+        const isPast = appointment.date < todayISO;
+        return `<article class="booking-request-card" id="request-${appointment.id}">
+          <div class="request-main">
+            <div class="client-avatar">${initials(appointment.client)}</div>
+            <div class="request-copy">
+              <div class="meta-row">
+                <span class="badge status-requested"><i class="bi bi-globe2"></i> Solicitud online</span>
+                ${isPast ? '<span class="badge status-rejected">Fecha vencida</span>' : ""}
+                <span class="badge ${formStatus === "complete" ? "status-complete" : "status-incomplete"}">${formStatus === "complete" ? "Ficha lista" : "Ficha pendiente"}</span>
+                <span class="badge ${appointment.depositStatus === "proof_uploaded" || appointment.depositStatus === "confirmed_whatsapp" ? "status-complete" : "status-incomplete"}"><i class="bi bi-cash-coin"></i> ${esc(depositStatusLabel(appointment))}</span>
+              </div>
+              <h3>${esc(appointment.client)} · ${esc(service.name)}</h3>
+              <p>${dateLabel(appointment.date,{weekday:"long",day:"numeric",month:"long"})} a las ${esc(appointment.time)} · ${esc(appointment.phone || client?.phone || "Sin WhatsApp")}${appointment.notes ? ` · ${esc(appointment.notes)}` : ""}</p>
+            </div>
+          </div>
+          <div class="request-actions">
+            <button class="btn primary-btn" onclick="window.confirmAppointment(${Number(appointment.id)})"><i class="bi bi-check2"></i>${DATA.settings.autoOpenConfirmationWhatsApp ? "Confirmar + WhatsApp" : "Confirmar"}</button>
+            <button class="btn ghost-btn" onclick="window.editAppointment(${Number(appointment.id)})"><i class="bi bi-pencil"></i>Editar</button>
+            ${appointment.depositProofId ? `<button class="btn ghost-btn" onclick="window.openDepositProof(${Number(appointment.id)})"><i class="bi bi-image"></i>Comprobante</button>` : ""}
+            <button class="icon-btn" title="Abrir ficha" onclick="window.openClientRecord(${Number(appointment.clientId)})"><i class="bi bi-clipboard2-heart"></i></button>
+            <button class="icon-btn" title="Rechazar solicitud" onclick="window.rejectAppointment(${Number(appointment.id)})"><i class="bi bi-x-lg"></i></button>
+          </div>
+        </article>`;
+      }).join("") : `<div class="empty-state compact-empty"><i class="bi bi-check2-circle"></i><strong>No hay solicitudes por revisar</strong><p>Las nuevas reservas enviadas desde el enlace público aparecerán aquí.</p></div>`;
+    }
+
+    const notification = $("#notificationBtn");
+    const notificationDot = $("#notificationDot");
+    if (notification && notificationDot) {
+      notification.classList.toggle("has-requests", requests.length > 0);
+      notificationDot.textContent = requests.length ? String(Math.min(requests.length, 99)) : "";
+      notificationDot.hidden = requests.length === 0;
+      notification.title = requests.length ? `${requests.length} solicitud(es) de cita` : "Sin solicitudes nuevas";
+    }
+    document.title = requests.length ? `(${requests.length}) LashFlow — Solicitudes pendientes` : "LashFlow — Mi jornada";
+    const popoverList = $("#notificationPopoverList");
+    if (popoverList) {
+      popoverList.innerHTML = requests.length ? requests.slice(0, 8).map(appointment => {
+        const service = serviceById(appointment.serviceId);
+        return `<article class="notification-mini-item"><span class="notification-mini-icon"><i class="bi bi-calendar-plus"></i></span><div><strong>${esc(appointment.client)}</strong><small>${esc(service.name)} · ${dateLabel(appointment.date,{day:"2-digit",month:"short"})} ${esc(appointment.time)} · ${esc(depositStatusLabel(appointment))}</small></div><button class="icon-btn" title="Revisar" onclick="window.focusBookingRequest(${Number(appointment.id)})"><i class="bi bi-chevron-right"></i></button></article>`;
+      }).join("") : `<div class="search-empty"><i class="bi bi-check2-circle"></i><strong>Todo al día</strong><span>No hay solicitudes pendientes.</span></div>`;
+    }
 
     $("#timeline").innerHTML = shown.length ? shown.map(appointment => {
       const service = serviceById(appointment.serviceId);
@@ -290,10 +377,11 @@
               <h3>${esc(appointment.client)}</h3>
               <p>${esc(service.name)} · ${esc(appointment.time)} a ${end} · bloque total ${totalDuration(service)} min</p>
               <div class="meta-row">
-                <span class="badge status-${appointment.status}">${appointment.status === "confirmed" ? "Confirmada" : "Pendiente"}</span>
+                <span class="badge status-${appointmentStatusClass(appointment.status)}">${appointmentStatusLabel(appointment.status)}</span>
                 <span class="badge"><i class="bi bi-${appointment.source === "WhatsApp" ? "whatsapp" : "globe2"}"></i> ${esc(appointment.source)}</span>
                 <span class="badge">Seña: ${money(appointment.deposit)}</span>
                 <span class="badge ${formStatus === "complete" ? "status-complete" : "status-incomplete"}"><i class="bi bi-clipboard2-${formStatus === "complete" ? "check" : "pulse"}"></i> ${formStatus === "complete" ? "Ficha lista" : "Falta ficha"}</span>
+                ${appointment.confirmationMessageOpenedAt ? '<span class="badge status-complete message-status"><i class="bi bi-whatsapp"></i> Mensaje preparado</span>' : ""}
                 ${insight.record?.design?.effect ? `<span class="badge"><i class="bi bi-eye"></i> Habitual: ${esc(insight.record.design.effect)}</span>` : ""}
                 ${appointment.notes ? `<span class="badge"><i class="bi bi-sticky"></i> ${esc(appointment.notes)}</span>` : ""}
               </div>
@@ -303,7 +391,7 @@
             <button class="icon-btn" title="Editar cita" onclick="window.editAppointment(${Number(appointment.id)})"><i class="bi bi-pencil"></i></button>
             <button class="icon-btn" title="Abrir ficha" onclick="window.openClientRecord(${Number(appointment.clientId)})"><i class="bi bi-clipboard2-heart"></i></button>
             <button class="icon-btn" title="WhatsApp" onclick="window.openWhatsApp(${Number(appointment.clientId)})"><i class="bi bi-whatsapp"></i></button>
-            <button class="icon-btn" title="Confirmar" onclick="window.confirmAppointment(${Number(appointment.id)})"><i class="bi bi-check2"></i></button>
+            ${appointment.status !== "confirmed" ? `<button class="icon-btn" title="Confirmar" onclick="window.confirmAppointment(${Number(appointment.id)})"><i class="bi bi-check2"></i></button>` : `<button class="icon-btn" title="Enviar confirmación por WhatsApp" onclick="window.openConfirmationWhatsApp(${Number(appointment.id)})"><i class="bi bi-send-check"></i></button>`}
             <button class="icon-btn" title="Eliminar" onclick="window.deleteAppointment(${Number(appointment.id)})"><i class="bi bi-trash3"></i></button>
           </div>
         </article>
@@ -315,7 +403,7 @@
       const service = serviceById(next.serviceId);
       const complete = formStatusForAppointment(next) === "complete";
       return `<div class="next-card">
-        <span class="muted">${next.status === "confirmed" ? "CITA CONFIRMADA" : "PENDIENTE DE CONFIRMACIÓN"}</span>
+        <span class="muted">${appointmentStatusLabel(next.status).toUpperCase()}</span>
         <div class="next-time">${esc(next.time)}</div>
         <h3>${esc(next.client)}</h3>
         <div class="muted">${esc(service.name)} · ${service.duration} min · ${complete ? "ficha completa" : "ficha pendiente"}</div>
@@ -341,25 +429,52 @@
   }
 
   function renderAgenda() {
-    const rows = DATA.appointments.slice().sort((a, b) => a.date.localeCompare(b.date) || minutes(a.time) - minutes(b.time)).map(appointment => {
+    const visibleAppointments = DATA.appointments
+      .filter(appointment => !agendaDateFilter || appointment.date === agendaDateFilter)
+      .filter(appointment => agendaStatusFilter === "all" || appointment.status === agendaStatusFilter)
+      .sort((a, b) => a.date.localeCompare(b.date) || minutes(a.time) - minutes(b.time));
+
+    const rows = visibleAppointments.map(appointment => {
       const service = serviceById(appointment.serviceId);
       const formStatus = formStatusForAppointment(appointment);
-      return `<tr data-search="${esc(normalize(`${appointment.client} ${service.name} ${appointment.source} ${appointment.date}`))}">
+      const statusActions = appointment.status === "requested"
+        ? `<button class="icon-btn" title="Confirmar solicitud" onclick="window.confirmAppointment(${Number(appointment.id)})"><i class="bi bi-check2"></i></button><button class="icon-btn" title="Rechazar solicitud" onclick="window.rejectAppointment(${Number(appointment.id)})"><i class="bi bi-x-lg"></i></button>`
+        : appointment.status === "confirmed"
+          ? `<button class="icon-btn" title="Enviar confirmación por WhatsApp" onclick="window.openConfirmationWhatsApp(${Number(appointment.id)})"><i class="bi bi-send-check"></i></button>`
+          : appointment.status !== "rejected"
+            ? `<button class="icon-btn" title="Confirmar cita" onclick="window.confirmAppointment(${Number(appointment.id)})"><i class="bi bi-check2"></i></button>`
+            : "";
+      const proofAction = appointment.depositProofId
+        ? `<button class="deposit-proof-link" onclick="window.openDepositProof(${Number(appointment.id)})"><i class="bi bi-image"></i>Ver comprobante</button>`
+        : "";
+      return `<tr data-search="${esc(normalize(`${appointment.client} ${service.name} ${appointment.source} ${appointment.date} ${appointmentStatusLabel(appointment.status)}`))}">
         <td>${dateLabel(appointment.date, {day:"2-digit", month:"2-digit", year:"numeric"})}</td>
         <td>${esc(appointment.time)}</td>
         <td><button class="text-btn" onclick="window.openClientRecord(${Number(appointment.clientId)})">${esc(appointment.client)}</button></td>
         <td>${esc(service.name)}</td><td>${totalDuration(service)} min</td><td>${esc(appointment.source)}</td>
-        <td><span class="badge status-${appointment.status}">${appointment.status === "confirmed" ? "Confirmada" : "Pendiente"}</span></td>
+        <td><span class="badge status-${appointmentStatusClass(appointment.status)}">${appointmentStatusLabel(appointment.status)}</span>${appointment.confirmationMessageOpenedAt ? '<div class="muted message-status">WhatsApp preparado</div>' : ""}</td>
         <td><span class="badge ${formStatus === "complete" ? "status-complete" : "status-incomplete"}">${formStatus === "complete" ? "Completa" : "Pendiente"}</span></td>
-        <td class="table-actions"><button class="icon-btn" title="Editar" onclick="window.editAppointment(${Number(appointment.id)})"><i class="bi bi-pencil"></i></button><button class="icon-btn" title="Eliminar" onclick="window.deleteAppointment(${Number(appointment.id)})"><i class="bi bi-trash3"></i></button></td>
+        <td><span class="badge ${appointment.depositStatus === "proof_uploaded" || appointment.depositStatus === "confirmed_whatsapp" ? "status-complete" : "status-incomplete"}">${esc(depositStatusLabel(appointment))}</span>${proofAction}</td>
+        <td class="table-actions">${statusActions}<button class="icon-btn" title="Editar" onclick="window.editAppointment(${Number(appointment.id)})"><i class="bi bi-pencil"></i></button><button class="icon-btn" title="Eliminar" onclick="window.deleteAppointment(${Number(appointment.id)})"><i class="bi bi-trash3"></i></button></td>
       </tr>`;
     }).join("");
 
+    const statusOptions = [["all","Todos los estados"],["requested","Solicitudes online"],["confirmed","Confirmadas"],["pending","Pendientes"],["completed","Finalizadas"],["rejected","Rechazadas"]];
     $("#agendaView").innerHTML = `<div class="grid-page">
-      <div class="page-heading"><div><span class="eyebrow">AGENDA</span><h1>Todos los agendamientos</h1><p>La duración del servicio bloquea el horario completo y cada cita queda vinculada a su ficha.</p></div><button class="btn primary-btn" id="agendaAdd"><i class="bi bi-plus-lg"></i>Nueva cita</button></div>
-      <div class="panel table-wrap"><table class="data-table"><thead><tr><th>Fecha</th><th>Hora</th><th>Clienta</th><th>Servicio</th><th>Bloque</th><th>Origen</th><th>Cita</th><th>Ficha</th><th>Acciones</th></tr></thead><tbody>${rows}</tbody></table></div>
+      <div class="page-heading"><div><span class="eyebrow">AGENDA</span><h1>Todos los agendamientos</h1><p>Filtra por una fecha específica y revisa solicitudes, citas confirmadas o pendientes.</p></div></div>
+      <div class="agenda-filter-bar">
+        <label class="field"><span>Filtrar por fecha</span><input type="date" id="agendaDateFilter" value="${esc(agendaDateFilter)}"></label>
+        <label class="field"><span>Estado de la cita</span><select id="agendaStatusFilter">${statusOptions.map(([value,label]) => `<option value="${value}" ${agendaStatusFilter === value ? "selected" : ""}>${label}</option>`).join("")}</select></label>
+        <div class="agenda-filter-actions"><button class="btn ghost-btn" id="agendaTodayFilter"><i class="bi bi-calendar-day"></i>Hoy</button><button class="btn ghost-btn" id="agendaClearFilter"><i class="bi bi-x-circle"></i>Limpiar</button></div>
+        <div class="agenda-filter-summary">Mostrando ${visibleAppointments.length} de ${DATA.appointments.length} citas</div>
+      </div>
+      <div class="panel table-wrap"><table class="data-table"><thead><tr><th>Fecha</th><th>Hora</th><th>Clienta</th><th>Servicio</th><th>Bloque</th><th>Origen</th><th>Cita</th><th>Ficha</th><th>Seña</th><th>Acciones</th></tr></thead><tbody>${rows || '<tr class="agenda-empty-row"><td colspan="10">No hay citas que coincidan con este filtro.</td></tr>'}</tbody></table></div>
     </div>`;
-    $("#agendaAdd").onclick = () => openAppointmentModal();
+
+    $("#agendaDateFilter").onchange = event => { agendaDateFilter = event.target.value; renderAgenda(); };
+    $("#agendaStatusFilter").onchange = event => { agendaStatusFilter = event.target.value; renderAgenda(); };
+    $("#agendaTodayFilter").onclick = () => { agendaDateFilter = todayISO; renderAgenda(); };
+    $("#agendaClearFilter").onclick = () => { agendaDateFilter = ""; agendaStatusFilter = "all"; renderAgenda(); };
   }
 
   function renderClients() {
@@ -433,14 +548,20 @@
         <article class="info-card"><span>Duración promedio</span><strong>${DATA.services.length ? Math.round(DATA.services.reduce((s,x)=>s+totalDuration(x),0)/DATA.services.length) : 0} min</strong></article>
       </div>
       <div class="cards-grid">${DATA.services.map(service => `<article class="service-card ${service.active ? "" : "service-disabled"}" id="service-${service.id}" data-search="${esc(normalize(`${service.name} ${service.description}`))}" style="border-top:4px solid ${esc(service.color)}">
-        <div class="service-card-top"><div><span class="badge ${service.active ? "status-complete" : "status-incomplete"}">${service.active ? "Disponible" : "Pausado"}</span><h3>${esc(service.name)}</h3></div>${DATA.settings.role === "admin" ? `<button class="icon-btn" title="Modificar servicio" onclick="window.editService(${service.id})"><i class="bi bi-pencil-square"></i></button>` : ""}</div>
+        <div class="service-card-top"><div><span class="badge ${service.active ? "status-complete" : "status-incomplete"}">${service.active ? "Disponible" : "Pausado"}</span><h3>${esc(service.name)}</h3></div>${DATA.settings.role === "admin" ? `<button class="icon-btn" type="button" title="Modificar servicio" data-edit-service="${service.id}"><i class="bi bi-pencil-square"></i></button>` : ""}</div>
         <div class="service-price">${money(service.price)}</div>
         <p>${esc(service.description || "Sin descripción pública.")}</p>
         <p>Servicio: ${service.duration} min</p><p>Preparación: ${service.prep} min · Limpieza: ${service.cleanup} min</p>
-        <div class="service-actions"><span class="badge">Bloque total: ${totalDuration(service)} min</span>${DATA.settings.role === "admin" ? `<button class="text-btn" onclick="window.editService(${service.id})">Modificar</button>` : ""}</div>
+        <div class="service-actions"><span class="badge">Bloque total: ${totalDuration(service)} min</span>${DATA.settings.role === "admin" ? `<button class="text-btn" type="button" data-edit-service="${service.id}"><i class="bi bi-pencil"></i> Editar servicio</button>` : ""}</div>
       </article>`).join("")}</div></div>`;
     const add = $("#addServiceBtn");
     if (add) add.onclick = () => openServiceModal();
+    $$('[data-edit-service]', $("#servicesView")).forEach(button => {
+      button.onclick = event => {
+        event.preventDefault();
+        openServiceModal(Number(button.dataset.editService));
+      };
+    });
   }
 
   function renderInventory() {
@@ -454,15 +575,16 @@
   }
 
   function renderFinance() {
-    const total = DATA.appointments.reduce((sum, appointment) => sum + Number(serviceById(appointment.serviceId).price || 0), 0);
-    const deposits = DATA.appointments.reduce((sum, appointment) => sum + Number(appointment.deposit || 0), 0);
-    const average = DATA.appointments.length ? Math.round(total / DATA.appointments.length) : 0;
+    const activeAppointments = DATA.appointments.filter(appointment => appointment.status !== "rejected");
+    const total = activeAppointments.reduce((sum, appointment) => sum + Number(serviceById(appointment.serviceId).price || 0), 0);
+    const deposits = activeAppointments.reduce((sum, appointment) => sum + Number(appointment.deposit || 0), 0);
+    const average = activeAppointments.length ? Math.round(total / activeAppointments.length) : 0;
     $("#financeView").innerHTML = `<div class="grid-page"><div class="page-heading"><div><span class="eyebrow">FINANZAS</span><h1>Resumen de prueba</h1><p>Valores calculados desde los agendamientos.</p></div></div>
       <div class="stats-grid">
         <article class="stat-card"><div class="stat-icon gold"><i class="bi bi-cash-stack"></i></div><div><span>Ventas previstas</span><strong>${money(total)}</strong></div><small>Según citas cargadas</small></article>
         <article class="stat-card"><div class="stat-icon mint"><i class="bi bi-check-circle"></i></div><div><span>Señas recibidas</span><strong>${money(deposits)}</strong></div><small>Pagos anticipados</small></article>
         <article class="stat-card"><div class="stat-icon rose"><i class="bi bi-receipt"></i></div><div><span>Ticket promedio</span><strong>${money(average)}</strong></div><small>Por cita</small></article>
-        <article class="stat-card"><div class="stat-icon lavender"><i class="bi bi-calendar-month"></i></div><div><span>Citas registradas</span><strong>${DATA.appointments.length}</strong></div><small>Datos de prueba</small></article>
+        <article class="stat-card"><div class="stat-icon lavender"><i class="bi bi-calendar-month"></i></div><div><span>Citas registradas</span><strong>${activeAppointments.length}</strong></div><small>Sin contar solicitudes rechazadas</small></article>
       </div></div>`;
   }
 
@@ -502,7 +624,13 @@
           <div class="settings-switches">
             <label class="check-option"><input type="checkbox" name="bookingEnabled" ${DATA.settings.bookingEnabled ? "checked" : ""}><span>Permitir reservas desde el enlace público</span></label>
             <label class="check-option"><input type="checkbox" name="requireConsent" ${DATA.settings.requireConsent ? "checked" : ""}><span>Solicitar consentimiento antes de confirmar ficha</span></label>
+            <label class="check-option"><input type="checkbox" name="autoOpenConfirmationWhatsApp" ${DATA.settings.autoOpenConfirmationWhatsApp ? "checked" : ""}><span>Abrir WhatsApp automáticamente al confirmar una solicitud</span></label>
+            <label class="check-option"><input type="checkbox" name="allowOptionalBookingDetails" ${DATA.settings.allowOptionalBookingDetails !== false ? "checked" : ""}><span>Permitir que la clienta omita los detalles opcionales</span></label>
+            <label class="check-option"><input type="checkbox" name="allowDepositProof" ${DATA.settings.allowDepositProof !== false ? "checked" : ""}><span>Permitir subir comprobante de seña</span></label>
+            <label class="check-option"><input type="checkbox" name="requireDepositChoice" ${DATA.settings.requireDepositChoice !== false ? "checked" : ""}><span>Exigir elegir cómo se confirmó la seña</span></label>
           </div>
+          <label class="field full settings-message"><span>Mensaje de confirmación</span><textarea name="confirmationMessageTemplate" rows="4">${esc(DATA.settings.confirmationMessageTemplate || DEFAULT_SETTINGS.confirmationMessageTemplate)}</textarea></label>
+          <p class="settings-note"><strong>Variables disponibles:</strong> {nombre}, {servicio}, {fecha}, {hora}, {estudio} y {ciudad}. En este prototipo se abre WhatsApp con el mensaje listo; el envío totalmente automático requiere WhatsApp Business API y un backend.</p>
         </section>
         <section class="panel settings-section"><div class="panel-header compact"><div><span class="eyebrow">APARIENCIA</span><h2>Color y tema</h2></div></div>
           <div class="form-grid">
@@ -561,7 +689,7 @@
     const start = minutes(DATA.settings.openingTime);
     const end = minutes(DATA.settings.closingTime);
     const interval = Number(DATA.settings.slotInterval || 30);
-    const existing = DATA.appointments.filter(appointment => appointment.date === date && Number(appointment.id) !== Number(ignoredAppointmentId)).map(appointment => {
+    const existing = DATA.appointments.filter(appointment => appointment.date === date && appointment.status !== "rejected" && Number(appointment.id) !== Number(ignoredAppointmentId)).map(appointment => {
       const bookedService = serviceById(appointment.serviceId);
       return [minutes(appointment.time), minutes(appointment.time) + totalDuration(bookedService)];
     });
@@ -746,10 +874,10 @@
         <div class="info-card"><h4>Actividad de la clienta</h4><dl class="detail-list"><div><dt>Visitas registradas</dt><dd>${insight.visits.length}</dd></div><div><dt>Gasto acumulado</dt><dd>${money(client.spent)}</dd></div><div><dt>Ticket promedio</dt><dd>${money(insight.averagePrice)}</dd></div><div><dt>Nota general</dt><dd>${esc(client.note || "Sin notas")}</dd></div></dl></div>
       </div>
       <div class="quick-actions-grid four">
-        <button type="button" class="quick-action" onclick="window.openWhatsApp(${client.id})"><i class="bi bi-whatsapp"></i><strong>Escribir por WhatsApp</strong><span>Confirmación, recordatorio o cuidados.</span></button>
-        <button type="button" class="quick-action" data-record-go="design"><i class="bi bi-eye"></i><strong>Ver diseño técnico</strong><span>Curvatura, grosor, efecto y mapeo.</span></button>
+        <button type="button" class="quick-action" data-record-go="consultation"><i class="bi bi-exclamation-triangle"></i><strong>Alertas y consulta</strong><span>Alergias, sensibilidad y datos a revisar.</span></button>
         <button type="button" class="quick-action" data-record-go="history"><i class="bi bi-clock-history"></i><strong>Historial completo</strong><span>Servicios, precios y observaciones.</span></button>
-        <button type="button" class="quick-action" data-record-go="gallery"><i class="bi bi-camera"></i><strong>Cargar fotografías</strong><span>Antes, después, retención o inspiración.</span></button>
+        <button type="button" class="quick-action" data-record-go="design"><i class="bi bi-eye"></i><strong>Diseño técnico</strong><span>Curvatura, grosor, efecto y mapeo.</span></button>
+        <button type="button" class="quick-action" data-record-go="gallery"><i class="bi bi-camera"></i><strong>Fotografías</strong><span>Antes, después, retención o inspiración.</span></button>
       </div>
     </section>`;
   }
@@ -909,9 +1037,21 @@
   }
 
   function activateRecordTab(tabName) {
-    $$('[data-record-tab]', $("#recordTabs")).forEach(button => button.classList.toggle("active", button.dataset.recordTab === tabName));
-    $$(".record-pane", $("#recordFormContent")).forEach(section => section.hidden = section.dataset.pane !== tabName);
-    if (tabName === "gallery" && currentRecordClientId) refreshGallery(currentRecordClientId);
+    const validTabs = ["summary","personal","consultation","design","consent","history","gallery"];
+    const targetTab = validTabs.includes(tabName) ? tabName : "summary";
+    $$('[data-record-tab]', $("#recordTabs")).forEach(button => {
+      const active = button.dataset.recordTab === targetTab;
+      button.classList.toggle("active", active);
+      button.setAttribute("aria-selected", String(active));
+      if (active) button.scrollIntoView({behavior:"smooth",block:"nearest",inline:"center"});
+    });
+    $$(".record-pane", $("#recordFormContent")).forEach(section => {
+      section.hidden = section.dataset.pane !== targetTab;
+      section.setAttribute("aria-hidden", String(section.hidden));
+    });
+    const modal = $("#recordModal .record-modal-card");
+    if (modal) modal.scrollTo({top:0,behavior:"smooth"});
+    if (targetTab === "gallery" && currentRecordClientId) refreshGallery(currentRecordClientId);
   }
 
   function openClientRecord(clientId) {
@@ -1154,47 +1294,83 @@
       showToast("La clienta no tiene WhatsApp cargado");
       return;
     }
-    let digits = client.phone.replace(/\D/g, "");
-    if (digits.startsWith("0")) digits = `595${digits.slice(1)}`;
-    const nextAppointment = DATA.appointments.filter(appointment => appointment.clientId === client.id && appointment.date >= todayISO).sort((a, b) => a.date.localeCompare(b.date) || minutes(a.time) - minutes(b.time))[0];
+    const digits = phoneDigits(client.phone);
+    const nextAppointment = DATA.appointments.filter(appointment => appointment.clientId === client.id && appointment.date >= todayISO && appointment.status !== "rejected").sort((a, b) => a.date.localeCompare(b.date) || minutes(a.time) - minutes(b.time))[0];
     const insight = clientInsights(client.id);
     const message = nextAppointment
-      ? `Hola ${client.name}, te recordamos tu cita de ${serviceById(nextAppointment.serviceId).name} el ${dateLabel(nextAppointment.date, {day:"numeric", month:"long"})} a las ${nextAppointment.time}. ¿Podrías confirmarnos tu asistencia?`
+      ? nextAppointment.status === "requested"
+        ? `Hola ${client.name}, recibimos tu solicitud para ${serviceById(nextAppointment.serviceId).name} el ${dateLabel(nextAppointment.date, {day:"numeric", month:"long"})} a las ${nextAppointment.time}. Aún está pendiente de confirmación.`
+        : `Hola ${client.name}, te recordamos tu cita de ${serviceById(nextAppointment.serviceId).name} el ${dateLabel(nextAppointment.date, {day:"numeric", month:"long"})} a las ${nextAppointment.time}. ¿Podrías confirmarnos tu asistencia?`
       : insight.maintenanceDate && insight.maintenanceDate <= addDays(todayISO, 7)
         ? `Hola ${client.name} 😊 Ya se acerca la fecha sugerida para el mantenimiento de tus pestañas. ¿Te gustaría reservar un horario?`
         : `Hola ${client.name}, ¿cómo estás? Te escribimos desde ${DATA.settings.studioName}.`;
     window.open(`https://wa.me/${digits}?text=${encodeURIComponent(message)}`, "_blank", "noopener");
   }
 
+  function buildConfirmationMessage(appointment) {
+    const client = clientById(appointment.clientId) || {name: appointment.client};
+    const service = serviceById(appointment.serviceId);
+    const values = {
+      nombre: client.name || appointment.client || "",
+      servicio: service.name || "tu servicio",
+      fecha: dateLabel(appointment.date, {weekday:"long", day:"numeric", month:"long", year:"numeric"}),
+      hora: appointment.time || "",
+      estudio: DATA.settings.studioName || "el estudio",
+      ciudad: DATA.settings.city || ""
+    };
+    return String(DATA.settings.confirmationMessageTemplate || DEFAULT_SETTINGS.confirmationMessageTemplate)
+      .replace(/\{(nombre|servicio|fecha|hora|estudio|ciudad)\}/g, (_, key) => values[key] || "");
+  }
+
+  function openConfirmationWhatsApp(appointmentId, automatic = false) {
+    const appointment = DATA.appointments.find(item => item.id === Number(appointmentId));
+    if (!appointment) return showToast("No se encontró la cita");
+    const client = clientById(appointment.clientId);
+    const phone = appointment.phone || client?.phone || "";
+    const digits = phoneDigits(phone);
+    if (!digits) return showToast("La solicitud no tiene un número de WhatsApp válido");
+    const message = buildConfirmationMessage(appointment);
+    appointment.confirmationMessageOpenedAt = new Date().toISOString();
+    appointment.confirmationMessageMode = automatic ? "automatic-open" : "manual-open";
+    persist("appointments");
+    window.open(`https://wa.me/${digits}?text=${encodeURIComponent(message)}`, "_blank", "noopener");
+    renderDashboard();
+    renderAgenda();
+    showToast(automatic ? "Cita confirmada y WhatsApp preparado" : "Mensaje de confirmación preparado");
+  }
+
   // Servicios editables
   function openServiceModal(serviceId = null) {
     if (DATA.settings.role !== "admin") return showToast("Solo la administradora puede modificar servicios");
     const form = $("#serviceForm");
+    const control = name => form.elements.namedItem(name);
     form.reset();
-    $("#editingServiceId").value = serviceId || "";
+    control("serviceId").value = serviceId || "";
     $("#serviceModalTitle").textContent = serviceId ? "Modificar servicio" : "Nuevo servicio";
     $("#deleteServiceBtn").hidden = !serviceId;
     if (serviceId) {
-      const service = serviceById(serviceId);
-      form.elements.name.value = service.name;
-      form.elements.duration.value = service.duration;
-      form.elements.price.value = service.price;
-      form.elements.prep.value = service.prep;
-      form.elements.cleanup.value = service.cleanup;
-      form.elements.color.value = service.color;
-      form.elements.active.checked = service.active !== false;
-      form.elements.description.value = service.description || "";
+      const service = DATA.services.find(item => Number(item.id) === Number(serviceId));
+      if (!service) return showToast("No se encontró el servicio");
+      control("name").value = service.name || "";
+      control("duration").value = Number(service.duration || 0);
+      control("price").value = Number(service.price || 0);
+      control("prep").value = Number(service.prep || 0);
+      control("cleanup").value = Number(service.cleanup || 0);
+      control("color").value = service.color || DATA.settings.primaryColor;
+      control("active").checked = service.active !== false;
+      control("description").value = service.description || "";
     } else {
-      form.elements.duration.value = 120;
-      form.elements.price.value = 150000;
-      form.elements.prep.value = 10;
-      form.elements.cleanup.value = 10;
-      form.elements.color.value = DATA.settings.primaryColor;
-      form.elements.active.checked = true;
+      control("duration").value = 120;
+      control("price").value = 150000;
+      control("prep").value = 10;
+      control("cleanup").value = 10;
+      control("color").value = DATA.settings.primaryColor;
+      control("active").checked = true;
     }
     updateServicePreview();
     $("#serviceModal").classList.add("open");
     $("#serviceModal").setAttribute("aria-hidden", "false");
+    setTimeout(() => control("name").focus(), 60);
   }
 
   function closeServiceModal() {
@@ -1204,27 +1380,32 @@
 
   function updateServicePreview() {
     const form = $("#serviceForm");
-    const total = Number(form.elements.duration.value || 0) + Number(form.elements.prep.value || 0) + Number(form.elements.cleanup.value || 0);
+    const get = name => form.elements.namedItem(name);
+    const total = Number(get("duration").value || 0) + Number(get("prep").value || 0) + Number(get("cleanup").value || 0);
     $("#serviceBlockPreview").innerHTML = `La agenda bloqueará <strong>${total} minutos</strong> por cada reserva de este servicio.`;
   }
 
   function saveService(event) {
     event.preventDefault();
     const form = event.currentTarget;
-    const id = Number(form.elements.serviceId.value || 0);
+    const get = name => form.elements.namedItem(name);
+    const id = Number(get("serviceId").value || 0);
     const payload = {
-      name: form.elements.name.value.trim(),
-      duration: Number(form.elements.duration.value),
-      price: Number(form.elements.price.value),
-      prep: Number(form.elements.prep.value),
-      cleanup: Number(form.elements.cleanup.value),
-      color: form.elements.color.value,
-      active: form.elements.active.checked,
-      description: form.elements.description.value.trim()
+      name: get("name").value.trim(),
+      duration: Number(get("duration").value),
+      price: Number(get("price").value),
+      prep: Number(get("prep").value),
+      cleanup: Number(get("cleanup").value),
+      color: get("color").value,
+      active: get("active").checked,
+      description: get("description").value.trim()
     };
+    if (!payload.name) return alert("Escribe el nombre del servicio.");
+    if (!Number.isFinite(payload.duration) || payload.duration < 5) return alert("La duración debe ser de al menos 5 minutos.");
     if (id) {
-      const service = DATA.services.find(item => item.id === id);
-      if (service) Object.assign(service, payload);
+      const service = DATA.services.find(item => Number(item.id) === id);
+      if (!service) return showToast("No se encontró el servicio a modificar");
+      Object.assign(service, payload);
     } else {
       DATA.services.push({id:Math.max(0,...DATA.services.map(item=>Number(item.id)||0))+1, ...payload});
     }
@@ -1233,7 +1414,7 @@
     populateServices();
     renderStaticViews();
     renderDashboard();
-    showToast(id ? "Servicio modificado" : "Servicio creado");
+    showToast(id ? "Servicio modificado correctamente" : "Servicio creado");
   }
 
   function deleteService() {
@@ -1338,6 +1519,11 @@
       workDays: selectedDays,
       bookingEnabled: form.elements.bookingEnabled.checked,
       requireConsent: form.elements.requireConsent.checked,
+      autoOpenConfirmationWhatsApp: form.elements.autoOpenConfirmationWhatsApp.checked,
+      allowOptionalBookingDetails: form.elements.allowOptionalBookingDetails.checked,
+      allowDepositProof: form.elements.allowDepositProof.checked,
+      requireDepositChoice: form.elements.requireDepositChoice.checked,
+      confirmationMessageTemplate: form.elements.confirmationMessageTemplate.value.trim() || DEFAULT_SETTINGS.confirmationMessageTemplate,
       primaryColor: form.elements.primaryColor.value,
       appearance: form.elements.appearance.value
     });
@@ -1352,8 +1538,9 @@
 
   async function exportAllData() {
     const images = await imageDBGetAll();
+    const bookingProofs = await bookingProofGetAll();
     const payload = {
-      version: "2.0",
+      version: "4.0",
       exportedAt: new Date().toISOString(),
       settings: DATA.settings,
       services: DATA.services,
@@ -1361,7 +1548,8 @@
       records: DATA.records,
       visits: DATA.visits,
       appointments: DATA.appointments,
-      images
+      images,
+      bookingProofs
     };
     const blob = new Blob([JSON.stringify(payload, null, 2)], {type:"application/json"});
     const url = URL.createObjectURL(blob);
@@ -1386,6 +1574,10 @@
         await imageDBClear();
         for (const image of payload.images) await imageDBPut(image);
       }
+      if (Array.isArray(payload.bookingProofs)) {
+        await bookingProofClear();
+        for (const proof of payload.bookingProofs) await bookingProofPut(proof);
+      }
       normalizeData();
       applyAppearance();
       applyUserProfile();
@@ -1406,21 +1598,29 @@
     Object.values(KEYS).forEach(key => localStorage.removeItem(key));
     localStorage.removeItem("lashflow_theme");
     await imageDBClear();
+    await bookingProofClear();
     location.reload();
   }
 
   // IndexedDB para fotografías
   const IMAGE_DB = "lashflow_images_db";
   const IMAGE_STORE = "images";
+  const BOOKING_PROOF_STORE = "bookingProofs";
 
   function openImageDB() {
     return new Promise((resolve, reject) => {
       if (!window.indexedDB) return reject(new Error("IndexedDB no disponible"));
-      const request = indexedDB.open(IMAGE_DB, 1);
+      const request = indexedDB.open(IMAGE_DB, 2);
       request.onupgradeneeded = () => {
         const db = request.result;
-        const store = db.createObjectStore(IMAGE_STORE, {keyPath:"id"});
-        store.createIndex("clientId", "clientId", {unique:false});
+        if (!db.objectStoreNames.contains(IMAGE_STORE)) {
+          const store = db.createObjectStore(IMAGE_STORE, {keyPath:"id"});
+          store.createIndex("clientId", "clientId", {unique:false});
+        }
+        if (!db.objectStoreNames.contains(BOOKING_PROOF_STORE)) {
+          const proofStore = db.createObjectStore(BOOKING_PROOF_STORE, {keyPath:"id"});
+          proofStore.createIndex("appointmentId", "appointmentId", {unique:true});
+        }
       };
       request.onsuccess = () => resolve(request.result);
       request.onerror = () => reject(request.error);
@@ -1482,6 +1682,72 @@
         tx.onerror = () => { db.close(); reject(tx.error); };
       });
     } catch { /* sin datos */ }
+  }
+
+  async function bookingProofGetByAppointment(appointmentId) {
+    try {
+      const db = await openImageDB();
+      return await new Promise((resolve, reject) => {
+        const tx = db.transaction(BOOKING_PROOF_STORE, "readonly");
+        const request = tx.objectStore(BOOKING_PROOF_STORE).index("appointmentId").get(Number(appointmentId));
+        request.onsuccess = () => { db.close(); resolve(request.result || null); };
+        request.onerror = () => { db.close(); reject(request.error); };
+      });
+    } catch { return null; }
+  }
+
+  async function bookingProofGetAll() {
+    try {
+      const db = await openImageDB();
+      return await new Promise((resolve, reject) => {
+        const tx = db.transaction(BOOKING_PROOF_STORE, "readonly");
+        const request = tx.objectStore(BOOKING_PROOF_STORE).getAll();
+        request.onsuccess = () => { db.close(); resolve(request.result || []); };
+        request.onerror = () => { db.close(); reject(request.error); };
+      });
+    } catch { return []; }
+  }
+
+  async function bookingProofPut(record) {
+    const db = await openImageDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(BOOKING_PROOF_STORE, "readwrite");
+      tx.objectStore(BOOKING_PROOF_STORE).put(record);
+      tx.oncomplete = () => { db.close(); resolve(record); };
+      tx.onerror = () => { db.close(); reject(tx.error); };
+    });
+  }
+
+  async function bookingProofDeleteByAppointment(appointmentId) {
+    const proof = await bookingProofGetByAppointment(appointmentId);
+    if (!proof) return;
+    const db = await openImageDB();
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(BOOKING_PROOF_STORE, "readwrite");
+      tx.objectStore(BOOKING_PROOF_STORE).delete(proof.id);
+      tx.oncomplete = () => { db.close(); resolve(); };
+      tx.onerror = () => { db.close(); reject(tx.error); };
+    });
+  }
+
+  async function bookingProofClear() {
+    try {
+      const db = await openImageDB();
+      return await new Promise((resolve, reject) => {
+        const tx = db.transaction(BOOKING_PROOF_STORE, "readwrite");
+        tx.objectStore(BOOKING_PROOF_STORE).clear();
+        tx.oncomplete = () => { db.close(); resolve(); };
+        tx.onerror = () => { db.close(); reject(tx.error); };
+      });
+    } catch { /* sin datos */ }
+  }
+
+  async function openDepositProof(appointmentId) {
+    const proof = await bookingProofGetByAppointment(appointmentId);
+    if (!proof?.dataUrl) return showToast("No se encontró el comprobante en este navegador");
+    const appointment = DATA.appointments.find(item => Number(item.id) === Number(appointmentId));
+    const win = window.open("", "_blank");
+    if (win) win.document.write(`<title>Comprobante de ${esc(appointment?.client || "reserva")}</title><style>body{margin:0;background:#111;color:#fff;font-family:Arial;display:grid;place-items:center;min-height:100vh}main{text-align:center;padding:16px}img{max-width:100%;max-height:88vh;border-radius:12px}p{opacity:.75}</style><main><img src="${proof.dataUrl}" alt="Comprobante de seña"><p>${esc(appointment?.client || "Clienta")} · ${esc(proof.name || "Comprobante")}</p></main>`);
   }
 
   function fileToDataURL(file) {
@@ -1630,20 +1896,53 @@
   window.removePhoto = removePhoto;
   window.openPhoto = openPhoto;
   window.activateGallery = () => activateRecordTab("gallery");
+  window.openConfirmationWhatsApp = openConfirmationWhatsApp;
+  window.openDepositProof = openDepositProof;
+  window.focusBookingRequest = id => {
+    const popover = $("#notificationPopover");
+    if (popover) popover.hidden = true;
+    navigate("dashboard");
+    requestAnimationFrame(() => {
+      const card = $(`#request-${Number(id)}`);
+      if (card) {
+        card.scrollIntoView({behavior:"smooth",block:"center"});
+        card.classList.add("flash-highlight");
+        setTimeout(() => card.classList.remove("flash-highlight"), 1900);
+      }
+    });
+  };
   window.confirmAppointment = id => {
     const appointment = DATA.appointments.find(item => item.id === Number(id));
-    if (appointment) {
-      appointment.status = "confirmed";
-      persist("appointments");
+    if (!appointment) return showToast("No se encontró la cita");
+    appointment.status = "confirmed";
+    appointment.confirmedAt = new Date().toISOString();
+    appointment.confirmedBy = DATA.settings.userName;
+    persist("appointments");
+    if (DATA.settings.autoOpenConfirmationWhatsApp) {
+      openConfirmationWhatsApp(id, true);
+      renderStaticViews();
+    } else {
       renderDashboard();
       renderStaticViews();
       showToast("Cita confirmada");
     }
   };
-  window.deleteAppointment = id => {
+  window.rejectAppointment = id => {
+    const appointment = DATA.appointments.find(item => item.id === Number(id));
+    if (!appointment || !confirm(`¿Rechazar la solicitud de ${appointment.client}? El horario volverá a quedar disponible.`)) return;
+    appointment.status = "rejected";
+    appointment.rejectedAt = new Date().toISOString();
+    appointment.rejectedBy = DATA.settings.userName;
+    persist("appointments");
+    renderDashboard();
+    renderStaticViews();
+    showToast("Solicitud rechazada");
+  };
+  window.deleteAppointment = async id => {
     if (confirm("¿Eliminar esta cita?")) {
       DATA.appointments = DATA.appointments.filter(item => item.id !== Number(id));
       persist("appointments");
+      await bookingProofDeleteByAppointment(id);
       renderDashboard();
       renderStaticViews();
       showToast("Cita eliminada");
@@ -1661,26 +1960,45 @@
       time:formData.get("time"), status:formData.get("status"), deposit:Number(formData.get("deposit") || 0),
       notes:formData.get("notes"), formStatus:client.formStatus
     };
+    const edited = Boolean(editingAppointmentId);
+    let savedAppointment = null;
+    let confirmedFromRequest = false;
     if (editingAppointmentId) {
       const appointment = DATA.appointments.find(item => item.id === Number(editingAppointmentId));
-      if (appointment) Object.assign(appointment, payload);
+      if (appointment) {
+        confirmedFromRequest = appointment.status === "requested" && payload.status === "confirmed";
+        Object.assign(appointment, payload);
+        if (confirmedFromRequest) {
+          appointment.confirmedAt = new Date().toISOString();
+          appointment.confirmedBy = DATA.settings.userName;
+        }
+        savedAppointment = appointment;
+      }
     } else {
-      DATA.appointments.push({id:uid(), ...payload});
+      savedAppointment = {id:uid(), ...payload};
+      DATA.appointments.push(savedAppointment);
     }
     persist("appointments", "clients");
     selectedDate = String(formData.get("date"));
-    const edited = Boolean(editingAppointmentId);
     closeAppointmentModal();
     event.currentTarget.reset();
     populateServices();
-    renderDashboard();
-    renderStaticViews();
-    showToast(edited ? "Cita modificada" : "Cita guardada y vinculada a la ficha");
+    if (confirmedFromRequest && DATA.settings.autoOpenConfirmationWhatsApp && savedAppointment) {
+      openConfirmationWhatsApp(savedAppointment.id, true);
+      renderStaticViews();
+    } else {
+      renderDashboard();
+      renderStaticViews();
+      showToast(edited ? "Cita modificada" : "Cita guardada y vinculada a la ficha");
+    }
   });
 
   $("#recordForm").addEventListener("submit", saveRecord);
   $("#serviceForm").addEventListener("submit", saveService);
-  $$('[data-record-tab]').forEach(button => button.onclick = () => activateRecordTab(button.dataset.recordTab));
+  $("#recordTabs").addEventListener("click", event => {
+    const button = event.target.closest("[data-record-tab]");
+    if (button) activateRecordTab(button.dataset.recordTab);
+  });
   $$('[data-close-record]').forEach(button => button.onclick = closeRecordModal);
   $("#recordModal").onclick = event => { if (event.target === event.currentTarget) closeRecordModal(); };
   $("#printRecordBtn").onclick = () => window.print();
@@ -1732,7 +2050,6 @@
   $("#adminSettingsBtn").onclick = () => navigate("settings");
   $("#menuToggle").onclick = () => $("#sidebar").classList.toggle("open");
   $("#newAppointmentBtn").onclick = () => openAppointmentModal();
-  $("#floatingAdd").onclick = () => openAppointmentModal();
   $$('[data-close-modal]').forEach(button => button.onclick = closeAppointmentModal);
   $("#appointmentModal").onclick = event => { if (event.target === event.currentTarget) closeAppointmentModal(); };
   $("#serviceSelect").onchange = () => updateAvailableTimes();
@@ -1763,7 +2080,64 @@
   });
   document.addEventListener("click", event => {
     if (!event.target.closest(".search-wrap")) $("#globalSearchResults").hidden = true;
+    if (notificationPopover && !event.target.closest("#notificationPopover") && !event.target.closest("#notificationBtn")) notificationPopover.hidden = true;
   });
+
+  const notificationBtn = $("#notificationBtn");
+  const notificationPopover = $("#notificationPopover");
+  if (notificationBtn && notificationPopover) notificationBtn.onclick = event => {
+    event.stopPropagation();
+    notificationPopover.hidden = !notificationPopover.hidden;
+  };
+  $("#closeNotificationPopover")?.addEventListener("click", () => { notificationPopover.hidden = true; });
+  $("#viewAllRequestsBtn")?.addEventListener("click", () => {
+    notificationPopover.hidden = true;
+    navigate("dashboard");
+    $("#bookingRequestsPanel")?.scrollIntoView({behavior:"smooth", block:"start"});
+  });
+
+  let syncTimer = null;
+  function reloadSharedData(notify = false) {
+    const previousRequests = DATA.appointments.filter(item => item.status === "requested").length;
+    DATA.appointments = loadArray(KEYS.appointments, DATA.appointments);
+    sharedAppointmentsSnapshot = localStorage.getItem(KEYS.appointments) || JSON.stringify(DATA.appointments);
+    DATA.clients = loadArray(KEYS.clients, DATA.clients);
+    DATA.records = loadArray(KEYS.records, DATA.records);
+    DATA.visits = loadArray(KEYS.visits, DATA.visits);
+    DATA.services = loadArray(KEYS.services, DATA.services);
+    DATA.settings = loadObject(KEYS.settings, DEFAULT_SETTINGS);
+    normalizeData();
+    applyAppearance();
+    applyUserProfile();
+    populateServices();
+    renderDashboard();
+    renderStaticViews();
+    const currentRequests = DATA.appointments.filter(item => item.status === "requested").length;
+    if (notify && currentRequests > previousRequests) showToast("Nueva solicitud de cita recibida");
+  }
+
+  function scheduleSharedReload(notify = false) {
+    clearTimeout(syncTimer);
+    syncTimer = setTimeout(() => reloadSharedData(notify), 80);
+  }
+
+  window.addEventListener("storage", event => {
+    if (Object.values(KEYS).includes(event.key) || event.key === "lashflow_demo_sync") scheduleSharedReload(event.key === KEYS.appointments || event.key === "lashflow_demo_sync");
+  });
+  if ("BroadcastChannel" in window) {
+    const syncChannel = new BroadcastChannel("lashflow-sync");
+    syncChannel.onmessage = event => scheduleSharedReload(event.data?.type === "appointment-requested");
+  }
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) scheduleSharedReload(false);
+  });
+  window.addEventListener("focus", () => scheduleSharedReload(false));
+  window.addEventListener("pageshow", () => scheduleSharedReload(false));
+  setInterval(() => {
+    if (document.hidden) return;
+    const currentSnapshot = localStorage.getItem(KEYS.appointments) || "";
+    if (currentSnapshot !== sharedAppointmentsSnapshot) reloadSharedData(true);
+  }, 2500);
 
   applyAppearance();
   applyUserProfile();

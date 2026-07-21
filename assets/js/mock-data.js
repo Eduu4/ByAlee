@@ -20,7 +20,7 @@
     ],
     appointments: [
       {id:101,date:iso(0),time:"08:30",clientId:1,client:"María Gómez",serviceId:3,source:"WhatsApp",status:"confirmed",deposit:50000,notes:"Usar adhesivo sensible.",phone:"0981 234 567",formStatus:"complete"},
-      {id:102,date:iso(0),time:"12:00",clientId:2,client:"Ana López",serviceId:6,source:"Página web",status:"pending",deposit:50000,notes:"Retoque de 3 semanas.",phone:"0972 445 121",formStatus:"complete"},
+      {id:102,date:iso(0),time:"12:00",clientId:2,client:"Ana López",serviceId:6,source:"Página web",status:"confirmed",deposit:50000,notes:"Retoque de 3 semanas.",phone:"0972 445 121",formStatus:"complete"},
       {id:103,date:iso(0),time:"14:00",clientId:3,client:"Sofía Benítez",serviceId:5,source:"Instagram",status:"pending",deposit:0,notes:"Primera visita.",phone:"0984 903 115",formStatus:"pending"},
       {id:104,date:iso(0),time:"16:00",clientId:4,client:"Lucía Vera",serviceId:1,source:"WhatsApp",status:"confirmed",deposit:50000,notes:"Prefiere resultado natural.",phone:"0991 522 411",formStatus:"complete"},
       {id:105,date:iso(1),time:"09:00",clientId:5,client:"Camila Ortiz",serviceId:4,source:"Página web",status:"confirmed",deposit:100000,notes:"Mega volumen.",phone:"0982 781 232",formStatus:"complete"},
@@ -64,10 +64,10 @@
       }
     ],
     visits: [
-      {id:201,clientId:1,date:iso(-42),serviceId:3,professional:"ByAlee",source:"WhatsApp",price:240000,design:"Foxy 5D",range:"8–12 mm",curvature:"M",notes:"Retención buena. Sin reacción."},
-      {id:202,clientId:1,date:iso(-21),serviceId:6,professional:"ByAlee",source:"WhatsApp",price:130000,design:"Retoque Foxy",range:"8–12 mm",curvature:"M",notes:"Limpieza correcta."},
-      {id:203,clientId:2,date:iso(-24),serviceId:2,professional:"ByAlee",source:"Página web",price:190000,design:"Wispy",range:"10–14 mm",curvature:"C + D",notes:"Recomendado no frotar."},
-      {id:204,clientId:4,date:iso(-18),serviceId:1,professional:"ByAlee",source:"Instagram",price:150000,design:"Natural",range:"7–10 mm",curvature:"C",notes:"Longitud cómoda con anteojos."}
+      {id:201,clientId:1,date:iso(-42),serviceId:3,professional:"Camila Méndez",source:"WhatsApp",price:240000,design:"Foxy 5D",range:"8–12 mm",curvature:"M",notes:"Retención buena. Sin reacción."},
+      {id:202,clientId:1,date:iso(-21),serviceId:6,professional:"Camila Méndez",source:"WhatsApp",price:130000,design:"Retoque Foxy",range:"8–12 mm",curvature:"M",notes:"Limpieza correcta."},
+      {id:203,clientId:2,date:iso(-24),serviceId:2,professional:"Camila Méndez",source:"Página web",price:190000,design:"Wispy",range:"10–14 mm",curvature:"C + D",notes:"Recomendado no frotar."},
+      {id:204,clientId:4,date:iso(-18),serviceId:1,professional:"Camila Méndez",source:"Instagram",price:150000,design:"Natural",range:"7–10 mm",curvature:"C",notes:"Longitud cómoda con anteojos."}
     ],
     inventory: [
       {name:"Adhesivo Sensitive Pro",stock:2,min:4,unit:"unidades",category:"Adhesivos"},
