@@ -1,0 +1,323 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lash — Mi jornada</title>
+  <meta name="theme-color" content="#8F5C70">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar" id="sidebar">
+      <div class="brand">
+        <div class="brand-mark">LF</div>
+        <div>
+          <strong>Lash</strong>
+          <span>Studio</span>
+        </div>
+      </div>
+
+      <nav class="nav-menu">
+        <span class="nav-label">Principal</span>
+        <button class="nav-link active" data-view="dashboard"><i class="bi bi-grid-1x2"></i><span>Mi jornada</span></button>
+        <button class="nav-link" data-view="agenda"><i class="bi bi-calendar3"></i><span>Agenda</span></button>
+        <button class="nav-link" data-view="clients"><i class="bi bi-people"></i><span>Clientas</span></button>
+        <button class="nav-link" data-view="records"><i class="bi bi-clipboard2-heart"></i><span>Fichas y diseños</span></button>
+        <button class="nav-link" data-view="services"><i class="bi bi-stars"></i><span>Servicios</span></button>
+
+        <span class="nav-label">Negocio</span>
+        <button class="nav-link" data-view="inventory"><i class="bi bi-box-seam"></i><span>Inventario</span></button>
+        <button class="nav-link" data-view="finance"><i class="bi bi-wallet2"></i><span>Finanzas</span></button>
+        <button class="nav-link admin-only" data-view="settings"><i class="bi bi-sliders"></i><span>Configuración</span></button>
+        <a class="nav-link" href="reservar.html"><i class="bi bi-link-45deg"></i><span>Enlace de reservas</span></a>
+      </nav>
+
+      <div class="sidebar-profile">
+        <div class="avatar">AS</div>
+        <div class="profile-copy">
+          <strong>ByAlee</strong>
+          <span>Administradora</span>
+        </div>
+        <button class="icon-btn admin-only" id="adminSettingsBtn" aria-label="Abrir configuración"><i class="bi bi-gear"></i></button>
+        <button class="icon-btn" id="themeToggle" aria-label="Cambiar tema"><i class="bi bi-moon-stars"></i></button>
+      </div>
+    </aside>
+
+    <div class="main-area">
+      <header class="topbar">
+        <button class="icon-btn mobile-only" id="menuToggle"><i class="bi bi-list"></i></button>
+        <div class="search-wrap">
+          <div class="search-box">
+            <i class="bi bi-search"></i>
+            <input id="globalSearch" type="search" autocomplete="off" placeholder="Buscar clienta, servicio o cita...">
+            <kbd>Ctrl K</kbd>
+          </div>
+          <div class="search-results" id="globalSearchResults" hidden></div>
+        </div>
+        <div class="topbar-actions">
+          <a class="btn ghost-btn" href="reservar.html" target="_blank"><i class="bi bi-box-arrow-up-right"></i><span>Ver reserva online</span></a>
+          <button class="icon-btn notification-btn"><i class="bi bi-bell"></i><span></span></button>
+          <button class="btn primary-btn" id="newAppointmentBtn"><i class="bi bi-plus-lg"></i>Nueva cita</button>
+        </div>
+      </header>
+
+      <main class="content">
+        <section id="dashboardView" class="view active">
+          <div class="hero-row">
+            <div>
+              <span class="eyebrow" id="todayLabel">MI JORNADA</span>
+              <h1>Buenos días, Alee <span>✨</span></h1>
+              <p id="summaryText">Hoy tienes citas programadas.</p>
+            </div>
+            <div class="day-actions">
+              <button class="btn ghost-btn" id="prevDay"><i class="bi bi-chevron-left"></i></button>
+              <button class="date-pill" id="selectedDateLabel">Hoy</button>
+              <button class="btn ghost-btn" id="nextDay"><i class="bi bi-chevron-right"></i></button>
+            </div>
+          </div>
+
+          <div class="stats-grid">
+            <article class="stat-card">
+              <div class="stat-icon rose"><i class="bi bi-calendar-check"></i></div>
+              <div><span>Citas del día</span><strong id="statAppointments">0</strong></div>
+              <small id="statConfirmed">0 confirmadas</small>
+            </article>
+            <article class="stat-card">
+              <div class="stat-icon gold"><i class="bi bi-cash-stack"></i></div>
+              <div><span>Ingreso estimado</span><strong id="statRevenue">Gs. 0</strong></div>
+              <small>Incluye señas</small>
+            </article>
+            <article class="stat-card">
+              <div class="stat-icon lavender"><i class="bi bi-clock-history"></i></div>
+              <div><span>Horas ocupadas</span><strong id="statHours">0 h</strong></div>
+              <small id="statFree">0 h disponibles</small>
+            </article>
+            <article class="stat-card">
+              <div class="stat-icon mint"><i class="bi bi-arrow-repeat"></i></div>
+              <div><span>Retoques próximos</span><strong id="statMaintenance">0</strong></div>
+              <small>En los próximos 7 días</small>
+            </article>
+          </div>
+
+          <div class="dashboard-grid">
+            <section class="panel schedule-panel">
+              <div class="panel-header">
+                <div>
+                  <span class="eyebrow">AGENDA DE HOY</span>
+                  <h2>Tu día, de un vistazo</h2>
+                </div>
+                <div class="segmented">
+                  <button class="active" data-filter="all">Todas</button>
+                  <button data-filter="confirmed">Confirmadas</button>
+                  <button data-filter="pending">Pendientes</button>
+                </div>
+              </div>
+              <div class="timeline" id="timeline"></div>
+            </section>
+
+            <aside class="side-column">
+              <section class="panel quick-panel">
+                <div class="panel-header compact">
+                  <div>
+                    <span class="eyebrow">PRÓXIMA CITA</span>
+                    <h2>Lo que sigue</h2>
+                  </div>
+                </div>
+                <div id="nextAppointment"></div>
+              </section>
+
+              <section class="panel">
+                <div class="panel-header compact">
+                  <div>
+                    <span class="eyebrow">STOCK</span>
+                    <h2>Alertas importantes</h2>
+                  </div>
+                  <button class="text-btn" data-jump="inventory">Ver todo</button>
+                </div>
+                <div id="stockAlerts" class="mini-list"></div>
+              </section>
+
+              <section class="panel">
+                <div class="panel-header compact">
+                  <div>
+                    <span class="eyebrow">ORIGEN DE RESERVAS</span>
+                    <h2>Canales de hoy</h2>
+                  </div>
+                </div>
+                <div id="sourceSummary" class="source-summary"></div>
+              </section>
+            </aside>
+          </div>
+        </section>
+
+        <section id="agendaView" class="view"></section>
+        <section id="clientsView" class="view"></section>
+        <section id="recordsView" class="view"></section>
+        <section id="servicesView" class="view"></section>
+        <section id="inventoryView" class="view"></section>
+        <section id="financeView" class="view"></section>
+        <section id="settingsView" class="view"></section>
+      </main>
+    </div>
+  </div>
+
+  <button class="floating-add" id="floatingAdd"><i class="bi bi-plus-lg"></i><span>Nueva cita</span></button>
+
+  <div class="modal-backdrop" id="appointmentModal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <span class="eyebrow">NUEVA RESERVA</span>
+          <h2>Agendar cita</h2>
+        </div>
+        <button class="icon-btn" data-close-modal><i class="bi bi-x-lg"></i></button>
+      </div>
+      <form id="appointmentForm">
+        <div class="form-grid">
+          <label class="field">
+            <span>Clienta</span>
+            <input name="client" id="appointmentClientInput" required autocomplete="off" placeholder="Ej. María Gómez" list="clientNames">
+            <datalist id="clientNames"></datalist>
+          </label>
+
+          <label class="field">
+            <span>WhatsApp</span>
+            <input name="phone" id="appointmentPhoneInput" placeholder="Ej. 0981 000 000">
+          </label>
+
+          <label class="field">
+            <span>Servicio</span>
+            <select name="service" id="serviceSelect" required></select>
+          </label>
+
+          <label class="field">
+            <span>Origen</span>
+            <select name="source" required>
+              <option>WhatsApp</option>
+              <option>Página web</option>
+              <option>Instagram</option>
+              <option>Manual</option>
+              <option>Teléfono</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Fecha</span>
+            <input type="date" name="date" id="appointmentDate" required>
+          </label>
+
+          <label class="field">
+            <span>Hora disponible</span>
+            <select name="time" id="availableTimes" required></select>
+          </label>
+
+          <label class="field">
+            <span>Estado</span>
+            <select name="status">
+              <option value="confirmed">Confirmada</option>
+              <option value="pending">Pendiente</option>
+            </select>
+          </label>
+
+          <label class="field">
+            <span>Seña</span>
+            <input type="number" name="deposit" min="0" step="10000" value="50000">
+          </label>
+
+          <div class="client-hint full" id="appointmentClientHint" hidden></div>
+
+          <label class="field full">
+            <span>Notas</span>
+            <textarea name="notes" rows="3" placeholder="Preferencias, alergias o indicaciones..."></textarea>
+          </label>
+        </div>
+
+        <div class="duration-preview" id="durationPreview"></div>
+
+        <div class="modal-actions">
+          <button type="button" class="btn ghost-btn" data-close-modal>Cancelar</button>
+          <button type="submit" class="btn primary-btn"><i class="bi bi-check2"></i>Guardar cita</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+
+  <div class="modal-backdrop" id="serviceModal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-header">
+        <div>
+          <span class="eyebrow">CONFIGURACIÓN DE SERVICIO</span>
+          <h2 id="serviceModalTitle">Nuevo servicio</h2>
+        </div>
+        <button class="icon-btn" data-close-service><i class="bi bi-x-lg"></i></button>
+      </div>
+      <form id="serviceForm">
+        <input type="hidden" name="serviceId" id="editingServiceId">
+        <div class="form-grid">
+          <label class="field full"><span>Nombre del servicio</span><input name="name" required placeholder="Ej. Volumen tecnológico"></label>
+          <label class="field"><span>Duración del servicio (min)</span><input name="duration" type="number" min="5" step="5" required></label>
+          <label class="field"><span>Precio (Gs.)</span><input name="price" type="number" min="0" step="5000" required></label>
+          <label class="field"><span>Preparación (min)</span><input name="prep" type="number" min="0" step="5" required></label>
+          <label class="field"><span>Limpieza / cierre (min)</span><input name="cleanup" type="number" min="0" step="5" required></label>
+          <label class="field"><span>Color identificador</span><input name="color" type="color" value="#8f5c70"></label>
+          <label class="check-option"><input name="active" type="checkbox" checked><span>Disponible para nuevas reservas</span></label>
+          <label class="field full"><span>Descripción para la clienta</span><textarea name="description" rows="3" placeholder="Qué incluye, para quién se recomienda, etc."></textarea></label>
+        </div>
+        <div class="duration-preview" id="serviceBlockPreview"></div>
+        <div class="modal-actions">
+          <button type="button" class="btn danger-btn" id="deleteServiceBtn" hidden><i class="bi bi-trash3"></i>Eliminar</button>
+          <span class="action-spacer"></span>
+          <button type="button" class="btn ghost-btn" data-close-service>Cancelar</button>
+          <button type="submit" class="btn primary-btn"><i class="bi bi-check2"></i>Guardar servicio</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-backdrop" id="recordModal" aria-hidden="true">
+    <div class="modal-card record-modal-card">
+      <div class="modal-header">
+        <div>
+          <span class="eyebrow">FICHA DIGITAL</span>
+          <h2 id="recordModalTitle">Ficha de clienta</h2>
+          <p class="muted" id="recordModalSubtitle">Consulta, consentimiento, diseño e historial en un solo lugar.</p>
+        </div>
+        <button class="icon-btn" data-close-record><i class="bi bi-x-lg"></i></button>
+      </div>
+
+      <div class="record-tabs" id="recordTabs">
+        <button class="active" data-record-tab="summary"><i class="bi bi-person-vcard"></i>Resumen</button>
+        <button data-record-tab="personal"><i class="bi bi-person"></i>Datos</button>
+        <button data-record-tab="consultation"><i class="bi bi-shield-check"></i>Consulta</button>
+        <button data-record-tab="design"><i class="bi bi-eye"></i>Diseño</button>
+        <button data-record-tab="consent"><i class="bi bi-pen"></i>Consentimiento</button>
+        <button data-record-tab="history"><i class="bi bi-clock-history"></i>Historial</button>
+        <button data-record-tab="gallery"><i class="bi bi-images"></i>Fotos</button>
+      </div>
+
+      <form id="recordForm">
+        <input type="hidden" name="clientId" id="recordClientId">
+        <div id="recordFormContent"></div>
+        <div class="modal-actions record-actions">
+          <button type="button" class="btn ghost-btn" id="printRecordBtn"><i class="bi bi-printer"></i>Imprimir</button>
+          <button type="button" class="btn ghost-btn" id="copyFormLinkBtn"><i class="bi bi-link-45deg"></i>Copiar enlace</button>
+          <span class="action-spacer"></span>
+          <button type="button" class="btn ghost-btn" data-close-record>Cancelar</button>
+          <button type="submit" class="btn primary-btn"><i class="bi bi-check2"></i>Guardar ficha</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="assets/js/mock-data.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>

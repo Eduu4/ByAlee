@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reservar y completar ficha — Lash</title>
+  <meta name="theme-color" content="#8F5C70">
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <style>
+    body{min-height:100vh;background:linear-gradient(145deg,var(--bg),var(--primary-soft));padding:26px}
+    .booking-shell{max-width:1120px;margin:auto;display:grid;grid-template-columns:.72fr 1.28fr;gap:20px}
+    .studio-card,.booking-card{background:var(--surface);border:1px solid var(--line);border-radius:28px;padding:26px;box-shadow:var(--shadow)}
+    .studio-card{position:sticky;top:26px;align-self:start}
+    .studio-cover{height:190px;border-radius:22px;background:linear-gradient(145deg,var(--primary),var(--primary-dark));display:grid;place-items:center;color:white;font-family:Fraunces;font-size:44px;margin-bottom:20px}
+    .studio-card h1{font-size:30px}.studio-card>p{color:var(--muted);line-height:1.6}
+    .booking-steps{display:flex;gap:7px;margin-bottom:24px}.booking-steps span{height:6px;flex:1;background:var(--line);border-radius:999px}.booking-steps span.active{background:var(--primary)}
+    .choice-grid{display:grid;grid-template-columns:1fr 1fr;gap:11px}.choice{border:1px solid var(--line);background:var(--surface-2);border-radius:16px;padding:15px;text-align:left;color:var(--text)}
+    .choice.active{border-color:var(--primary);background:var(--primary-soft)}.choice strong,.choice small{display:block}.choice small{color:var(--muted);margin-top:5px}
+    .booking-footer{display:flex;justify-content:space-between;gap:10px;margin-top:20px}.step{display:none}.step.active{display:block}
+    .time-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:9px}.time-btn{border:1px solid var(--line);background:var(--surface-2);color:var(--text);padding:11px;border-radius:12px}.time-btn.active{background:var(--primary);color:white;border-color:var(--primary)}
+    .success{text-align:center;padding:35px 10px}.success i{font-size:58px;color:var(--mint)}.success p{color:var(--muted);line-height:1.6}
+    .booking-card h2{margin-bottom:7px}.step-intro{color:var(--muted);font-size:13px;margin-bottom:20px;line-height:1.6}
+    .client-check-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+    .consent-public{max-height:250px;overflow:auto;background:var(--surface-2);border:1px solid var(--line);border-radius:16px;padding:17px;color:var(--muted);font-size:12px;line-height:1.65;margin-bottom:14px}
+    .privacy-note{font-size:11px;color:var(--muted);display:flex;gap:8px;margin-top:13px}.privacy-note i{color:var(--primary)}
+    .form-mode-banner{display:none;margin-bottom:18px}.form-mode-banner.show{display:flex}
+    @media(max-width:800px){body{padding:12px}.booking-shell{grid-template-columns:1fr}.studio-card{display:none}.choice-grid{grid-template-columns:1fr}.time-grid{grid-template-columns:repeat(3,1fr)}.client-check-grid{grid-template-columns:1fr}.booking-card{padding:20px}}
+    @media(max-width:480px){.time-grid{grid-template-columns:repeat(2,1fr)}.booking-footer .primary-btn{font-size:12px}.booking-footer .primary-btn i{font-size:14px}}
+  </style>
+</head>
+<body>
+  <div class="booking-shell">
+    <aside class="studio-card">
+      <div class="studio-cover">Lash</div>
+      <span class="eyebrow">ByAlee Studio</span>
+      <h1>Reserva sin mensajes de ida y vuelta</h1>
+      <p>Elige un servicio, mira únicamente los horarios disponibles y completa la información necesaria antes de tu visita.</p>
+      <div class="mini-list">
+        <div class="mini-item"><div class="mini-icon"><i class="bi bi-geo-alt"></i></div><div><strong>San Lorenzo</strong><span>Paraguay</span></div></div>
+        <div class="mini-item"><div class="mini-icon"><i class="bi bi-clock"></i></div><div><strong>Lunes a sábado</strong><span>08:00 a 20:00</span></div></div>
+        <div class="mini-item"><div class="mini-icon"><i class="bi bi-shield-check"></i></div><div><strong>Ficha digital</strong><span>Datos y consentimiento antes de llegar</span></div></div>
+        <div class="mini-item"><div class="mini-icon"><i class="bi bi-whatsapp"></i></div><div><strong>Confirmación</strong><span>Seguimiento por WhatsApp</span></div></div>
+      </div>
+    </aside>
+
+    <main class="booking-card">
+      <div class="alert-card form-mode-banner" id="formModeBanner"><i class="bi bi-clipboard2-heart"></i><div><strong>Completa o actualiza tu ficha</strong><div>No necesitas volver a cargar la información técnica de cada visita.</div></div></div>
+      <div class="booking-steps"><span class="active"></span><span></span><span></span><span></span><span></span><span></span></div>
+
+      <section class="step active" data-step="1">
+        <span class="eyebrow">PASO 1 DE 6</span><h2>¿Qué servicio deseas?</h2>
+        <p class="step-intro">Cada opción reserva un bloque diferente, incluyendo preparación y limpieza.</p>
+        <div class="choice-grid" id="serviceChoices"></div>
+      </section>
+
+      <section class="step" data-step="2">
+        <span class="eyebrow">PASO 2 DE 6</span><h2>Elige fecha y hora</h2>
+        <p class="step-intro">Solo se muestran horarios donde entra la duración completa del servicio.</p>
+        <label class="field"><span>Fecha disponible</span><input type="date" id="bookingDate"></label>
+        <h3 style="margin-top:22px">Horarios disponibles</h3>
+        <div class="time-grid" id="bookingTimes"></div>
+      </section>
+
+      <section class="step" data-step="3">
+        <span class="eyebrow">PASO 3 DE 6</span><h2>Tus datos</h2>
+        <p class="step-intro">Se guardan en tu ficha para no volver a escribirlos en cada visita.</p>
+        <div class="form-grid">
+          <label class="field full"><span>Nombre y apellido</span><input id="bookingName" placeholder="Ej. Laura Gómez"></label>
+          <label class="field"><span>Fecha de nacimiento</span><input id="bookingBirthDate" type="date"></label>
+          <label class="field"><span>WhatsApp</span><input id="bookingPhone" placeholder="0981 000 000"></label>
+          <label class="field"><span>Correo</span><input id="bookingEmail" type="email" placeholder="correo@ejemplo.com"></label>
+          <label class="field"><span>Instagram</span><input id="bookingInstagram" placeholder="@usuario"></label>
+          <label class="field full"><span>Domicilio</span><input id="bookingAddress" placeholder="Ciudad o zona"></label>
+        </div>
+                <div class="preference-group" style="margin-top:14px"><span>¿Es tu primera vez con extensiones?</span><div class="preference-options"><label class="radio-option"><input type="radio" name="firstTime" value="yes" checked>Sí</label><label class="radio-option"><input type="radio" name="firstTime" value="no">No</label></div></div>
+      </section>
+
+      <section class="step" data-step="4">
+        <span class="eyebrow">PASO 4 DE 6</span><h2>Consulta previa</h2>
+        <p class="step-intro">Marca lo que corresponda. La profesional revisará la información antes de comenzar.</p>
+        <div class="client-check-grid" id="medicalQuestions"></div>
+        <label class="field" style="margin-top:14px"><span>Observaciones, alergias o información importante</span><textarea id="medicalNotes" rows="4" placeholder="Describe cualquier respuesta que necesite explicación..."></textarea></label>
+        <div class="info-card" style="margin-top:16px"><h4>¿Qué resultado prefieres?</h4><div class="record-grid">
+          <div class="preference-group"><span>Largo</span><div class="preference-options"><label class="radio-option"><input type="radio" name="prefLength" value="Largas">Largas</label><label class="radio-option"><input type="radio" name="prefLength" value="Cortas">Cortas</label><label class="radio-option"><input type="radio" name="prefLength" value="Sin preferencia" checked>Sin preferencia</label></div></div>
+          <div class="preference-group"><span>Apariencia</span><div class="preference-options"><label class="radio-option"><input type="radio" name="prefThickness" value="Gruesas">Marcadas</label><label class="radio-option"><input type="radio" name="prefThickness" value="Finas">Finas</label><label class="radio-option"><input type="radio" name="prefThickness" value="Natural" checked>Natural</label></div></div>
+          <div class="preference-group"><span>Color</span><div class="preference-options"><label class="radio-option"><input type="radio" name="prefColor" value="Negras" checked>Negras</label><label class="radio-option"><input type="radio" name="prefColor" value="De colores">De colores</label><label class="radio-option"><input type="radio" name="prefColor" value="Mixtas">Mixtas</label></div></div>
+          <label class="field"><span>Notas o referencia</span><textarea id="preferenceNotes" rows="4" placeholder="Ej. natural, efecto foxy, para una ocasión especial..."></textarea></label>
+        </div></div>
+      </section>
+
+      <section class="step" data-step="5">
+        <span class="eyebrow">PASO 5 DE 6</span><h2>Consentimiento informado</h2>
+        <p class="step-intro">Lee el texto y confirma tu aceptación para guardar la ficha.</p>
+        <div class="consent-public">
+          <strong>Consentimiento para el servicio</strong>
+          <p>Declaro que informé alergias, sensibilidades, medicaciones, condiciones o procedimientos recientes que puedan ser relevantes. Comprendo que debo mantener los ojos cerrados durante la aplicación y comunicar cualquier molestia inmediatamente.</p>
+          <p>Comprendo que pueden presentarse irritaciones o reacciones y que debo seguir las indicaciones de higiene, mantenimiento y retiro profesional. Autorizo el procedimiento seleccionado y confirmo que la información ingresada es correcta.</p>
+          <p>Esta ficha no reemplaza una evaluación médica. Ante síntomas importantes o dudas de salud, corresponde suspender el servicio y consultar a un profesional.</p>
+        </div>
+        <label class="check-option"><input type="checkbox" id="consentAccepted"><span>Leí, comprendí y acepto el consentimiento informado.</span></label>
+        <div class="form-grid" style="margin-top:14px">
+          <label class="field"><span>Nombre usado como firma</span><input id="signatureName"></label>
+          <label class="field"><span>Fecha</span><input id="signatureDate" type="date"></label>
+          <label class="field full"><span>Notas para la profesional</span><textarea id="bookingNotes" rows="3" placeholder="Consulta adicional o preferencia..."></textarea></label>
+        </div>
+        <div class="privacy-note"><i class="bi bi-shield-lock"></i><span>La información debe usarse únicamente para administrar la atención y mantenerse protegida.</span></div>
+      </section>
+
+      <section class="step" data-step="6">
+        <div class="success"><i class="bi bi-check2-circle"></i><h2 id="successTitle">¡Reserva recibida!</h2><p id="confirmationText"></p><a class="btn primary-btn" href="index.html">Volver al panel demo</a></div>
+      </section>
+
+      <div class="booking-footer" id="bookingFooter">
+        <button class="btn ghost-btn" id="backBtn" disabled>Anterior</button>
+        <button class="btn primary-btn" id="nextBtn">Continuar</button>
+      </div>
+    </main>
+  </div>
+
+  <script src="assets/js/mock-data.js"></script>
+  <script>
+    (() => {
+      const D = window.LASHFLOW_DATA;
+      const KEYS = {appointments:"lashflow_demo_appointments",clients:"lashflow_demo_clients",records:"lashflow_demo_records",services:"lashflow_demo_services",settings:"lashflow_demo_settings"};
+      const load = (key, fallback) => { try { const data = JSON.parse(localStorage.getItem(key) || "null"); return Array.isArray(data) ? data : fallback; } catch { return fallback; } };
+      D.appointments = load(KEYS.appointments, D.appointments);
+      D.clients = load(KEYS.clients, D.clients);
+      D.records = load(KEYS.records, D.records);
+      D.services = load(KEYS.services, D.services).map(service => ({active:true,description:"",...service}));
+      const defaultSettings = {studioName:"ByAlee Studio",city:"San Lorenzo",openingTime:"08:00",closingTime:"20:00",slotInterval:30,workDays:[1,2,3,4,5,6],currency:"Gs.",primaryColor:"#8f5c70",appearance:"light",bookingEnabled:true,requireConsent:true};
+      let settings = defaultSettings;
+      try { settings = {...defaultSettings,...JSON.parse(localStorage.getItem(KEYS.settings) || "{}")}; } catch {}
+      D.settings = settings;
+
+      const $ = selector => document.querySelector(selector);
+      const $$ = selector => [...document.querySelectorAll(selector)];
+      const params = new URLSearchParams(location.search);
+      const formMode = params.get("mode") === "form";
+      const requestedClientId = Number(params.get("client"));
+      let step = formMode ? 3 : 1;
+      let serviceId = null;
+      let selectedTime = null;
+
+      const total = service => Number(service?.duration||0) + Number(service?.prep||0) + Number(service?.cleanup||0);
+      const mins = time => { const [h,m] = time.split(":").map(Number); return h * 60 + m; };
+      const toTime = value => `${String(Math.floor(value / 60)).padStart(2,"0")}:${String(value % 60).padStart(2,"0")}`;
+      const escapeHtml = value => String(value ?? "").replace(/[&<>\"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[char]));
+      const hexToRgb = hex => { const clean=String(hex||"#8f5c70").replace("#",""); const full=clean.length===3?clean.split("").map(c=>c+c).join(""):clean; return {r:parseInt(full.slice(0,2),16),g:parseInt(full.slice(2,4),16),b:parseInt(full.slice(4,6),16)}; };
+      const rgb = hexToRgb(settings.primaryColor);
+      document.documentElement.style.setProperty("--primary", settings.primaryColor);
+      document.documentElement.style.setProperty("--primary-dark", settings.primaryColor);
+      document.documentElement.style.setProperty("--primary-soft", `rgba(${rgb.r},${rgb.g},${rgb.b},.16)`);
+      document.documentElement.dataset.theme = settings.appearance === "dark" ? "dark" : (settings.appearance === "system" && matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light");
+      document.querySelector(".studio-card .eyebrow").textContent = settings.studioName.toUpperCase();
+      document.querySelector(".studio-card .mini-item:nth-child(1) span").textContent = settings.city || "Paraguay";
+      document.querySelector(".studio-card .mini-item:nth-child(2) strong").textContent = "Días configurados";
+      document.querySelector(".studio-card .mini-item:nth-child(2) span").textContent = `${settings.openingTime} a ${settings.closingTime}`;
+      if (!settings.bookingEnabled && !formMode) {
+        document.querySelector(".booking-card").innerHTML = `<div class="success"><i class="bi bi-calendar-x"></i><h2>Reservas temporalmente pausadas</h2><p>${escapeHtml(settings.studioName)} no está recibiendo reservas desde el enlace público en este momento. Comunícate por WhatsApp para consultar disponibilidad.</p></div>`;
+        return;
+      }
+
+      const tomorrow = new Date(`${D.today}T12:00:00`); tomorrow.setDate(tomorrow.getDate() + 1);
+      $("#bookingDate").min = D.today;
+      $("#bookingDate").value = tomorrow.toISOString().slice(0,10);
+      $("#signatureDate").value = D.today;
+
+      const medicalLabels = {
+        eyeSurgery:"Cirugía o láser en ojos o rostro",dryEyes:"Ojos secos",cosmeticProcedures:"Procedimientos cosméticos recientes",
+        seasonalAllergies:"Alergias estacionales",alopecia:"Alopecia",trichotillomania:"Tricotilomanía",thyroid:"Alteraciones de tiroides",
+        ironDeficiency:"Deficiencia de hierro",lowDefenses:"Defensas bajas",medications:"Uso de medicamentos",oilySkin:"Piel o cabello graso",
+        frequentMakeup:"Maquillaje frecuente",facialCreams:"Uso frecuente de cremas",extremeStress:"Estrés intenso",eyeMedication:"Medicación para los ojos",
+        productAllergy:"Alergia a producto o sustancia",contactLenses:"Uso lentes de contacto",glasses:"Uso anteojos",rubsEyes:"Suelo frotarme los ojos",
+        pregnant:"Embarazo o lactancia",canLieDown:"Puedo permanecer acostada durante el servicio"
+      };
+
+      $("#medicalQuestions").innerHTML = Object.entries(medicalLabels).map(([key,label]) => `<label class="check-option"><input type="checkbox" data-medical="${key}" ${key === "canLieDown" ? "checked" : ""}><span>${escapeHtml(label)}</span></label>`).join("");
+      const publicServices = D.services.filter(service => service.active !== false);
+      $("#serviceChoices").innerHTML = publicServices.length ? publicServices.map(service => `<button class="choice" data-id="${service.id}"><strong>${escapeHtml(service.name)}</strong><small>${escapeHtml(service.description || `${service.duration} min de servicio`)} · bloque ${total(service)} min · ${escapeHtml(settings.currency)} ${new Intl.NumberFormat("es-PY").format(service.price)}</small></button>`).join("") : `<div class="alert-card danger"><i class="bi bi-exclamation-triangle"></i><div><strong>No hay servicios disponibles</strong><div>El estudio todavía no habilitó servicios para reserva online.</div></div></div>`;
+      $$(".choice").forEach(button => button.onclick = () => { $$(".choice").forEach(item => item.classList.remove("active")); button.classList.add("active"); serviceId = Number(button.dataset.id); selectedTime = null; });
+
+      function renderTimes() {
+        if (!serviceId) return;
+        const date = $("#bookingDate").value;
+        const service = D.services.find(item => item.id === serviceId);
+        const block = total(service);
+        const dateObject = new Date(`${date}T12:00:00`);
+        if (!settings.workDays.includes(dateObject.getDay())) { $("#bookingTimes").innerHTML = "<p>El estudio no atiende este día.</p>"; return; }
+        const used = D.appointments.filter(appointment => appointment.date === date).map(appointment => {
+          const booked = D.services.find(item => item.id === appointment.serviceId) || {duration:120,prep:10,cleanup:10};
+          return [mins(appointment.time), mins(appointment.time) + total(booked)];
+        });
+        const slots = [];
+        for (let time = mins(settings.openingTime); time + block <= mins(settings.closingTime); time += Number(settings.slotInterval || 30)) if (!used.some(([from,to]) => time < to && time + block > from)) slots.push(toTime(time));
+        $("#bookingTimes").innerHTML = slots.map(time => `<button class="time-btn">${time}</button>`).join("") || "<p>No quedan horarios para este servicio.</p>";
+        $$(".time-btn").forEach(button => button.onclick = () => { $$(".time-btn").forEach(item => item.classList.remove("active")); button.classList.add("active"); selectedTime = button.textContent; });
+      }
+      $("#bookingDate").onchange = () => { selectedTime = null; renderTimes(); };
+
+      function setRadio(name, value) {
+        const input = document.querySelector(`[name="${name}"][value="${CSS.escape(value)}"]`);
+        if (input) input.checked = true;
+      }
+
+      function prefillClient() {
+        const client = D.clients.find(item => item.id === requestedClientId);
+        if (!client) return;
+        const record = D.records.find(item => item.clientId === client.id);
+        $("#bookingName").value = client.name || "";
+        $("#bookingBirthDate").value = client.birthDate || "";
+        $("#bookingPhone").value = client.phone || "";
+        $("#bookingEmail").value = client.email || "";
+        $("#bookingInstagram").value = client.instagram || "";
+        $("#bookingAddress").value = client.address || "";
+        $("#signatureName").value = record?.consent?.signedName || client.name || "";
+        $("#signatureDate").value = record?.consent?.signedAt || D.today;
+        $("#consentAccepted").checked = Boolean(record?.consent?.accepted);
+        document.querySelector(`[name="firstTime"][value="${client.firstTime ? "yes" : "no"}"]`).checked = true;
+        if (record?.medical) {
+          $$('[data-medical]').forEach(input => input.checked = input.dataset.medical === "canLieDown" ? record.medical.canLieDown !== false : Boolean(record.medical[input.dataset.medical]));
+          $("#medicalNotes").value = record.medical.notes || "";
+        }
+        if (record?.preferences) {
+          setRadio("prefLength", record.preferences.length || "Sin preferencia");
+          setRadio("prefThickness", record.preferences.thickness || "Natural");
+          setRadio("prefColor", record.preferences.color || "Negras");
+          $("#preferenceNotes").value = record.preferences.notes || "";
+        }
+      }
+
+      function go(nextStep) {
+        step = nextStep;
+        $$(".step").forEach(section => section.classList.toggle("active", Number(section.dataset.step) === step));
+        $$(".booking-steps span").forEach((bar,index) => bar.classList.toggle("active", index < step));
+        $("#backBtn").disabled = step === (formMode ? 3 : 1);
+        $("#bookingFooter").style.display = step === 6 ? "none" : "flex";
+        if (step === 2) renderTimes();
+        window.scrollTo({top:0,behavior:"smooth"});
+      }
+
+      function upsertClient() {
+        const name = $("#bookingName").value.trim();
+        let client = D.clients.find(item => item.id === requestedClientId) || D.clients.find(item => item.name.trim().toLowerCase() === name.toLowerCase());
+        if (!client) {
+          client = {id:Math.max(0,...D.clients.map(item => Number(item.id)||0))+1,name:"",birthDate:"",address:"",phone:"",email:"",instagram:"",firstTime:true,last:"Primera cita",favorite:"Sin definir",visits:0,spent:0,note:"Ficha creada desde reserva web",formStatus:"pending"};
+          D.clients.push(client);
+        }
+        client.name = name;
+        client.birthDate = $("#bookingBirthDate").value;
+        client.phone = $("#bookingPhone").value.trim();
+        client.email = $("#bookingEmail").value.trim();
+        client.instagram = $("#bookingInstagram").value.trim();
+        client.address = $("#bookingAddress").value.trim();
+        client.firstTime = document.querySelector('[name="firstTime"]:checked')?.value === "yes";
+        return client;
+      }
+
+      function completeFlow() {
+        const client = upsertClient();
+        let record = D.records.find(item => item.clientId === client.id);
+        if (!record) { record = {clientId:client.id,updatedAt:"",medical:{},preferences:{},anatomy:{},consent:{},design:{left:[8,9,10,11,10,9],right:[9,10,11,10,9,8]}}; D.records.push(record); }
+        const medical = {};
+        $$('[data-medical]').forEach(input => medical[input.dataset.medical] = input.checked);
+        medical.notes = $("#medicalNotes").value.trim();
+        record.medical = medical;
+        record.preferences = {
+          length: document.querySelector('[name="prefLength"]:checked')?.value || "Sin preferencia",
+          thickness: document.querySelector('[name="prefThickness"]:checked')?.value || "Natural",
+          color: document.querySelector('[name="prefColor"]:checked')?.value || "Negras",
+          use:"", notes:$("#preferenceNotes").value.trim()
+        };
+        record.consent = {accepted:$("#consentAccepted").checked,signedName:$("#signatureName").value.trim(),signedAt:$("#signatureDate").value,version:"1.0"};
+        record.updatedAt = D.today;
+        client.formStatus = record.consent.accepted && client.phone ? "complete" : "pending";
+
+        if (!formMode) {
+          const service = D.services.find(item => item.id === serviceId);
+          D.appointments.push({id:Date.now(),date:$("#bookingDate").value,time:selectedTime,clientId:client.id,client:client.name,serviceId,source:"Página web",status:"pending",deposit:0,notes:$("#bookingNotes").value.trim(),phone:client.phone,formStatus:client.formStatus});
+          $("#successTitle").textContent = "¡Reserva recibida!";
+          $("#confirmationText").textContent = `${client.name}, solicitaste ${service.name} para el ${$("#bookingDate").value} a las ${selectedTime}. El estudio podrá confirmar la cita por WhatsApp.`;
+        } else {
+          $("#successTitle").textContent = "¡Ficha actualizada!";
+          $("#confirmationText").textContent = `${client.name}, tu información y consentimiento quedaron guardados para que la profesional los revise antes de la próxima atención.`;
+        }
+        localStorage.setItem(KEYS.clients, JSON.stringify(D.clients));
+        localStorage.setItem(KEYS.records, JSON.stringify(D.records));
+        localStorage.setItem(KEYS.appointments, JSON.stringify(D.appointments));
+        go(6);
+      }
+
+      $("#nextBtn").onclick = () => {
+        if (step === 1 && !serviceId) return alert("Selecciona un servicio.");
+        if (step === 2 && !selectedTime) return alert("Selecciona un horario.");
+        if (step === 3) {
+          if (!$("#bookingName").value.trim()) return alert("Ingresa tu nombre.");
+          if (!$("#bookingPhone").value.trim()) return alert("Ingresa tu WhatsApp.");
+          if (!$("#signatureName").value.trim()) $("#signatureName").value = $("#bookingName").value.trim();
+        }
+        if (step === 5) {
+          if (settings.requireConsent && !$("#consentAccepted").checked) return alert("Debes aceptar el consentimiento para guardar la ficha.");
+          if (!$("#signatureName").value.trim()) return alert("Ingresa tu nombre como firma.");
+          completeFlow();
+          return;
+        }
+        go(step + 1);
+      };
+      $("#backBtn").onclick = () => go(step - 1);
+
+      if (formMode) {
+        $("#formModeBanner").classList.add("show");
+        prefillClient();
+      }
+      go(step);
+    })();
+  </script>
+</body>
+</html>
