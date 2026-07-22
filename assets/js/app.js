@@ -405,54 +405,168 @@
     $("#todayLabel").textContent = dateObj.toLocaleDateString("es-PY", {weekday:"long", day:"numeric", month:"long"}).toUpperCase();
 
     const requestList = $("#bookingRequestList");
-    $("#bookingRequestCount").textContent = requests.length;
+  $("#bookingRequestCount").textContent = requests.length;
 
-requestList.innerHTML = requests.length ? requests.map(appointment => {
-  const service = serviceById(appointment.serviceId);
-  const client = clientById(appointment.clientId);
-  const formStatus = formStatusForAppointment(appointment);
-  const isPast = appointment.date < todayISO;
-  const generalDetails = [appointment.requestedAreas?.join(", "), appointment.preferenceStyle, appointment.clientRequest].filter(Boolean).join(" · ");
-  const detailsText = [generalDetails, appointment.notes].filter(Boolean).join(" · ");
+  requestList.innerHTML = requests.length
+    ? requests.map(appointment => {
+        const service = serviceById(appointment.serviceId);
+        const client = clientById(appointment.clientId);
+        const formStatus = formStatusForAppointment(appointment);
+        const isPast = appointment.date < todayISO;
+        const phone = appointment.phone || client?.phone || "";
+        const phoneHref = phone ? `https://wa.me/${phoneDigits(phone)}` : "";
+        const depositReady =
+          appointment.depositStatus === "proof_uploaded" ||
+          appointment.depositStatus === "confirmed_whatsapp" ||
+          Number(appointment.deposit || 0) > 0;
 
-  return `<article class="booking-request-card booking-request-compact" id="request-${appointment.id}">
-    <div class="request-main">
-      <div class="client-avatar">${initials(appointment.client)}</div>
-      <div class="request-copy">
-        <div class="request-title-row">
-          <div>
-            <div class="meta-row">
-              <span class="badge status-requested"><i class="bi bi-globe2"></i>Solicitud online</span>
-              ${isPast ? '<span class="badge status-rejected">Fecha vencida</span>' : ""}
+        const phoneContent = phone
+          ? `<a
+               class="request-info-item request-info-phone"
+               href="${phoneHref}"
+               target="_blank"
+               rel="noopener"
+             >
+               <span class="request-info-icon">
+                 <i class="bi bi-whatsapp"></i>
+               </span>
+               <span class="request-info-copy">
+                 <small>WhatsApp</small>
+                 <strong>${esc(phone)}</strong>
+               </span>
+               <i class="bi bi-box-arrow-up-right request-info-arrow"></i>
+             </a>`
+          : `<div class="request-info-item">
+               <span class="request-info-icon">
+                 <i class="bi bi-telephone"></i>
+               </span>
+               <span class="request-info-copy">
+                 <small>WhatsApp</small>
+                 <strong>Sin número</strong>
+               </span>
+             </div>`;
+
+        return `
+          <article
+            class="booking-request-card request-card-pro"
+            id="request-${appointment.id}"
+          >
+            <header class="request-card-header">
+              <div class="client-avatar request-card-avatar">
+                ${initials(appointment.client)}
+              </div>
+
+              <div class="request-card-heading">
+                <div class="request-card-badges">
+                  <span class="badge status-requested">
+                    <i class="bi bi-globe2"></i>
+                    Solicitud online
+                  </span>
+
+                  ${isPast
+                    ? `<span class="badge status-rejected">
+                         Fecha vencida
+                       </span>`
+                    : ""}
+                </div>
+
+                <h3>${esc(appointment.client)}</h3>
+                <p class="request-card-service">${esc(service.name)}</p>
+              </div>
+            </header>
+
+            <section class="request-info-list">
+              <div class="request-info-item">
+                <span class="request-info-icon">
+                  <i class="bi bi-calendar3"></i>
+                </span>
+
+                <span class="request-info-copy">
+                  <small>Fecha y hora</small>
+                  <strong>
+                    ${dateLabel(
+                      appointment.date,
+                      {
+                        weekday: "short",
+                        day: "numeric",
+                        month: "short"
+                      }
+                    )}
+                    · ${esc(appointment.time)}
+                  </strong>
+                </span>
+              </div>
+
+              ${phoneContent}
+            </section>
+
+            <div class="request-status-list">
+              <span class="request-status-item ${depositReady ? "is-ready" : "is-pending"}">
+                <i class="bi bi-cash-coin"></i>
+                ${esc(depositStatusLabel(appointment))}
+              </span>
+
+              <span class="request-status-item ${formStatus === "complete" ? "is-ready" : "is-pending"}">
+                <i class="bi bi-clipboard2-check"></i>
+                ${formStatus === "complete" ? "Ficha lista" : "Ficha pendiente"}
+              </span>
             </div>
-            <h3>${esc(appointment.client)}</h3>
-            <strong class="request-service">${esc(service.name)}</strong>
-          </div>
-          <span class="badge ${formStatus === "complete" ? "status-complete" : "status-incomplete"}">${formStatus === "complete" ? "Ficha lista" : "Ficha pendiente"}</span>
+
+            <div class="request-actions request-card-actions">
+              <button
+                class="btn primary-btn request-confirm-btn"
+                onclick="window.confirmAppointment(${Number(appointment.id)})"
+              >
+                <i class="bi bi-check2"></i>
+                ${DATA.settings.autoOpenConfirmationWhatsApp
+                  ? "Confirmar + WhatsApp"
+                  : "Confirmar"}
+              </button>
+
+              <button
+                class="btn ghost-btn"
+                onclick="window.editAppointment(${Number(appointment.id)})"
+              >
+                <i class="bi bi-pencil"></i>
+                Editar
+              </button>
+
+              ${appointment.depositProofId
+                ? `<button
+                     class="btn ghost-btn request-proof-btn"
+                     onclick="window.openDepositProof(${Number(appointment.id)})"
+                   >
+                     <i class="bi bi-image"></i>
+                     Ver comprobante
+                   </button>`
+                : ""}
+
+              <button
+                class="btn ghost-btn"
+                onclick="window.openClientRecord(${Number(appointment.clientId)})"
+              >
+                <i class="bi bi-clipboard2-heart"></i>
+                Ficha
+              </button>
+
+              <button
+                class="btn request-reject-btn"
+                onclick="window.rejectAppointment(${Number(appointment.id)})"
+              >
+                <i class="bi bi-x-lg"></i>
+                Rechazar
+              </button>
+            </div>
+          </article>
+        `;
+      }).join("")
+    : `
+        <div class="empty-state compact-empty">
+          <i class="bi bi-check2-circle"></i>
+          <strong>No hay solicitudes por revisar</strong>
+          <p>Las nuevas reservas del enlace público aparecerán aquí.</p>
         </div>
-
-        <div class="request-facts">
-          <span><i class="bi bi-calendar3"></i>${dateLabel(appointment.date,{weekday:"short",day:"numeric",month:"short"})} · ${esc(appointment.time)}</span>
-          <span><i class="bi bi-whatsapp"></i>${esc(appointment.phone || client?.phone || "Sin WhatsApp")}</span>
-          <span class="${appointment.depositStatus === "proof_uploaded" || appointment.depositStatus === "confirmed_whatsapp" ? "good" : "warn"}"><i class="bi bi-cash-coin"></i>${esc(depositStatusLabel(appointment))}</span>
-        </div>
-
-        ${detailsText ? `<details class="request-extra"><summary>Ver detalles de la solicitud <i class="bi bi-chevron-down"></i></summary><p>${esc(detailsText)}</p></details>` : ""}
-      </div>
-    </div>
-
-    <div class="request-actions request-actions-primary">
-      <button class="btn primary-btn" onclick="window.confirmAppointment(${Number(appointment.id)})"><i class="bi bi-check2"></i>${DATA.settings.autoOpenConfirmationWhatsApp ? "Confirmar + WhatsApp" : "Confirmar"}</button>
-      <button class="btn ghost-btn" onclick="window.editAppointment(${Number(appointment.id)})"><i class="bi bi-pencil"></i>Editar</button>
-    </div>
-
-    <div class="request-actions request-actions-secondary">
-      <button class="request-mini-action" title="Abrir ficha" onclick="window.openClientRecord(${Number(appointment.clientId)})"><i class="bi bi-clipboard2-heart"></i><span>Ficha</span></button>
-      ${appointment.depositProofId ? `<button class="request-mini-action" onclick="window.openDepositProof(${Number(appointment.id)})"><i class="bi bi-image"></i><span>Comprobante</span></button>` : ""}
-      <button class="request-mini-action danger-text" title="Rechazar solicitud" onclick="window.rejectAppointment(${Number(appointment.id)})"><i class="bi bi-x-lg"></i><span>Rechazar</span></button>
-    </div>
-  </article>`;
-}).join("") : `<div class="empty-state compact-empty"><i class="bi bi-check2-circle"></i><strong>No hay solicitudes por revisar</strong><p>Las nuevas reservas del enlace público aparecerán aquí.</p></div>`;
+      `;
 
     const birthdayPanel = $("#birthdayPanel");
     if (birthdayPanel) birthdayPanel.hidden = !DATA.settings.birthdayNotificationsEnabled;
