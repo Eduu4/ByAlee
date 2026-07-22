@@ -757,9 +757,27 @@ function renderAgenda() {
     const service = serviceById(appointment.serviceId);
     const formStatus = formStatusForAppointment(appointment);
     const reason = appointment.cancellationReason || appointment.rejectionReason || "";
-    const proofAction = appointment.depositProofId
-      ? `<button class="deposit-proof-link" onclick="window.openDepositProof(${Number(appointment.id)})"><i class="bi bi-image"></i>Ver comprobante</button>`
-      : "";
+    const depositReady =
+      appointment.depositStatus === "proof_uploaded" ||
+      appointment.depositStatus === "confirmed_whatsapp" ||
+      Number(appointment.deposit || 0) > 0;
+
+    const depositStatusClass = depositReady
+      ? "status-complete"
+      : "status-incomplete";
+
+    const depositContent = appointment.depositProofId
+      ? `<button
+           type="button"
+           class="badge deposit-proof-badge ${depositStatusClass}"
+           title="Abrir comprobante cargado por la clienta"
+           onclick="window.openDepositProof(${Number(appointment.id)})"
+         >
+           <i class="bi bi-image"></i>
+           <span>${esc(depositStatusLabel(appointment))}</span>
+         </button>`
+      : `<span class="badge ${depositStatusClass}">${esc(depositStatusLabel(appointment))}</span>`;
+
     const actions = actionsFor(appointment);
 
     return `<tr>
@@ -771,8 +789,8 @@ function renderAgenda() {
       <td>${esc(appointment.source)}</td>
       <td><span class="badge status-${appointmentStatusClass(appointment.status)}">${appointmentStatusLabel(appointment.status)}</span>${reason ? `<div class="appointment-reason">${esc(reason)}</div>` : ""}</td>
       <td><span class="badge ${formStatus === "complete" ? "status-complete" : "status-incomplete"}">${formStatus === "complete" ? "Completa" : "Pendiente"}</span></td>
-      <td><span class="badge ${appointment.depositStatus === "proof_uploaded" || appointment.depositStatus === "confirmed_whatsapp" ? "status-complete" : "status-incomplete"}">${esc(depositStatusLabel(appointment))}</span>${proofAction}</td>
-      <td class="table-actions">${actions.desktop}</td>
+      <td>${depositContent}</td>
+      <td class="table-actions"><div class="agenda-actions-inline">${actions.desktop}</div></td>
     </tr>`;
   }).join("");
 

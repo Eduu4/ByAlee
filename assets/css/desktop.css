@@ -1251,3 +1251,121 @@
     text-align: left;
   }
 }
+
+/* =========================================================
+   AJUSTES VISUALES DE ESCRITORIO Y TABLET
+   No modifica dispositivos de 760px o menos.
+========================================================= */
+
+@media (min-width: 761px) {
+
+  /* Quitar brillo y resplandor de los botones */
+
+  .btn,
+  .icon-btn,
+  .primary-btn,
+  .ghost-btn,
+  .page-icon-action,
+  .topbar-actions .primary-btn,
+  .nav-link,
+  .deposit-proof-badge {
+    box-shadow: none !important;
+    filter: none !important;
+    text-shadow: none !important;
+  }
+
+  .btn:hover,
+  .icon-btn:hover,
+  .primary-btn:hover,
+  .ghost-btn:hover,
+  .page-icon-action:hover,
+  .topbar-actions .primary-btn:hover,
+  .nav-link:hover,
+  .deposit-proof-badge:hover {
+    box-shadow: none !important;
+    filter: none !important;
+    text-shadow: none !important;
+  }
+
+  /*
+   * La celda conserva su comportamiento de tabla.
+   * El div interior controla la fila de botones.
+   */
+
+  #agendaView td.table-actions {
+    display: table-cell !important;
+    width: 188px;
+    min-width: 188px;
+    padding: 9px 6px !important;
+    text-align: right;
+    white-space: nowrap !important;
+    vertical-align: middle;
+  }
+
+  #agendaView .agenda-actions-inline {
+    width: 100%;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+  }
+
+  #agendaView .agenda-actions-inline > button,
+  #agendaView .agenda-actions-inline > a,
+  #agendaView .agenda-actions-inline > .btn,
+  #agendaView .agenda-actions-inline > .icon-btn {
+    position: static !important;
+    flex: 0 0 30px;
+    width: 30px;
+    min-width: 30px;
+    height: 30px;
+    min-height: 30px;
+    margin: 0 !important;
+    padding: 0 !important;
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    transform: none !important;
+    border-radius: 9px;
+    font-size: 0;
+  }
+
+  #agendaView .agenda-actions-inline i {
+    margin: 0;
+    font-size: 12px;
+  }
+
+  /* La etiqueta de seña pasa a ser el enlace */
+
+  #agendaView .deposit-proof-badge {
+    max-width: 100%;
+    min-height: 34px;
+    padding: 7px 10px;
+    border: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+    white-space: normal;
+    line-height: 1.25;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  #agendaView .deposit-proof-badge:hover {
+    opacity: 0.82;
+    transform: none !important;
+  }
+
+  #agendaView .deposit-proof-badge:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+
+  /* El enlace anterior ya no debe aparecer */
+
+  #agendaView .deposit-proof-link {
+    display: none !important;
+  }
+}
