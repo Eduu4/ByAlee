@@ -1,18 +1,773 @@
-/* ByAlee — mejoras visuales para móviles
-   Este archivo solo sobrescribe estilos en pantallas pequeñas.
-   No modifica Supabase, login, rutas, reservas ni datos.
-*/
+/*
+ * ByAlee — interfaz móvil limpia
+ * ---------------------------------
+ * Este archivo reemplaza por completo cualquier mobile.css anterior.
+ * Debe cargarse DESPUÉS de assets/css/styles.css.
+ *
+ * No modifica autenticación, Supabase, rutas, reservas ni datos.
+ * Los cambios estructurales compatibles están en assets/js/app.js.
+ */
+
+/* ================================================================
+   COMPONENTES NUEVOS — BASE (ESCRITORIO Y MÓVIL)
+   ================================================================ */
+
+.agenda-mobile-list {
+  display: none;
+}
+
+.compact-page-heading {
+  align-items: flex-start;
+}
+
+.page-icon-action span {
+  display: inline;
+}
+
+.compact-summary-strip {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.compact-summary-strip > article {
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.compact-summary-strip span,
+.compact-summary-strip strong {
+  display: block;
+}
+
+.compact-summary-strip span {
+  margin-bottom: 5px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.compact-summary-strip strong {
+  font-family: Fraunces, serif;
+  font-size: 24px;
+  line-height: 1;
+}
+
+/* Solicitudes online */
+
+.request-title-row {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.request-title-row > div {
+  min-width: 0;
+}
+
+.request-facts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 9px;
+}
+
+.request-facts > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  min-width: 0;
+  padding: 6px 8px;
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 750;
+  line-height: 1.2;
+}
+
+.request-facts > span.good {
+  background: var(--mint-soft);
+  color: var(--mint);
+}
+
+.request-facts > span.warn {
+  background: var(--gold-soft);
+  color: var(--gold);
+}
+
+.request-extra,
+.record-overview-details,
+.service-details,
+.agenda-more {
+  margin: 0;
+}
+
+.request-extra > summary,
+.record-overview-details > summary,
+.service-details > summary,
+.agenda-more > summary {
+  list-style: none;
+}
+
+.request-extra > summary::-webkit-details-marker,
+.record-overview-details > summary::-webkit-details-marker,
+.service-details > summary::-webkit-details-marker,
+.agenda-more > summary::-webkit-details-marker {
+  display: none;
+}
+
+.request-extra {
+  margin-top: 9px;
+  border-top: 1px solid var(--line);
+}
+
+.request-extra > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 9px;
+  color: var(--primary);
+  cursor: pointer;
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.request-extra[open] > summary i,
+.record-overview-details[open] > summary i,
+.service-details[open] > summary i,
+.settings-accordion[open] .settings-chevron,
+.agenda-more[open] > summary i {
+  transform: rotate(180deg);
+}
+
+.request-extra > summary i,
+.record-overview-details > summary i,
+.service-details > summary i,
+.settings-chevron {
+  transition: transform .2s ease;
+}
+
+.request-extra p {
+  margin: 9px 0 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.request-actions-primary,
+.request-actions-secondary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.request-actions-primary .btn {
+  flex: 1 1 0;
+}
+
+.request-actions-secondary {
+  flex-wrap: wrap;
+  padding-top: 10px;
+  border-top: 1px solid var(--line);
+}
+
+.request-mini-action,
+.action-menu-btn {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 34px;
+  padding: 0 9px;
+  border-radius: 10px;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.request-mini-action:hover,
+.action-menu-btn:hover {
+  background: var(--surface-2);
+  color: var(--text);
+}
+
+.danger-text {
+  color: var(--danger) !important;
+}
+
+/* Agenda móvil nativa */
+
+.agenda-mobile-list {
+  gap: 11px;
+}
+
+.agenda-card {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.agenda-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.agenda-when span,
+.agenda-when strong {
+  display: block;
+}
+
+.agenda-when span {
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.agenda-when strong {
+  margin-top: 3px;
+  font-family: Fraunces, serif;
+  font-size: 21px;
+  line-height: 1;
+}
+
+.agenda-client-link {
+  display: block;
+  width: 100%;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  padding: 0;
+  text-align: left;
+  font-family: Fraunces, serif;
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.agenda-service-line {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 7px;
+}
+
+.agenda-service-line strong {
+  font-size: 11px;
+}
+
+.agenda-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.agenda-facts > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  padding: 8px;
+  border-radius: 11px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 9px;
+  font-weight: 750;
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.agenda-facts > span.good {
+  background: var(--mint-soft);
+  color: var(--mint);
+}
+
+.agenda-facts > span.warn {
+  background: var(--gold-soft);
+  color: var(--gold);
+}
+
+.agenda-reason {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin-top: 10px;
+  padding: 9px;
+  border-radius: 11px;
+  background: var(--danger-soft);
+  color: var(--danger);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.agenda-card-actions {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) auto;
+  gap: 7px;
+  align-items: stretch;
+  margin-top: 12px;
+  padding-top: 11px;
+  border-top: 1px solid var(--line);
+}
+
+.agenda-card-actions > .btn,
+.agenda-more > summary {
+  width: 100%;
+  min-height: 40px;
+  padding: 0 10px;
+  font-size: 10px;
+}
+
+.agenda-more {
+  position: relative;
+}
+
+.agenda-more > summary {
+  min-width: 44px;
+  cursor: pointer;
+}
+
+.agenda-more-menu {
+  position: absolute;
+  right: 0;
+  bottom: calc(100% + 7px);
+  z-index: 20;
+  width: 190px;
+  padding: 7px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface);
+  box-shadow: 0 18px 45px rgba(30, 18, 24, .22);
+}
+
+.agenda-more-menu .action-menu-btn {
+  width: 100%;
+  justify-content: flex-start;
+  min-height: 38px;
+  font-size: 10px;
+}
+
+/* Fichas digitales */
+
+.record-card-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.record-card {
+  min-width: 0;
+  padding: 15px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.record-card-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.record-card-person {
+  display: flex;
+  align-items: center;
+  min-width: 0;
+  gap: 10px;
+}
+
+.record-card-person > div:last-child {
+  min-width: 0;
+}
+
+.record-card-person strong,
+.record-card-person small {
+  display: block;
+}
+
+.record-card-person strong {
+  overflow: hidden;
+  font-family: Fraunces, serif;
+  font-size: 17px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.record-card-person small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 9px;
+}
+
+.record-card-facts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.record-card-facts > div {
+  min-width: 0;
+  padding: 9px;
+  border-radius: 12px;
+  background: var(--surface-2);
+}
+
+.record-card-facts span,
+.record-card-facts strong {
+  display: block;
+}
+
+.record-card-facts span {
+  color: var(--muted);
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-transform: uppercase;
+}
+
+.record-card-facts strong {
+  margin-top: 4px;
+  overflow: hidden;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.record-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 7px;
+  margin-bottom: 10px;
+  padding: 8px;
+  border-radius: 11px;
+  background: var(--gold-soft);
+  color: var(--gold);
+  font-size: 9px;
+  line-height: 1.35;
+}
+
+.record-card-actions {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 7px;
+}
+
+.record-card-actions .btn {
+  min-height: 40px;
+  font-size: 10px;
+}
+
+.record-card-actions .icon-btn {
+  width: 40px;
+  height: 40px;
+}
+
+/* Ficha individual compacta */
+
+.client-profile-compact {
+  grid-template-columns: 72px minmax(0, 1fr) auto;
+  gap: 13px;
+  padding: 14px;
+}
+
+.client-profile-compact .profile-photo {
+  width: 72px;
+  height: 72px;
+  border-radius: 18px;
+  font-size: 23px;
+}
+
+.client-profile-compact .profile-main h3 {
+  font-size: 22px;
+}
+
+.client-profile-compact .profile-main p {
+  margin-bottom: 7px;
+}
+
+.profile-actions-compact {
+  grid-template-columns: 1fr;
+}
+
+.profile-actions-compact .btn {
+  min-height: 38px;
+  font-size: 10px;
+}
+
+.quick-actions-compact {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.record-overview-details {
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background: var(--surface-2);
+}
+
+.record-overview-details > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 12px 14px;
+  cursor: pointer;
+  color: var(--text);
+  font-size: 11px;
+  font-weight: 800;
+}
+
+.record-overview-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0 18px;
+  padding: 0 14px 12px;
+}
+
+/* Servicios */
+
+.service-toolbar {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.service-toolbar .field {
+  width: min(280px, 100%);
+  margin: 0;
+}
+
+.service-result-count {
+  padding-bottom: 12px;
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.service-list {
+  align-items: start;
+}
+
+.service-card-compact {
+  position: relative;
+  overflow: hidden;
+}
+
+.service-card-compact::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 4px;
+  background: var(--service-color, var(--primary));
+}
+
+.service-main-data {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px 12px;
+}
+
+.service-main-data > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.service-details {
+  margin-top: 11px;
+  border-top: 1px solid var(--line);
+}
+
+.service-details > summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding-top: 10px;
+  cursor: pointer;
+  color: var(--primary);
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.service-details p {
+  margin: 10px 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.service-time-breakdown {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 7px;
+}
+
+.service-time-breakdown > span {
+  padding: 8px;
+  border-radius: 10px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 8px;
+}
+
+.service-time-breakdown strong {
+  display: block;
+  margin-top: 3px;
+  color: var(--text);
+  font-size: 9px;
+}
+
+.service-edit-btn {
+  width: 100%;
+  margin-top: 11px;
+}
+
+/* Configuración ordenada en acordeones */
+
+.settings-accordion-list {
+  display: grid;
+  gap: 10px;
+}
+
+.settings-accordion {
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--surface);
+  box-shadow: var(--shadow);
+}
+
+.settings-accordion > summary {
+  display: grid;
+  grid-template-columns: 42px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 11px;
+  min-height: 72px;
+  padding: 13px 15px;
+  list-style: none;
+  cursor: pointer;
+}
+
+.settings-accordion > summary::-webkit-details-marker {
+  display: none;
+}
+
+.settings-summary-icon {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border-radius: 13px;
+  background: var(--primary-soft);
+  color: var(--primary-dark);
+  font-size: 17px;
+}
+
+.settings-summary-copy {
+  min-width: 0;
+}
+
+.settings-summary-copy strong,
+.settings-summary-copy small {
+  display: block;
+}
+
+.settings-summary-copy strong {
+  font-family: Fraunces, serif;
+  font-size: 17px;
+}
+
+.settings-summary-copy small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 9px;
+  line-height: 1.4;
+}
+
+.settings-chevron {
+  color: var(--muted);
+}
+
+.settings-accordion-body {
+  padding: 0 15px 16px;
+  border-top: 1px solid var(--line);
+}
+
+.settings-subsection {
+  padding-top: 14px;
+}
+
+.settings-subsection + .settings-subsection {
+  margin-top: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.settings-subsection h3 {
+  margin: 0 0 11px;
+  font-size: 12px;
+}
+
+.settings-note {
+  margin: 13px 0;
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.55;
+}
+
+.settings-toggle-list {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.settings-main-toggle {
+  margin: 14px 0;
+}
+
+.settings-message {
+  margin-top: 12px;
+}
+
+/* ================================================================
+   MÓVIL — REEMPLAZO LIMPIO
+   ================================================================ */
 
 @media (max-width: 760px) {
   :root {
-    --mobile-page-x: 14px;
-    --mobile-card-radius: 18px;
-    --mobile-gap: 12px;
+    --mobile-x: 12px;
+    --mobile-radius: 17px;
+    --mobile-gap: 10px;
   }
 
   html {
     -webkit-text-size-adjust: 100%;
-    scroll-behavior: smooth;
+    scroll-padding-top: 72px;
   }
 
   body {
@@ -20,117 +775,57 @@
   }
 
   button,
-  .btn,
-  .icon-btn,
   input,
   select,
   textarea {
-    min-height: 44px;
+    max-width: 100%;
   }
 
-  /* ---------- Barra superior ---------- */
-
-  .topbar {
-    height: 66px;
-    padding: 0 10px;
-    gap: 7px;
+  input,
+  select,
+  textarea,
+  .btn,
+  .icon-btn {
+    min-height: 42px;
   }
 
-  .topbar > .mobile-only,
-  .topbar .icon-btn,
-  .topbar-actions .primary-btn {
-    width: 44px;
-    min-width: 44px;
-    height: 44px;
-    padding: 0;
-    border-radius: 14px;
-  }
+  /* Estructura */
 
-  .topbar-actions {
-    gap: 6px;
-    flex: 0 0 auto;
+  .main-area {
+    width: 100%;
+    margin-left: 0;
   }
-
-  .search-wrap {
-    min-width: 0;
-    margin: 0 2px;
-  }
-
-  .search-box {
-    height: 44px;
-    min-width: 0;
-    padding: 0 12px;
-    border-radius: 14px;
-  }
-
-  .search-box input {
-    min-width: 0;
-    font-size: 14px;
-    text-overflow: ellipsis;
-  }
-
-  .search-box input::placeholder {
-    font-size: 13px;
-  }
-
-  .search-results {
-    top: 60px;
-    left: 8px;
-    right: 8px;
-    max-height: calc(100dvh - 86px);
-    border-radius: 16px;
-  }
-
-  /* ---------- Contenido general ---------- */
 
   .content {
-    padding: 22px var(--mobile-page-x) 92px;
+    width: 100%;
+    max-width: none;
+    padding: 18px var(--mobile-x) 92px !important;
   }
 
   .grid-page,
   .dashboard-grid,
   .side-column,
-  .settings-layout,
-  .booking-request-list,
-  .record-list {
-    gap: var(--mobile-gap);
+  .cards-grid,
+  .record-list,
+  .settings-layout {
+    gap: var(--mobile-gap) !important;
   }
 
-  .hero-row,
-  .page-heading {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: start;
-    gap: 10px;
-    margin-bottom: 18px;
+  .dashboard-grid,
+  .settings-layout {
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 
-  .hero-row > div:first-child,
-  .page-heading > div:first-child {
-    min-width: 0;
-  }
-
-  h1 {
-    font-size: clamp(27px, 8vw, 34px);
-    line-height: 1.08;
-    overflow-wrap: anywhere;
-  }
-
-  h2 {
-    font-size: 20px;
-    line-height: 1.15;
-  }
-
-  .hero-row p,
-  .page-heading p {
-    max-width: 100%;
-    font-size: 13px;
-    line-height: 1.5;
-  }
-
-  .eyebrow {
-    font-size: 9px;
-    letter-spacing: .15em;
+  .panel,
+  .stat-card,
+  .client-card,
+  .service-card,
+  .inventory-card,
+  .finance-card,
+  .record-card,
+  .settings-section {
+    border-radius: var(--mobile-radius) !important;
+    box-shadow: 0 7px 22px rgba(0, 0, 0, .07) !important;
   }
 
   .panel,
@@ -138,517 +833,1103 @@
   .service-card,
   .inventory-card,
   .finance-card,
-  .stat-card,
-  .settings-section {
-    border-radius: var(--mobile-card-radius);
-    box-shadow: 0 8px 24px rgba(0, 0, 0, .08);
+  .record-card {
+    padding: 13px !important;
   }
 
-  .panel {
-    padding: 15px;
+  h1 {
+    margin-bottom: 5px;
+    font-size: clamp(27px, 8vw, 33px) !important;
+    line-height: 1.06;
+    overflow-wrap: anywhere;
   }
 
-  .panel-header {
-    align-items: flex-start;
-    margin-bottom: 14px;
+  h2 {
+    font-size: 20px !important;
+    line-height: 1.12;
   }
 
-  .panel-header h2 {
-    font-size: 20px;
+  .eyebrow {
+    font-size: 8px !important;
+    letter-spacing: .15em;
   }
 
-  /* ---------- Resumen del dashboard ---------- */
+  .hero-row,
+  .page-heading {
+    display: grid !important;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start !important;
+    gap: 9px !important;
+    margin-bottom: 15px !important;
+  }
+
+  .hero-row > div:first-child,
+  .page-heading > div:first-child {
+    min-width: 0;
+  }
+
+  .hero-row p,
+  .page-heading p {
+    max-width: 34ch;
+    margin: 0;
+    color: var(--muted);
+    font-size: 11px !important;
+    line-height: 1.45;
+  }
+
+  .page-icon-action {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    padding: 0;
+    border-radius: 14px;
+  }
+
+  .page-icon-action span {
+    display: none;
+  }
+
+  /* Barra superior */
+
+  .topbar {
+    height: 64px !important;
+    padding: 0 8px !important;
+    gap: 6px;
+  }
+
+  .topbar > .mobile-only,
+  .topbar .icon-btn,
+  .topbar-actions .primary-btn {
+    width: 43px !important;
+    min-width: 43px !important;
+    height: 43px !important;
+    min-height: 43px !important;
+    padding: 0 !important;
+    border-radius: 14px !important;
+  }
+
+  .topbar-actions {
+    flex: 0 0 auto;
+    gap: 5px !important;
+  }
+
+  .search-wrap {
+    flex: 1 1 auto;
+    min-width: 0;
+    width: auto !important;
+    margin: 0 !important;
+  }
+
+  .search-box {
+    width: 100% !important;
+    min-width: 0;
+    height: 43px !important;
+    padding: 0 11px !important;
+    gap: 8px;
+    border-radius: 14px !important;
+  }
+
+  .search-box input {
+    min-width: 0;
+    font-size: 12px !important;
+    text-overflow: ellipsis;
+  }
+
+  .search-box input::placeholder {
+    font-size: 12px;
+  }
+
+  .search-results {
+    position: fixed !important;
+    top: 66px !important;
+    right: 8px !important;
+    left: 8px !important;
+    width: auto !important;
+    max-height: calc(100dvh - 78px) !important;
+    border-radius: 16px !important;
+  }
+
+  /* Resumen dashboard */
 
   .stats-grid {
-    grid-template-columns: 1fr 1fr;
-    gap: 9px;
-    margin-bottom: 12px;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    margin-bottom: 10px !important;
   }
 
   .stat-card {
-    min-height: 118px;
-    padding: 13px;
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 7px;
+    min-height: 104px !important;
+    padding: 11px !important;
+    grid-template-columns: 34px minmax(0, 1fr) !important;
+    gap: 8px !important;
   }
 
   .stat-icon {
-    width: 36px;
-    height: 36px;
-    border-radius: 12px;
-    font-size: 16px;
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 11px !important;
+    font-size: 15px !important;
   }
 
   .stat-card span,
   .stat-card small {
-    font-size: 10px;
-    line-height: 1.35;
+    font-size: 9px !important;
+    line-height: 1.3;
   }
 
   .stat-card strong {
-    margin: 0;
-    font-size: 22px;
-    line-height: 1;
+    margin-top: 2px !important;
+    font-size: 20px !important;
+    line-height: 1.05;
+    overflow-wrap: anywhere;
   }
 
-  .dashboard-grid {
-    grid-template-columns: 1fr;
+  .panel-header {
+    align-items: flex-start !important;
+    gap: 8px !important;
+    margin-bottom: 12px !important;
+  }
+
+  .panel-header h2 {
+    font-size: 19px !important;
   }
 
   .empty-state {
-    padding: 34px 14px;
+    padding: 30px 12px !important;
   }
 
   .empty-state i {
-    font-size: 28px;
+    margin-bottom: 7px;
+    font-size: 27px !important;
   }
 
-  .empty-state h3 {
-    margin-bottom: 5px;
-    font-size: 16px;
+  .empty-state strong {
+    display: block;
+    font-size: 14px;
   }
+
+  .empty-state p {
+    margin: 5px 0 0;
+    font-size: 10px;
+    line-height: 1.45;
+  }
+
+  /* Solicitudes online */
 
   .booking-requests-panel {
-    margin: 12px 0;
+    margin: 10px 0 !important;
+  }
+
+  .booking-request-list {
+    gap: 9px !important;
   }
 
   .booking-request-card {
-    grid-template-columns: 1fr;
-    padding: 12px;
-    gap: 11px;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 10px !important;
+    padding: 12px !important;
+    border-radius: 15px !important;
   }
 
   .request-main {
-    gap: 10px;
+    display: grid !important;
+    grid-template-columns: 38px minmax(0, 1fr) !important;
+    gap: 9px !important;
+  }
+
+  .request-main .client-avatar {
+    width: 38px !important;
+    height: 38px !important;
+    border-radius: 12px !important;
   }
 
   .request-copy h3 {
-    font-size: 13px;
+    margin: 3px 0 !important;
+    font-size: 13px !important;
+    line-height: 1.2;
   }
 
   .request-copy p {
-    font-size: 10px;
+    margin: 0 !important;
+    color: var(--muted);
+    font-size: 9px !important;
+    line-height: 1.4;
   }
 
-  .request-actions {
+  .request-title-row {
+    display: block;
+  }
+
+  .request-title-row > .badge {
+    margin-top: 6px;
+  }
+
+  .request-facts {
     display: grid;
-    grid-template-columns: 1fr 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 6px;
+    margin-top: 8px;
+  }
+
+  .request-facts > span {
+    border-radius: 9px;
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  .request-facts > span:last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+
+  .request-actions-primary {
+    display: grid !important;
+    grid-template-columns: 1.2fr 1fr !important;
+    gap: 7px !important;
     width: 100%;
   }
 
-  .request-actions .btn {
+  .request-actions-primary .btn {
+    min-width: 0;
+    min-height: 40px !important;
+    padding: 0 9px;
+    font-size: 10px !important;
+  }
+
+  .request-actions-secondary {
+    display: flex !important;
+    align-items: center;
+    gap: 4px !important;
+    padding-top: 7px;
+  }
+
+  .request-mini-action {
+    min-height: 32px;
+    padding: 0 7px;
+    font-size: 8px;
+  }
+
+  .birthday-card {
+    grid-template-columns: 36px minmax(0, 1fr) !important;
+    gap: 8px !important;
+    padding: 10px !important;
+  }
+
+  .birthday-icon {
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 11px !important;
+  }
+
+  .birthday-card .btn {
+    grid-column: 1 / -1;
     width: 100%;
-    min-height: 40px;
+    min-height: 38px;
   }
 
-  .request-actions .icon-btn {
-    width: 40px;
-    height: 40px;
-  }
-
-  /* ---------- Citas del dashboard ---------- */
+  /* Agenda del día */
 
   .timeline-item {
-    grid-template-columns: 46px 12px minmax(0, 1fr);
-    min-height: auto;
+    grid-template-columns: 45px 10px minmax(0, 1fr) !important;
+    min-height: auto !important;
   }
 
   .timeline-time {
-    padding-top: 13px;
-    font-size: 11px;
+    padding-top: 12px !important;
+    font-size: 10px !important;
+  }
+
+  .timeline-dot {
+    width: 8px !important;
+    height: 8px !important;
+    margin-top: 16px !important;
   }
 
   .appointment-card {
-    margin: 4px 0 10px;
-    padding: 12px;
-    gap: 10px;
-    border-radius: 15px;
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 9px !important;
+    margin: 3px 0 9px !important;
+    padding: 11px !important;
+    border-left-width: 3px !important;
+    border-radius: 14px !important;
   }
 
   .appointment-main {
     min-width: 0;
-    gap: 10px;
+    gap: 9px !important;
   }
 
   .client-avatar {
-    width: 38px;
-    height: 38px;
-    border-radius: 12px;
+    width: 36px !important;
+    height: 36px !important;
+    border-radius: 11px !important;
     flex: 0 0 auto;
   }
 
   .appointment-card h3 {
-    font-size: 13px;
+    font-size: 13px !important;
   }
 
   .appointment-card p {
-    font-size: 10px;
-    line-height: 1.45;
+    margin-bottom: 6px !important;
+    font-size: 9px !important;
+    line-height: 1.4;
   }
 
-  .appointment-actions {
-    max-width: none;
-    justify-content: flex-end;
-  }
-
-  .appointment-actions .icon-btn {
-    width: 38px;
-    height: 38px;
+  .meta-row {
+    gap: 5px !important;
   }
 
   .badge {
-    padding: 5px 7px;
-    font-size: 9px;
+    padding: 5px 7px !important;
+    font-size: 8px !important;
   }
 
-  /* ---------- Agenda como tarjetas ---------- */
-
-  #agendaView .agenda-filter-bar {
-    padding: 12px;
-    gap: 9px;
-    border-radius: 16px;
-  }
-
-  #agendaView .agenda-filter-actions {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-  }
-
-  #agendaView .agenda-filter-actions .btn {
-    width: 100%;
-  }
-
-  #agendaView .table-wrap {
-    overflow: visible;
-  }
-
-  #agendaView .data-table {
-    min-width: 0;
-    width: 100%;
-    border-collapse: separate;
-  }
-
-  #agendaView .data-table thead {
-    display: none;
-  }
-
-  #agendaView .data-table tbody {
-    display: grid;
-    gap: 10px;
-  }
-
-  #agendaView .data-table tr {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 9px 12px;
-    padding: 13px;
-    border: 1px solid var(--line);
-    border-radius: 16px;
-    background: var(--surface-2);
-  }
-
-  #agendaView .data-table td {
-    display: grid;
-    gap: 3px;
-    min-width: 0;
-    padding: 0;
-    border: 0;
-    font-size: 12px;
-    overflow-wrap: anywhere;
-  }
-
-  #agendaView .data-table td::before {
-    content: attr(data-label);
-    color: var(--muted);
-    font-size: 9px;
-    font-weight: 800;
-    letter-spacing: .05em;
-    text-transform: uppercase;
-  }
-
-  #agendaView .data-table td:nth-last-child(1) {
-    grid-column: 1 / -1;
-  }
-
-  #agendaView .data-table .table-actions {
+  .appointment-actions {
+    display: flex !important;
+    max-width: none !important;
+    flex-wrap: wrap !important;
     justify-content: flex-end;
-    padding-top: 8px;
+    gap: 5px !important;
+    padding-top: 7px;
     border-top: 1px solid var(--line);
   }
 
-  #agendaView .agenda-empty-row {
-    display: block;
+  .appointment-actions .icon-btn {
+    width: 34px !important;
+    height: 34px !important;
+    min-height: 34px !important;
   }
 
-  #agendaView .agenda-empty-row td {
-    display: block;
-    padding: 24px 10px !important;
+  /* Agenda completa: tarjetas nativas, no tabla deformada */
+
+  .agenda-desktop-table {
+    display: none !important;
   }
 
-  /* ---------- Clientas y fichas ---------- */
-
-  .cards-grid {
-    gap: 11px;
-  }
-
-  .client-card,
-  .service-card,
-  .inventory-card,
-  .finance-card {
-    padding: 14px;
-  }
-
-  .client-head {
-    margin-bottom: 10px;
-  }
-
-  .client-card-actions {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .client-card-actions .btn {
-    min-height: 40px;
-  }
-
-  .record-row {
-    padding: 13px;
-    gap: 10px;
-  }
-
-  .record-row .record-metric {
+  .agenda-mobile-list {
     display: grid !important;
-    grid-template-columns: 1fr auto;
-    align-items: center;
-    padding: 7px 0;
-    border-bottom: 1px solid var(--line);
   }
 
-  .record-row .record-metric span {
+  .agenda-filter-bar {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+    margin-bottom: 10px !important;
+    padding: 11px !important;
+    border-radius: 15px !important;
+  }
+
+  .agenda-filter-bar .field {
+    min-width: 0;
     margin: 0;
   }
 
-  .record-row-actions {
-    justify-content: flex-end;
+  .agenda-filter-bar .field span {
+    font-size: 8px !important;
   }
 
-  .record-modal-card > .modal-header h2 {
+  .agenda-filter-bar input,
+  .agenda-filter-bar select {
+    min-width: 0;
+    height: 40px;
+    font-size: 10px;
+  }
+
+  .agenda-filter-actions {
+    grid-column: 1 / -1;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 7px !important;
+  }
+
+  .agenda-filter-actions .btn {
+    width: 100%;
+    min-height: 38px !important;
+    font-size: 10px !important;
+  }
+
+  .agenda-filter-summary {
+    grid-column: 1 / -1;
+    justify-self: start !important;
+    font-size: 9px !important;
+  }
+
+  /* Fichas digitales */
+
+  .compact-summary-strip {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+    margin-bottom: 10px;
+  }
+
+  .compact-summary-strip > article {
+    min-height: 65px;
+    padding: 10px;
+    border-radius: 13px;
+    box-shadow: none;
+  }
+
+  .compact-summary-strip span {
+    font-size: 7px;
+    letter-spacing: .02em;
+  }
+
+  .compact-summary-strip strong {
     font-size: 19px;
   }
 
+  .record-card-list {
+    grid-template-columns: 1fr;
+    gap: 9px;
+  }
+
+  .record-card {
+    padding: 12px !important;
+  }
+
+  .record-card-head {
+    gap: 7px;
+  }
+
+  .record-card-person strong {
+    font-size: 15px;
+  }
+
+  .record-card-facts {
+    gap: 6px;
+    margin: 9px 0;
+  }
+
+  .record-card-facts > div {
+    padding: 8px;
+  }
+
+  .record-card-actions {
+    grid-template-columns: 1fr 38px 38px;
+    gap: 6px;
+  }
+
+  .record-card-actions .btn,
+  .record-card-actions .icon-btn {
+    min-height: 38px !important;
+    height: 38px !important;
+  }
+
+  /* Modal de ficha */
+
+  .modal-backdrop:has(.record-modal-card) {
+    align-items: stretch !important;
+    padding: 0 !important;
+  }
+
+  .record-modal-card {
+    width: 100vw !important;
+    height: 100dvh !important;
+    max-height: 100dvh !important;
+    padding: 0 !important;
+    border-radius: 0 !important;
+    overflow: auto !important;
+  }
+
+  .record-modal-card > .modal-header {
+    position: sticky !important;
+    top: 0;
+    z-index: 20;
+    margin: 0 !important;
+    padding: 11px 12px 9px !important;
+    border-bottom: 1px solid var(--line);
+    background: color-mix(in srgb, var(--surface) 96%, transparent);
+    backdrop-filter: blur(14px);
+  }
+
+  .record-modal-card > .modal-header h2 {
+    font-size: 18px !important;
+  }
+
+  .record-modal-card > .modal-header p {
+    display: none !important;
+  }
+
   .record-tabs {
-    top: 66px;
+    position: sticky !important;
+    top: 62px !important;
+    z-index: 19;
+    gap: 3px !important;
+    margin: 0 !important;
+    padding: 6px 9px !important;
+    border-width: 0 0 1px !important;
+    border-radius: 0 !important;
+    background: color-mix(in srgb, var(--surface) 97%, transparent) !important;
   }
 
   .record-tabs button {
-    min-height: 38px;
+    min-height: 34px !important;
+    padding: 7px 9px !important;
+    font-size: 9px !important;
   }
 
-  .client-summary-grid {
-    margin: 0 -2px;
+  .record-tabs button i {
+    font-size: 13px !important;
   }
 
-  .summary-metric {
-    min-width: 72vw;
-    padding: 12px;
+  #recordFormContent {
+    padding: 10px !important;
   }
 
-  .quick-actions-grid,
-  .quick-actions-grid.four {
-    grid-template-columns: 1fr 1fr;
+  .client-profile-hero,
+  .client-profile-compact {
+    display: grid !important;
+    grid-template-columns: 54px minmax(0, 1fr) !important;
+    gap: 9px !important;
+    padding: 11px !important;
+    border-radius: 15px !important;
   }
 
-  /* ---------- Servicios ---------- */
-
-  #servicesView .compact-filter-row {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    align-items: end;
-    gap: 9px;
+  .client-profile-compact .profile-photo,
+  .client-profile-hero .profile-photo {
+    width: 54px !important;
+    height: 54px !important;
+    border-radius: 14px !important;
+    font-size: 18px !important;
   }
 
-  #servicesView .compact-filter-row .field {
-    max-width: none;
+  .client-profile-hero .profile-main,
+  .client-profile-compact .profile-main {
+    min-width: 0;
   }
 
-  #servicesView .compact-filter-row > .muted {
-    padding-bottom: 11px;
+  .client-profile-hero .profile-main h3,
+  .client-profile-compact .profile-main h3 {
+    margin: 1px 0 3px !important;
+    font-size: 18px !important;
+    line-height: 1.1;
+  }
+
+  .client-profile-hero .profile-main p,
+  .client-profile-compact .profile-main p {
+    margin-bottom: 6px !important;
+    overflow: hidden;
+    font-size: 9px !important;
+    text-overflow: ellipsis;
     white-space: nowrap;
   }
 
-  #servicesView .stats-grid {
-    grid-template-columns: repeat(3, 1fr);
+  .profile-actions,
+  .profile-actions-compact {
+    grid-column: 1 / -1;
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 7px !important;
   }
 
-  #servicesView .stat-card {
-    min-height: 86px;
-    padding: 11px;
+  .profile-actions .btn,
+  .profile-actions-compact .btn {
+    min-height: 38px !important;
+    padding: 0 8px;
+    font-size: 9px !important;
   }
 
-  #servicesView .stat-card .stat-icon {
-    display: none;
+  .client-summary-grid {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+    overflow: visible !important;
+    padding: 0 !important;
   }
 
-  #servicesView .stat-card span {
+  .summary-metric {
+    min-width: 0 !important;
+    padding: 9px !important;
+    border-radius: 12px !important;
+  }
+
+  .summary-metric span {
+    font-size: 8px !important;
+  }
+
+  .summary-metric strong {
+    margin: 4px 0 2px !important;
+    font-size: 13px !important;
+    line-height: 1.12;
+    overflow-wrap: anywhere;
+  }
+
+  .summary-metric small {
+    display: none !important;
+  }
+
+  .record-overview-details {
+    border-radius: 13px;
+  }
+
+  .record-overview-details > summary {
+    min-height: 40px;
+    padding: 10px 11px;
+    font-size: 10px;
+  }
+
+  .record-overview-grid {
+    grid-template-columns: 1fr !important;
+    padding: 0 11px 10px;
+  }
+
+  .quick-actions-grid,
+  .quick-actions-grid.four,
+  .quick-actions-compact {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 7px !important;
+  }
+
+  .quick-action {
+    min-height: 48px;
+    padding: 9px !important;
+  }
+
+  .quick-action i {
+    margin: 0 0 4px !important;
+    font-size: 15px !important;
+  }
+
+  .quick-action strong {
+    font-size: 9px !important;
+  }
+
+  .quick-action span {
+    display: none !important;
+  }
+
+  .record-section {
+    padding: 12px !important;
+    border-radius: 15px !important;
+  }
+
+  .record-section-heading {
+    gap: 8px !important;
+  }
+
+  .record-section-heading h3 {
+    font-size: 15px !important;
+  }
+
+  .record-grid,
+  .record-grid.three,
+  .design-layout,
+  .signature-row,
+  .record-form-grid,
+  .record-detail-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 9px !important;
+  }
+
+  .record-actions,
+  .modal-actions {
+    position: sticky !important;
+    bottom: 0 !important;
+    z-index: 20;
+    margin: 10px -10px -10px !important;
+    padding: 8px 10px calc(8px + env(safe-area-inset-bottom)) !important;
+    gap: 7px !important;
+    background: color-mix(in srgb, var(--surface) 97%, transparent) !important;
+    backdrop-filter: blur(14px);
+    border-top: 1px solid var(--line);
+  }
+
+  .record-actions .btn,
+  .modal-actions .btn {
+    min-height: 40px !important;
+    padding: 0 9px !important;
+    font-size: 10px !important;
+  }
+
+  .record-actions #printRecordBtn,
+  .record-actions #copyFormLinkBtn {
+    display: none !important;
+  }
+
+  .history-item {
+    grid-template-columns: 1fr !important;
+    padding: 10px !important;
+  }
+
+  .history-actions,
+  .record-row-actions {
+    display: flex !important;
+    justify-content: flex-end !important;
+    flex-wrap: wrap;
+    gap: 5px !important;
+  }
+
+  .record-row-actions .btn {
+    width: auto !important;
+    min-width: 36px !important;
+    height: 36px !important;
+    padding: 0 9px !important;
+    font-size: 9px !important;
+  }
+
+  .record-row-actions .btn i {
+    margin: 0 !important;
+    font-size: 13px !important;
+  }
+
+  /* Servicios */
+
+  .service-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 8px;
+    margin-bottom: 10px;
+  }
+
+  .service-toolbar .field {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .service-result-count {
+    padding-bottom: 11px;
     font-size: 9px;
+    white-space: nowrap;
   }
 
-  #servicesView .stat-card strong {
-    font-size: 21px;
+  .service-summary-strip {
+    margin-bottom: 10px;
+  }
+
+  .service-list {
+    grid-template-columns: 1fr !important;
+  }
+
+  .service-card-compact {
+    padding: 12px 12px 12px 15px !important;
   }
 
   .service-card-top {
-    margin-bottom: 9px;
+    gap: 8px !important;
+    margin-bottom: 8px !important;
   }
 
   .service-card-top h3 {
-    margin-top: 6px;
-    font-size: 17px;
+    margin: 6px 0 0 !important;
+    font-size: 17px !important;
+  }
+
+  .service-card-top .icon-btn {
+    width: 37px !important;
+    min-width: 37px !important;
+    height: 37px !important;
+    min-height: 37px !important;
+  }
+
+  .service-main-data {
+    gap: 7px 10px;
   }
 
   .service-price {
-    font-size: 20px;
+    width: 100%;
+    font-size: 19px !important;
   }
 
-  .service-card p {
-    margin-bottom: 9px;
-    line-height: 1.45;
+  .service-main-data > span {
+    font-size: 9px;
   }
 
-  .service-actions {
-    align-items: stretch;
+  .service-details {
+    margin-top: 9px;
   }
 
-  .service-actions .btn {
-    min-height: 40px;
+  .service-details > summary {
+    min-height: 34px;
+    padding-top: 8px;
   }
 
-  /* ---------- Inventario ---------- */
+  .service-time-breakdown {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 5px;
+  }
+
+  .service-time-breakdown > span {
+    padding: 7px 5px;
+    text-align: center;
+  }
+
+  .service-edit-btn {
+    min-height: 38px !important;
+    margin-top: 9px;
+    font-size: 10px !important;
+  }
+
+  /* Inventario */
 
   .inventory-filter-bar {
-    gap: 9px;
-    margin-bottom: 12px;
-    padding: 12px;
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px !important;
+    margin-bottom: 10px !important;
+    padding: 11px !important;
+    border-radius: 15px !important;
+    box-shadow: none !important;
   }
 
-  .inventory-card-head h3 {
-    margin: 8px 0 4px;
-    font-size: 17px;
+  .inventory-filter-count {
+    padding: 0 !important;
+    font-size: 9px !important;
+  }
+
+  .inventory-card-head h3,
+  .inventory-card h3 {
+    font-size: 16px !important;
   }
 
   .inventory-card p {
-    margin: 9px 0;
-    line-height: 1.45;
+    margin: 8px 0 !important;
+    font-size: 10px !important;
+    line-height: 1.4;
   }
 
   .inventory-actions {
-    grid-template-columns: 1fr 1fr;
-    gap: 8px;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 7px !important;
+    margin-top: 10px !important;
   }
 
   .inventory-actions .primary-btn {
     grid-column: 1 / -1;
   }
 
-  /* ---------- Configuración ---------- */
+  .inventory-actions .btn {
+    min-height: 38px !important;
+    font-size: 9px !important;
+  }
+
+  /* Configuración en acordeones */
 
   #settingsView .page-heading {
-    grid-template-columns: 1fr;
+    grid-template-columns: minmax(0, 1fr) !important;
   }
 
   #settingsView .page-heading .badge {
     width: fit-content;
   }
 
-  .settings-section {
-    padding: 15px;
-  }
-
-  .settings-section h2 {
-    font-size: 22px;
-  }
-
-  .settings-section .form-grid {
-    gap: 11px;
-  }
-
-  .settings-switches {
+  .settings-accordion-list {
     gap: 8px;
   }
 
-  .settings-switches .check-option {
-    padding: 11px;
+  .settings-accordion {
+    border-radius: 15px;
+    box-shadow: none;
   }
 
-  .settings-savebar {
-    position: sticky;
-    bottom: 8px;
-    padding: 9px;
-    border-radius: 16px;
-    gap: 7px;
+  .settings-accordion > summary {
+    grid-template-columns: 37px minmax(0, 1fr) auto auto;
+    gap: 9px;
+    min-height: 62px;
+    padding: 10px 11px;
   }
 
-  .settings-savebar span {
-    display: none;
+  .settings-summary-icon {
+    width: 37px;
+    height: 37px;
+    border-radius: 11px;
+    font-size: 15px;
   }
 
-  .settings-savebar .btn {
-    min-height: 46px;
-  }
-
-  .availability-block-row {
-    align-items: flex-start;
-  }
-
-  .availability-block-row .icon-btn {
-    flex: 0 0 auto;
-  }
-
-  input[type="color"] {
-    width: 100%;
-    min-height: 48px;
-    padding: 5px;
-  }
-
-  /* ---------- Menú lateral ---------- */
-
-  .sidebar {
-    width: min(86vw, 340px);
-    padding: 20px 14px 14px;
-  }
-
-  .brand {
-    padding: 0 8px 16px;
-  }
-
-  .brand-mark {
-    width: 46px;
-    height: 46px;
-  }
-
-  .brand strong {
-    font-size: 21px;
-  }
-
-  .nav-menu {
-    gap: 3px;
-  }
-
-  .nav-label {
-    padding: 13px 11px 5px;
-    font-size: 9px;
-  }
-
-  .nav-link {
-    min-height: 46px;
-    padding: 10px 12px;
-    gap: 11px;
+  .settings-summary-copy strong {
     font-size: 14px;
   }
 
+  .settings-summary-copy small {
+    max-width: 32ch;
+    font-size: 8px;
+  }
+
+  .settings-accordion-body {
+    padding: 0 11px 12px;
+  }
+
+  .settings-subsection {
+    padding-top: 11px;
+  }
+
+  .settings-subsection + .settings-subsection {
+    margin-top: 11px;
+  }
+
+  .settings-subsection h3 {
+    margin-bottom: 8px;
+    font-size: 11px;
+  }
+
+  .settings-accordion .form-grid,
+  .settings-accordion .form-grid.three,
+  .settings-toggle-list,
+  .settings-switches {
+    grid-template-columns: minmax(0, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  .settings-days {
+    margin-top: 11px !important;
+  }
+
+  .settings-days .preference-options {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 6px !important;
+  }
+
+  .settings-accordion .check-option {
+    min-height: 45px;
+    padding: 9px !important;
+    border-radius: 12px !important;
+  }
+
+  .settings-accordion .check-option strong {
+    font-size: 10px;
+  }
+
+  .settings-accordion .check-option small {
+    margin-top: 2px;
+    font-size: 8px;
+    line-height: 1.35;
+  }
+
+  .settings-accordion .field {
+    gap: 5px !important;
+  }
+
+  .settings-accordion .field > span {
+    font-size: 9px !important;
+  }
+
+  .settings-accordion input,
+  .settings-accordion select,
+  .settings-accordion textarea {
+    font-size: 11px !important;
+  }
+
+  .settings-data-actions {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 7px !important;
+  }
+
+  .settings-data-actions .danger-btn {
+    grid-column: 1 / -1;
+  }
+
+  .settings-savebar {
+    position: sticky !important;
+    bottom: 7px !important;
+    z-index: 18;
+    display: block !important;
+    padding: 7px !important;
+    border-radius: 14px !important;
+    box-shadow: 0 13px 32px rgba(0, 0, 0, .16) !important;
+  }
+
+  .settings-savebar span,
+  .settings-savebar small,
+  .settings-savebar p {
+    display: none !important;
+  }
+
+  .settings-savebar .btn {
+    width: 100%;
+    min-height: 42px !important;
+    font-size: 10px !important;
+  }
+
+  .availability-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  .availability-form .field:first-child,
+  .availability-form .field:nth-child(4),
+  .availability-form .block-all-day,
+  .availability-form .btn {
+    grid-column: 1 / -1;
+  }
+
+  .availability-block-row {
+    align-items: flex-start !important;
+    padding: 9px !important;
+  }
+
+  .availability-block-row .icon-btn {
+    width: 34px !important;
+    min-width: 34px !important;
+    height: 34px !important;
+    min-height: 34px !important;
+  }
+
+  .google-calendar-card {
+    grid-template-columns: 37px minmax(0, 1fr) !important;
+    gap: 9px !important;
+    padding: 10px !important;
+  }
+
+  .google-calendar-card > i {
+    width: 37px !important;
+    height: 37px !important;
+    border-radius: 11px !important;
+  }
+
+  input[type="color"] {
+    width: 100% !important;
+    min-height: 46px !important;
+    padding: 4px;
+  }
+
+  /* Menú lateral */
+
+  .sidebar {
+    width: min(84vw, 318px) !important;
+    padding: 18px 13px 12px !important;
+  }
+
+  .brand {
+    gap: 10px !important;
+    padding: 0 8px 16px !important;
+  }
+
+  .brand-mark {
+    width: 43px !important;
+    height: 43px !important;
+    border-radius: 13px !important;
+  }
+
+  .brand strong {
+    font-size: 21px !important;
+  }
+
+  .nav-menu {
+    gap: 2px !important;
+  }
+
+  .nav-label {
+    padding: 11px 10px 4px !important;
+    font-size: 8px !important;
+  }
+
+  .nav-link {
+    min-height: 44px;
+    gap: 10px !important;
+    padding: 9px 11px !important;
+    border-radius: 12px !important;
+    font-size: 13px !important;
+  }
+
+  .nav-link i {
+    font-size: 17px !important;
+  }
+
   .sidebar-profile {
-    padding-top: 12px;
+    padding-top: 10px !important;
   }
 
   .profile-copy strong {
@@ -656,270 +1937,169 @@
     text-overflow: ellipsis;
   }
 
-  /* ---------- Notificaciones como panel inferior ---------- */
+  /* Notificaciones como hoja inferior */
 
   .notification-popover {
-    top: auto;
-    right: 10px;
-    bottom: 10px;
-    left: 10px;
-    width: auto;
-    max-height: min(70dvh, 560px);
+    top: auto !important;
+    right: 8px !important;
+    bottom: calc(8px + env(safe-area-inset-bottom));
+    left: 8px !important;
+    width: auto !important;
+    max-height: min(72dvh, 520px);
     overflow: auto;
-    padding: 14px;
-    border-radius: 22px;
+    padding: 12px !important;
+    border-radius: 20px !important;
   }
 
   .notification-popover-head {
     position: sticky;
-    top: -14px;
+    top: -12px;
     z-index: 2;
-    margin: -14px -14px 0;
-    padding: 14px;
+    margin: -12px -12px 0;
+    padding: 12px;
     background: var(--surface);
   }
 
+  .notification-popover-head h3 {
+    font-size: 17px !important;
+  }
+
   .notification-popover-list {
-    max-height: none;
+    max-height: none !important;
+    gap: 7px !important;
+    padding: 8px 0 !important;
   }
 
   .notification-mini-item {
-    padding: 10px;
+    grid-template-columns: 35px minmax(0, 1fr) 34px !important;
+    gap: 8px !important;
+    padding: 9px !important;
+    border-radius: 12px !important;
   }
 
-  /* ---------- Modales generales ---------- */
+  .notification-mini-icon {
+    width: 35px !important;
+    height: 35px !important;
+    border-radius: 11px !important;
+  }
+
+  .notification-mini-item .icon-btn {
+    width: 34px !important;
+    height: 34px !important;
+    min-height: 34px !important;
+  }
+
+  /* Modales generales */
 
   .modal-backdrop:not(:has(.record-modal-card)) {
-    align-items: flex-end;
-    padding: 0;
+    align-items: flex-end !important;
+    padding: 0 !important;
   }
 
   .modal-backdrop:not(:has(.record-modal-card)) .modal-card {
-    width: 100%;
-    max-height: 90dvh;
-    padding: 18px 14px calc(18px + env(safe-area-inset-bottom));
-    border-radius: 24px 24px 0 0;
+    width: 100% !important;
+    max-height: 90dvh !important;
+    padding: 16px 12px calc(14px + env(safe-area-inset-bottom)) !important;
+    border-radius: 22px 22px 0 0 !important;
   }
 
   .modal-header {
-    margin-bottom: 15px;
+    margin-bottom: 12px !important;
   }
 
-  .modal-actions {
-    position: sticky;
-    bottom: -18px;
-    margin: 18px -14px -18px;
-    padding: 10px 14px calc(10px + env(safe-area-inset-bottom));
-    background: color-mix(in srgb, var(--surface) 96%, transparent);
-    backdrop-filter: blur(14px);
-    border-top: 1px solid var(--line);
+  .modal-header h2 {
+    font-size: 19px !important;
   }
 
-  .modal-actions .btn {
-    flex: 1;
+  /* Fotografías */
+
+  .photo-gallery {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
   }
 
-  /* ---------- Reserva pública ---------- */
-
-  .booking-card {
-    padding: 16px 14px 96px !important;
+  .photo-open {
+    height: 132px !important;
   }
 
-  .booking-steps {
-    position: sticky;
-    top: 0;
-    z-index: 6;
-    margin: -16px -14px 18px;
-    padding: 13px 14px 10px;
-    background: color-mix(in srgb, var(--surface) 96%, transparent);
-    backdrop-filter: blur(14px);
+  .photo-card-body {
+    padding: 9px !important;
   }
 
-  .booking-steps span {
-    height: 4px;
+  .photo-card-body p {
+    min-height: 0 !important;
+    font-size: 8px !important;
   }
 
-  .step h2 {
-    font-size: 25px;
-    line-height: 1.12;
-    margin-bottom: 7px;
-  }
-
-  .step-intro {
-    margin-bottom: 16px;
-    font-size: 12px;
-    line-height: 1.5;
-  }
-
-  .area-grid {
-    gap: 8px;
-    margin-bottom: 14px;
-  }
-
-  .area-btn {
-    min-height: 92px;
-    padding: 11px 7px;
-    border-radius: 15px;
-  }
-
-  .area-btn i {
-    font-size: 19px;
-  }
-
-  .choice-grid {
-    gap: 9px;
-  }
-
-  .choice {
-    padding: 13px;
-    border-radius: 15px;
-  }
-
-  .choice strong {
-    font-size: 14px;
-  }
-
-  .choice small {
-    font-size: 10px;
-  }
-
-  .time-grid {
-    gap: 8px;
-  }
-
-  .time-btn {
-    min-height: 44px;
-    padding: 9px 7px;
-  }
-
-  .deposit-box,
-  .details-box,
-  .policy-box {
-    margin-top: 14px;
-    padding: 13px;
-    border-radius: 16px;
-  }
-
-  .deposit-heading {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 8px;
-  }
-
-  .deposit-heading h3 {
-    font-size: 17px;
-  }
-
-  .deposit-options {
-    gap: 8px;
-  }
-
-  .deposit-option,
-  .simple-option {
-    padding: 11px;
-    border-radius: 13px;
-  }
-
-  .optional-head {
-    align-items: flex-start;
-  }
-
-  .optional-head .btn {
-    min-width: 44px;
-    padding: 0 12px;
-    white-space: nowrap;
-  }
-
-  .step-help {
-    padding: 12px;
-    margin-bottom: 12px;
-  }
-
-  .policy-text,
-  .consent-public {
-    max-height: 150px !important;
-    padding: 12px;
-    font-size: 10px;
-  }
-
-  .accept-card {
-    gap: 10px;
-    padding: 12px !important;
-    border-width: 1px;
-  }
-
-  .accept-card input {
-    width: 20px !important;
-    height: 20px !important;
-    min-width: 20px !important;
-    max-width: 20px !important;
-    flex-basis: 20px !important;
-  }
-
-  .accept-card strong {
-    font-size: 11px;
-  }
-
-  .required-note {
-    padding-left: 2px;
-    font-size: 9px;
-  }
-
-  .booking-footer {
-    gap: 8px;
-    padding:
-      9px 12px
-      calc(9px + env(safe-area-inset-bottom)) !important;
-  }
-
-  .booking-footer .btn {
-    min-height: 46px;
-    border-radius: 14px;
-  }
-
-  .booking-footer #backBtn {
-    flex: .65;
-  }
-
-  .booking-footer #nextBtn {
-    flex: 1.35;
-  }
-
-  .toast {
-    right: 12px;
-    bottom: calc(76px + env(safe-area-inset-bottom));
-    left: 12px;
-    text-align: center;
-  }
+  /* Fin móvil */
 }
 
-@media (max-width: 380px) {
-  .content {
-    padding-right: 11px;
-    padding-left: 11px;
-  }
-
-  h1 {
-    font-size: 27px;
-  }
-
-  .stats-grid {
-    gap: 7px;
-  }
-
-  .stat-card {
-    padding: 11px;
+@media (max-width: 390px) {
+  :root {
+    --mobile-x: 9px;
   }
 
   .topbar {
-    padding: 0 7px;
+    padding: 0 6px !important;
+  }
+
+  .topbar > .mobile-only,
+  .topbar .icon-btn,
+  .topbar-actions .primary-btn {
+    width: 41px !important;
+    min-width: 41px !important;
+    height: 41px !important;
+    min-height: 41px !important;
   }
 
   .search-box {
-    padding: 0 9px;
+    height: 41px !important;
+    padding: 0 9px !important;
   }
 
+  .search-box input,
   .search-box input::placeholder {
-    font-size: 12px;
+    font-size: 11px !important;
+  }
+
+  h1 {
+    font-size: 27px !important;
+  }
+
+  .stat-card {
+    min-height: 98px !important;
+  }
+
+  .agenda-card-actions {
+    grid-template-columns: 1fr 1fr 43px;
+  }
+
+  .agenda-card-actions > .btn,
+  .agenda-more > summary {
+    padding: 0 6px;
+    font-size: 9px;
+  }
+
+  .record-tabs button {
+    padding: 7px 8px !important;
+  }
+
+  .settings-summary-copy small {
+    display: none;
+  }
+
+  .settings-accordion > summary {
+    min-height: 56px;
+  }
+}
+
+/* En escritorio, la agenda sigue usando tabla. */
+@media (min-width: 761px) {
+  .agenda-desktop-table {
+    display: block;
+  }
+
+  .agenda-mobile-list {
+    display: none !important;
   }
 }

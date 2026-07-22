@@ -406,21 +406,53 @@
 
     const requestList = $("#bookingRequestList");
     $("#bookingRequestCount").textContent = requests.length;
-    requestList.innerHTML = requests.length ? requests.map(appointment => {
-      const service = serviceById(appointment.serviceId);
-      const client = clientById(appointment.clientId);
-      const formStatus = formStatusForAppointment(appointment);
-      const isPast = appointment.date < todayISO;
-      const generalDetails = [appointment.requestedAreas?.join(", "), appointment.preferenceStyle, appointment.clientRequest].filter(Boolean).join(" · ");
-      return `<article class="booking-request-card" id="request-${appointment.id}">
-        <div class="request-main"><div class="client-avatar">${initials(appointment.client)}</div><div class="request-copy">
-          <div class="meta-row"><span class="badge status-requested"><i class="bi bi-globe2"></i> Solicitud online</span>${isPast ? '<span class="badge status-rejected">Fecha vencida</span>' : ""}<span class="badge ${formStatus === "complete" ? "status-complete" : "status-incomplete"}">${formStatus === "complete" ? "Ficha lista" : "Ficha pendiente"}</span><span class="badge ${appointment.depositStatus === "proof_uploaded" || appointment.depositStatus === "confirmed_whatsapp" ? "status-complete" : "status-incomplete"}"><i class="bi bi-cash-coin"></i> ${esc(depositStatusLabel(appointment))}</span></div>
-          <h3>${esc(appointment.client)} · ${esc(service.name)}</h3>
-          <p>${dateLabel(appointment.date,{weekday:"long",day:"numeric",month:"long"})} a las ${esc(appointment.time)} · ${esc(appointment.phone || client?.phone || "Sin WhatsApp")}${generalDetails ? ` · ${esc(generalDetails)}` : ""}${appointment.notes ? ` · ${esc(appointment.notes)}` : ""}</p>
-        </div></div>
-        <div class="request-actions"><button class="btn primary-btn" onclick="window.confirmAppointment(${Number(appointment.id)})"><i class="bi bi-check2"></i>${DATA.settings.autoOpenConfirmationWhatsApp ? "Confirmar + WhatsApp" : "Confirmar"}</button><button class="btn ghost-btn" onclick="window.editAppointment(${Number(appointment.id)})"><i class="bi bi-pencil"></i>Editar</button>${appointment.depositProofId ? `<button class="btn ghost-btn" onclick="window.openDepositProof(${Number(appointment.id)})"><i class="bi bi-image"></i>Comprobante</button>` : ""}<button class="icon-btn" title="Abrir ficha" onclick="window.openClientRecord(${Number(appointment.clientId)})"><i class="bi bi-clipboard2-heart"></i></button><button class="icon-btn" title="Rechazar solicitud" onclick="window.rejectAppointment(${Number(appointment.id)})"><i class="bi bi-x-lg"></i></button></div>
-      </article>`;
-    }).join("") : `<div class="empty-state compact-empty"><i class="bi bi-check2-circle"></i><strong>No hay solicitudes por revisar</strong><p>Las nuevas reservas del enlace público aparecerán aquí.</p></div>`;
+
+requestList.innerHTML = requests.length ? requests.map(appointment => {
+  const service = serviceById(appointment.serviceId);
+  const client = clientById(appointment.clientId);
+  const formStatus = formStatusForAppointment(appointment);
+  const isPast = appointment.date < todayISO;
+  const generalDetails = [appointment.requestedAreas?.join(", "), appointment.preferenceStyle, appointment.clientRequest].filter(Boolean).join(" · ");
+  const detailsText = [generalDetails, appointment.notes].filter(Boolean).join(" · ");
+
+  return `<article class="booking-request-card booking-request-compact" id="request-${appointment.id}">
+    <div class="request-main">
+      <div class="client-avatar">${initials(appointment.client)}</div>
+      <div class="request-copy">
+        <div class="request-title-row">
+          <div>
+            <div class="meta-row">
+              <span class="badge status-requested"><i class="bi bi-globe2"></i>Solicitud online</span>
+              ${isPast ? '<span class="badge status-rejected">Fecha vencida</span>' : ""}
+            </div>
+            <h3>${esc(appointment.client)}</h3>
+            <strong class="request-service">${esc(service.name)}</strong>
+          </div>
+          <span class="badge ${formStatus === "complete" ? "status-complete" : "status-incomplete"}">${formStatus === "complete" ? "Ficha lista" : "Ficha pendiente"}</span>
+        </div>
+
+        <div class="request-facts">
+          <span><i class="bi bi-calendar3"></i>${dateLabel(appointment.date,{weekday:"short",day:"numeric",month:"short"})} · ${esc(appointment.time)}</span>
+          <span><i class="bi bi-whatsapp"></i>${esc(appointment.phone || client?.phone || "Sin WhatsApp")}</span>
+          <span class="${appointment.depositStatus === "proof_uploaded" || appointment.depositStatus === "confirmed_whatsapp" ? "good" : "warn"}"><i class="bi bi-cash-coin"></i>${esc(depositStatusLabel(appointment))}</span>
+        </div>
+
+        ${detailsText ? `<details class="request-extra"><summary>Ver detalles de la solicitud <i class="bi bi-chevron-down"></i></summary><p>${esc(detailsText)}</p></details>` : ""}
+      </div>
+    </div>
+
+    <div class="request-actions request-actions-primary">
+      <button class="btn primary-btn" onclick="window.confirmAppointment(${Number(appointment.id)})"><i class="bi bi-check2"></i>${DATA.settings.autoOpenConfirmationWhatsApp ? "Confirmar + WhatsApp" : "Confirmar"}</button>
+      <button class="btn ghost-btn" onclick="window.editAppointment(${Number(appointment.id)})"><i class="bi bi-pencil"></i>Editar</button>
+    </div>
+
+    <div class="request-actions request-actions-secondary">
+      <button class="request-mini-action" title="Abrir ficha" onclick="window.openClientRecord(${Number(appointment.clientId)})"><i class="bi bi-clipboard2-heart"></i><span>Ficha</span></button>
+      ${appointment.depositProofId ? `<button class="request-mini-action" onclick="window.openDepositProof(${Number(appointment.id)})"><i class="bi bi-image"></i><span>Comprobante</span></button>` : ""}
+      <button class="request-mini-action danger-text" title="Rechazar solicitud" onclick="window.rejectAppointment(${Number(appointment.id)})"><i class="bi bi-x-lg"></i><span>Rechazar</span></button>
+    </div>
+  </article>`;
+}).join("") : `<div class="empty-state compact-empty"><i class="bi bi-check2-circle"></i><strong>No hay solicitudes por revisar</strong><p>Las nuevas reservas del enlace público aparecerán aquí.</p></div>`;
 
     const birthdayPanel = $("#birthdayPanel");
     if (birthdayPanel) birthdayPanel.hidden = !DATA.settings.birthdayNotificationsEnabled;
@@ -467,30 +499,157 @@
     $("#sourceSummary").innerHTML = Object.entries(sources).map(([name, count]) => { const percentage = Math.round(count / all.length * 100); return `<div class="source-row"><span>${esc(name)}</span><div class="source-bar"><span style="width:${percentage}%"></span></div><strong>${percentage}%</strong></div>`; }).join("") || `<span class="muted">Sin datos</span>`;
   }
 
-  function renderAgenda() {
-    const visibleAppointments = DATA.appointments
-      .filter(appointment => !agendaDateFilter || appointment.date === agendaDateFilter)
-      .filter(appointment => agendaStatusFilter === "all" || appointment.status === agendaStatusFilter)
-      .sort((a, b) => a.date.localeCompare(b.date) || minutes(a.time) - minutes(b.time));
-    const rows = visibleAppointments.map(appointment => {
-      const service = serviceById(appointment.serviceId);
-      const formStatus = formStatusForAppointment(appointment);
-      const statusActions = appointment.status === "requested"
-        ? `<button class="icon-btn" title="Confirmar solicitud" onclick="window.confirmAppointment(${Number(appointment.id)})"><i class="bi bi-check2"></i></button><button class="icon-btn" title="Rechazar solicitud" onclick="window.rejectAppointment(${Number(appointment.id)})"><i class="bi bi-x-lg"></i></button>`
-        : appointment.status === "canceled" || appointment.status === "rejected"
-          ? `<button class="icon-btn" title="Reagendar" onclick="window.rescheduleAppointment(${Number(appointment.id)})"><i class="bi bi-calendar2-week"></i></button>`
-          : `<button class="icon-btn" title="Reagendar" onclick="window.rescheduleAppointment(${Number(appointment.id)})"><i class="bi bi-calendar2-week"></i></button><button class="icon-btn" title="Cancelar cita" onclick="window.cancelAppointment(${Number(appointment.id)})"><i class="bi bi-calendar-x"></i></button>${appointment.status === "confirmed" ? `<button class="icon-btn" title="Preparar WhatsApp" onclick="window.openConfirmationWhatsApp(${Number(appointment.id)})"><i class="bi bi-send-check"></i></button>` : `<button class="icon-btn" title="Confirmar" onclick="window.confirmAppointment(${Number(appointment.id)})"><i class="bi bi-check2"></i></button>`}`;
-      const proofAction = appointment.depositProofId ? `<button class="deposit-proof-link" onclick="window.openDepositProof(${Number(appointment.id)})"><i class="bi bi-image"></i>Ver comprobante</button>` : "";
-      const reason = appointment.cancellationReason || appointment.rejectionReason || "";
-      return `<tr><td>${dateLabel(appointment.date, {day:"2-digit", month:"2-digit", year:"numeric"})}</td><td>${esc(appointment.time)}</td><td><button class="text-btn" onclick="window.openClientRecord(${Number(appointment.clientId)})">${esc(appointment.client)}</button></td><td><span class="badge">${esc(service.category || "Servicio")}</span><br>${esc(service.name)}</td><td>${totalDuration(service)} min</td><td>${esc(appointment.source)}</td><td><span class="badge status-${appointmentStatusClass(appointment.status)}">${appointmentStatusLabel(appointment.status)}</span>${reason ? `<div class="appointment-reason">${esc(reason)}</div>` : ""}</td><td><span class="badge ${formStatus === "complete" ? "status-complete" : "status-incomplete"}">${formStatus === "complete" ? "Completa" : "Pendiente"}</span></td><td><span class="badge ${appointment.depositStatus === "proof_uploaded" || appointment.depositStatus === "confirmed_whatsapp" ? "status-complete" : "status-incomplete"}">${esc(depositStatusLabel(appointment))}</span>${proofAction}</td><td class="table-actions">${statusActions}<button class="icon-btn" title="Editar" onclick="window.editAppointment(${Number(appointment.id)})"><i class="bi bi-pencil"></i></button><button class="icon-btn" title="Eliminar definitivamente" onclick="window.deleteAppointment(${Number(appointment.id)})"><i class="bi bi-trash3"></i></button></td></tr>`;
-    }).join("");
-    const statusOptions = [["all","Todos los estados"],["requested","Solicitudes online"],["confirmed","Confirmadas"],["pending","Pendientes"],["completed","Finalizadas"],["canceled","Canceladas"],["rejected","Rechazadas"]];
-    $("#agendaView").innerHTML = `<div class="grid-page"><div class="page-heading"><div><span class="eyebrow">AGENDA</span><h1>Todos los agendamientos</h1><p>Filtra por fecha y estado. Las cancelaciones conservan el motivo y liberan el horario.</p></div></div><div class="agenda-filter-bar"><label class="field"><span>Filtrar por fecha</span><input type="date" id="agendaDateFilter" value="${esc(agendaDateFilter)}"></label><label class="field"><span>Estado</span><select id="agendaStatusFilter">${statusOptions.map(([value,label]) => `<option value="${value}" ${agendaStatusFilter === value ? "selected" : ""}>${label}</option>`).join("")}</select></label><div class="agenda-filter-actions"><button class="btn ghost-btn" id="agendaTodayFilter"><i class="bi bi-calendar-day"></i>Hoy</button><button class="btn ghost-btn" id="agendaClearFilter"><i class="bi bi-x-circle"></i>Limpiar</button></div><div class="agenda-filter-summary">Mostrando ${visibleAppointments.length} de ${DATA.appointments.length} citas</div></div><div class="panel table-wrap"><table class="data-table"><thead><tr><th>Fecha</th><th>Hora</th><th>Clienta</th><th>Servicio</th><th>Bloque</th><th>Origen</th><th>Estado</th><th>Ficha</th><th>Seña</th><th>Acciones</th></tr></thead><tbody>${rows || '<tr class="agenda-empty-row"><td colspan="10">No hay citas que coincidan con este filtro.</td></tr>'}</tbody></table></div></div>`;
-    $("#agendaDateFilter").onchange = event => { agendaDateFilter = event.target.value; renderAgenda(); };
-    $("#agendaStatusFilter").onchange = event => { agendaStatusFilter = event.target.value; renderAgenda(); };
-    $("#agendaTodayFilter").onclick = () => { agendaDateFilter = todayISO; renderAgenda(); };
-    $("#agendaClearFilter").onclick = () => { agendaDateFilter = ""; agendaStatusFilter = "all"; renderAgenda(); };
-  }
+function renderAgenda() {
+  const visibleAppointments = DATA.appointments
+    .filter(appointment => !agendaDateFilter || appointment.date === agendaDateFilter)
+    .filter(appointment => agendaStatusFilter === "all" || appointment.status === agendaStatusFilter)
+    .sort((a, b) => a.date.localeCompare(b.date) || minutes(a.time) - minutes(b.time));
+
+  const statusOptions = [
+    ["all","Todos los estados"],
+    ["requested","Solicitudes online"],
+    ["confirmed","Confirmadas"],
+    ["pending","Pendientes"],
+    ["completed","Finalizadas"],
+    ["canceled","Canceladas"],
+    ["rejected","Rechazadas"]
+  ];
+
+  const actionsFor = (appointment, mobile = false) => {
+    const id = Number(appointment.id);
+    const clientId = Number(appointment.clientId);
+    const edit = `<button class="${mobile ? "btn ghost-btn" : "icon-btn"}" title="Editar" onclick="window.editAppointment(${id})"><i class="bi bi-pencil"></i>${mobile ? "<span>Editar</span>" : ""}</button>`;
+    const openRecord = `<button class="${mobile ? "action-menu-btn" : "icon-btn"}" title="Abrir ficha" onclick="window.openClientRecord(${clientId})"><i class="bi bi-clipboard2-heart"></i><span>Ficha</span></button>`;
+    const remove = `<button class="${mobile ? "action-menu-btn danger-text" : "icon-btn"}" title="Eliminar definitivamente" onclick="window.deleteAppointment(${id})"><i class="bi bi-trash3"></i><span>Eliminar</span></button>`;
+    const proof = appointment.depositProofId
+      ? `<button class="${mobile ? "action-menu-btn" : "deposit-proof-link"}" onclick="window.openDepositProof(${id})"><i class="bi bi-image"></i><span>Comprobante</span></button>`
+      : "";
+
+    if (appointment.status === "requested") {
+      return {
+        primary: `<button class="btn primary-btn" onclick="window.confirmAppointment(${id})"><i class="bi bi-check2"></i>Confirmar</button>`,
+        edit,
+        more: `${openRecord}${proof}<button class="action-menu-btn danger-text" onclick="window.rejectAppointment(${id})"><i class="bi bi-x-lg"></i><span>Rechazar</span></button>${remove}`,
+        desktop: `<button class="icon-btn" title="Confirmar solicitud" onclick="window.confirmAppointment(${id})"><i class="bi bi-check2"></i></button><button class="icon-btn" title="Rechazar solicitud" onclick="window.rejectAppointment(${id})"><i class="bi bi-x-lg"></i></button>${edit}${remove}`
+      };
+    }
+
+    if (appointment.status === "canceled" || appointment.status === "rejected") {
+      return {
+        primary: `<button class="btn primary-btn" onclick="window.rescheduleAppointment(${id})"><i class="bi bi-calendar2-week"></i>Reagendar</button>`,
+        edit,
+        more: `${openRecord}${proof}${remove}`,
+        desktop: `<button class="icon-btn" title="Reagendar" onclick="window.rescheduleAppointment(${id})"><i class="bi bi-calendar2-week"></i></button>${edit}${remove}`
+      };
+    }
+
+    const confirmation = appointment.status === "confirmed"
+      ? `<button class="btn primary-btn" onclick="window.openConfirmationWhatsApp(${id})"><i class="bi bi-send-check"></i>WhatsApp</button>`
+      : `<button class="btn primary-btn" onclick="window.confirmAppointment(${id})"><i class="bi bi-check2"></i>Confirmar</button>`;
+
+    const desktopConfirmation = appointment.status === "confirmed"
+      ? `<button class="icon-btn" title="Preparar WhatsApp" onclick="window.openConfirmationWhatsApp(${id})"><i class="bi bi-send-check"></i></button>`
+      : `<button class="icon-btn" title="Confirmar" onclick="window.confirmAppointment(${id})"><i class="bi bi-check2"></i></button>`;
+
+    return {
+      primary: confirmation,
+      edit,
+      more: `${openRecord}${proof}<button class="action-menu-btn" onclick="window.rescheduleAppointment(${id})"><i class="bi bi-calendar2-week"></i><span>Reagendar</span></button><button class="action-menu-btn danger-text" onclick="window.cancelAppointment(${id})"><i class="bi bi-calendar-x"></i><span>Cancelar cita</span></button>${remove}`,
+      desktop: `<button class="icon-btn" title="Reagendar" onclick="window.rescheduleAppointment(${id})"><i class="bi bi-calendar2-week"></i></button><button class="icon-btn" title="Cancelar cita" onclick="window.cancelAppointment(${id})"><i class="bi bi-calendar-x"></i></button>${desktopConfirmation}${edit}${remove}`
+    };
+  };
+
+  const desktopRows = visibleAppointments.map(appointment => {
+    const service = serviceById(appointment.serviceId);
+    const formStatus = formStatusForAppointment(appointment);
+    const reason = appointment.cancellationReason || appointment.rejectionReason || "";
+    const proofAction = appointment.depositProofId
+      ? `<button class="deposit-proof-link" onclick="window.openDepositProof(${Number(appointment.id)})"><i class="bi bi-image"></i>Ver comprobante</button>`
+      : "";
+    const actions = actionsFor(appointment);
+
+    return `<tr>
+      <td>${dateLabel(appointment.date, {day:"2-digit", month:"2-digit", year:"numeric"})}</td>
+      <td>${esc(appointment.time)}</td>
+      <td><button class="text-btn" onclick="window.openClientRecord(${Number(appointment.clientId)})">${esc(appointment.client)}</button></td>
+      <td><span class="badge">${esc(service.category || "Servicio")}</span><br>${esc(service.name)}</td>
+      <td>${totalDuration(service)} min</td>
+      <td>${esc(appointment.source)}</td>
+      <td><span class="badge status-${appointmentStatusClass(appointment.status)}">${appointmentStatusLabel(appointment.status)}</span>${reason ? `<div class="appointment-reason">${esc(reason)}</div>` : ""}</td>
+      <td><span class="badge ${formStatus === "complete" ? "status-complete" : "status-incomplete"}">${formStatus === "complete" ? "Completa" : "Pendiente"}</span></td>
+      <td><span class="badge ${appointment.depositStatus === "proof_uploaded" || appointment.depositStatus === "confirmed_whatsapp" ? "status-complete" : "status-incomplete"}">${esc(depositStatusLabel(appointment))}</span>${proofAction}</td>
+      <td class="table-actions">${actions.desktop}</td>
+    </tr>`;
+  }).join("");
+
+  const mobileCards = visibleAppointments.map(appointment => {
+    const service = serviceById(appointment.serviceId);
+    const formStatus = formStatusForAppointment(appointment);
+    const reason = appointment.cancellationReason || appointment.rejectionReason || "";
+    const actions = actionsFor(appointment, true);
+
+    return `<article class="agenda-card">
+      <div class="agenda-card-head">
+        <div class="agenda-when">
+          <span>${dateLabel(appointment.date, {weekday:"short", day:"numeric", month:"short"})}</span>
+          <strong>${esc(appointment.time)}</strong>
+        </div>
+        <span class="badge status-${appointmentStatusClass(appointment.status)}">${appointmentStatusLabel(appointment.status)}</span>
+      </div>
+
+      <button class="agenda-client-link" onclick="window.openClientRecord(${Number(appointment.clientId)})">${esc(appointment.client)}</button>
+      <div class="agenda-service-line"><span class="badge">${esc(service.category || "Servicio")}</span><strong>${esc(service.name)}</strong></div>
+
+      <div class="agenda-facts">
+        <span><i class="bi bi-clock"></i>${totalDuration(service)} min</span>
+        <span><i class="bi bi-${appointment.source === "WhatsApp" ? "whatsapp" : "globe2"}"></i>${esc(appointment.source)}</span>
+        <span class="${formStatus === "complete" ? "good" : "warn"}"><i class="bi bi-clipboard2-check"></i>${formStatus === "complete" ? "Ficha lista" : "Ficha pendiente"}</span>
+        <span class="${appointment.depositStatus === "proof_uploaded" || appointment.depositStatus === "confirmed_whatsapp" ? "good" : "warn"}"><i class="bi bi-cash-coin"></i>${esc(depositStatusLabel(appointment))}</span>
+      </div>
+
+      ${reason ? `<div class="agenda-reason"><i class="bi bi-info-circle"></i>${esc(reason)}</div>` : ""}
+
+      <div class="agenda-card-actions">
+        ${actions.primary}
+        ${actions.edit}
+        <details class="agenda-more">
+          <summary class="btn ghost-btn"><i class="bi bi-three-dots"></i>Más</summary>
+          <div class="agenda-more-menu">${actions.more}</div>
+        </details>
+      </div>
+    </article>`;
+  }).join("");
+
+  $("#agendaView").innerHTML = `<div class="grid-page">
+    <div class="page-heading compact-page-heading">
+      <div><span class="eyebrow">AGENDA</span><h1>Todos los agendamientos</h1><p>Consulta, confirma, cancela o reagenda sin perder el historial.</p></div>
+    </div>
+
+    <div class="agenda-filter-bar">
+      <label class="field"><span>Fecha</span><input type="date" id="agendaDateFilter" value="${esc(agendaDateFilter)}"></label>
+      <label class="field"><span>Estado</span><select id="agendaStatusFilter">${statusOptions.map(([value,label]) => `<option value="${value}" ${agendaStatusFilter === value ? "selected" : ""}>${label}</option>`).join("")}</select></label>
+      <div class="agenda-filter-actions">
+        <button class="btn ghost-btn" id="agendaTodayFilter"><i class="bi bi-calendar-day"></i>Hoy</button>
+        <button class="btn ghost-btn" id="agendaClearFilter"><i class="bi bi-x-circle"></i>Limpiar</button>
+      </div>
+      <div class="agenda-filter-summary">${visibleAppointments.length} de ${DATA.appointments.length} citas</div>
+    </div>
+
+    <div class="panel table-wrap agenda-desktop-table">
+      <table class="data-table">
+        <thead><tr><th>Fecha</th><th>Hora</th><th>Clienta</th><th>Servicio</th><th>Bloque</th><th>Origen</th><th>Estado</th><th>Ficha</th><th>Seña</th><th>Acciones</th></tr></thead>
+        <tbody>${desktopRows || '<tr class="agenda-empty-row"><td colspan="10">No hay citas que coincidan con este filtro.</td></tr>'}</tbody>
+      </table>
+    </div>
+
+    <div class="agenda-mobile-list">${mobileCards || '<div class="empty-state"><i class="bi bi-calendar2-heart"></i><strong>Sin citas</strong><p>No hay resultados para este filtro.</p></div>'}</div>
+  </div>`;
+
+  $("#agendaDateFilter").onchange = event => { agendaDateFilter = event.target.value; renderAgenda(); };
+  $("#agendaStatusFilter").onchange = event => { agendaStatusFilter = event.target.value; renderAgenda(); };
+  $("#agendaTodayFilter").onclick = () => { agendaDateFilter = todayISO; renderAgenda(); };
+  $("#agendaClearFilter").onclick = () => { agendaDateFilter = ""; agendaStatusFilter = "all"; renderAgenda(); };
+}
 
   function renderClients() {
     $("#clientsView").innerHTML = `<div class="grid-page"><div class="page-heading"><div><span class="eyebrow">CLIENTAS</span><h1>Perfiles e historial</h1><p>Abre la ficha para ver lo importante, alertas, historial, diseños y fotografías.</p></div><button class="btn primary-btn" id="newClientBtn"><i class="bi bi-person-plus"></i>Nueva clienta</button></div><div class="cards-grid">${DATA.clients.map(client => {
@@ -500,48 +659,136 @@
     $("#newClientBtn").onclick = createNewClient; hydrateClientCardPhotos();
   }
 
-  function renderRecords() {
-    const complete = DATA.clients.filter(client => client.formStatus === "complete").length;
-    const pending = DATA.clients.length - complete;
-    const warnings = DATA.clients.reduce((sum, client) => sum + (getRiskFlags(recordByClient(client.id)).length ? 1 : 0), 0);
+function renderRecords() {
+  const complete = DATA.clients.filter(client => client.formStatus === "complete").length;
+  const pending = DATA.clients.length - complete;
+  const warnings = DATA.clients.reduce((sum, client) => sum + (getRiskFlags(recordByClient(client.id)).length ? 1 : 0), 0);
 
-    $("#recordsView").innerHTML = `<div class="grid-page">
-      <div class="page-heading"><div><span class="eyebrow">FICHAS DIGITALES</span><h1>Consulta, consentimiento y diseño</h1><p>La información de las hojas impresas organizada en un flujo cómodo para clienta y profesional.</p></div><a class="btn primary-btn" href="/reservar" target="_blank"><i class="bi bi-box-arrow-up-right"></i>Ver formulario cliente</a></div>
-      <div class="records-summary">
-        <article class="info-card"><span>Fichas completas</span><strong>${complete}</strong></article>
-        <article class="info-card"><span>Pendientes</span><strong>${pending}</strong></article>
-        <article class="info-card"><span>Con datos a revisar</span><strong>${warnings}</strong></article>
+  $("#recordsView").innerHTML = `<div class="grid-page">
+    <div class="page-heading compact-page-heading">
+      <div>
+        <span class="eyebrow">FICHAS DIGITALES</span>
+        <h1>Fichas de clientas</h1>
+        <p>Consulta rápidamente el estado, trabajo habitual y alertas.</p>
       </div>
-      <section class="panel">
-        <div class="panel-header"><div><span class="eyebrow">CLIENTAS</span><h2>Estado de documentación</h2></div></div>
-        <div class="record-list">${DATA.clients.map(client => {
-          const insight = clientInsights(client.id);
-          const record = insight.record;
-          return `<article class="record-row" data-search="${esc(normalize(`${client.name} ${client.phone} ${client.instagram} ${record?.design?.effect}`))}">
-            <div class="record-client"><div class="client-avatar">${initials(client.name)}</div><div><h3>${esc(client.name)}</h3><p>${esc(client.phone || "Sin WhatsApp")} · ${esc(client.instagram || "Sin Instagram")}</p></div></div>
-            <div class="record-metric"><span>Ficha</span><strong class="badge ${client.formStatus === "complete" ? "status-complete" : "status-incomplete"}">${client.formStatus === "complete" ? "Completa" : "Pendiente"}</strong></div>
-            <div class="record-metric"><span>Trabajo habitual</span><strong>${esc(insight.usualService?.name || "Sin definir")}</strong></div>
-            <div class="record-metric"><span>Último diseño</span><strong>${esc(record?.design?.effect || record?.design?.design || "Sin diseño")}</strong></div>
-            <div class="record-row-actions">
-              ${insight.risks.length ? `<span class="badge status-incomplete" title="${esc(insight.risks.join(", "))}"><i class="bi bi-exclamation-triangle"></i> ${insight.risks.length}</span>` : ""}
-              <button class="icon-btn" title="WhatsApp" onclick="window.openWhatsApp(${Number(client.id)})"><i class="bi bi-whatsapp"></i></button>
-              <button class="btn primary-btn" onclick="window.openClientRecord(${Number(client.id)})"><i class="bi bi-pencil-square"></i>Gestionar</button>
-            </div>
-          </article>`;
-        }).join("")}</div>
-      </section>
-    </div>`;
-  }
+      <a class="btn primary-btn page-icon-action" href="/reservar" target="_blank" title="Abrir formulario público"><i class="bi bi-box-arrow-up-right"></i><span>Formulario</span></a>
+    </div>
 
-  function renderServices() {
-    const categories = [...new Set(DATA.services.map(service => service.category || "Otros"))].sort();
-    const visible = DATA.services.filter(service => serviceCategoryFilter === "all" || service.category === serviceCategoryFilter);
-    const activeCount = DATA.services.filter(service => service.active).length;
-    $("#servicesView").innerHTML = `<div class="grid-page"><div class="page-heading"><div><span class="eyebrow">SERVICIOS</span><h1>Servicios editables</h1><p>Organiza pestañas, cejas, manos, pies y otros servicios. Cada cambio se refleja en la reserva pública.</p></div>${DATA.settings.role === "admin" ? '<button class="btn primary-btn" id="addServiceBtn"><i class="bi bi-plus-lg"></i>Nuevo servicio</button>' : ""}</div><div class="compact-filter-row"><label class="field"><span>Categoría</span><select id="serviceCategoryFilter"><option value="all">Todas</option>${categories.map(category => `<option ${serviceCategoryFilter === category ? "selected" : ""}>${esc(category)}</option>`).join("")}</select></label><span class="muted">${visible.length} servicio(s)</span></div><div class="records-summary"><article class="info-card"><span>Servicios activos</span><strong>${activeCount}</strong></article><article class="info-card"><span>Servicios pausados</span><strong>${DATA.services.length-activeCount}</strong></article><article class="info-card"><span>Categorías</span><strong>${categories.length}</strong></article></div><div class="cards-grid">${visible.map(service => `<article class="service-card ${service.active ? "" : "service-disabled"}" id="service-${service.id}" style="border-top:4px solid ${esc(service.color)}"><div class="service-card-top"><div><span class="badge">${esc(service.category)}</span><span class="badge ${service.active ? "status-complete" : "status-incomplete"}">${service.active ? "Disponible" : "Pausado"}</span><h3>${esc(service.name)}</h3></div>${DATA.settings.role === "admin" ? `<button class="icon-btn" type="button" title="Modificar servicio" data-edit-service="${service.id}"><i class="bi bi-pencil-square"></i></button>` : ""}</div><div class="service-price">${money(service.price)}</div><p>${esc(service.description || "Sin descripción pública.")}</p><p>Servicio: ${service.duration} min · preparación ${service.prep} min · cierre ${service.cleanup} min</p><div class="service-actions"><span class="badge">Bloque total: ${totalDuration(service)} min</span>${DATA.settings.role === "admin" ? `<button class="text-btn" type="button" data-edit-service="${service.id}"><i class="bi bi-pencil"></i> Editar</button>` : ""}</div></article>`).join("") || '<div class="empty-state"><i class="bi bi-stars"></i><strong>Sin servicios</strong></div>'}</div></div>`;
-    $("#addServiceBtn")?.addEventListener("click", () => openServiceModal());
-    $("#serviceCategoryFilter").onchange = event => { serviceCategoryFilter = event.target.value; renderServices(); };
-    $$('[data-edit-service]', $("#servicesView")).forEach(button => button.onclick = () => openServiceModal(Number(button.dataset.editService)));
-  }
+    <div class="compact-summary-strip" aria-label="Resumen de fichas">
+      <article><span>Completas</span><strong>${complete}</strong></article>
+      <article><span>Pendientes</span><strong>${pending}</strong></article>
+      <article class="${warnings ? "has-warning" : ""}"><span>Con alertas</span><strong>${warnings}</strong></article>
+    </div>
+
+    <section class="panel records-panel">
+      <div class="panel-header compact">
+        <div><span class="eyebrow">CLIENTAS</span><h2>Documentación</h2></div>
+        <span class="badge">${DATA.clients.length} clientas</span>
+      </div>
+
+      <div class="record-list record-card-list">${DATA.clients.map(client => {
+        const insight = clientInsights(client.id);
+        const record = insight.record;
+        const design = record?.design || {};
+        const usual = insight.usualService?.name || "Sin definir";
+        const designLabel = design.effect || design.design || "Sin diseño";
+        return `<article class="record-card" data-search="${esc(normalize(`${client.name} ${client.phone} ${client.instagram} ${designLabel}`))}">
+          <div class="record-card-head">
+            <div class="record-client">
+              <div class="client-avatar">${initials(client.name)}</div>
+              <div>
+                <h3>${esc(client.name)}</h3>
+                <p>${esc(client.phone || "Sin WhatsApp")}${client.instagram ? ` · ${esc(client.instagram)}` : ""}</p>
+              </div>
+            </div>
+            <span class="badge ${client.formStatus === "complete" ? "status-complete" : "status-incomplete"}">${client.formStatus === "complete" ? "Completa" : "Pendiente"}</span>
+          </div>
+
+          <div class="record-card-facts">
+            <div><span>Trabajo habitual</span><strong>${esc(usual)}</strong></div>
+            <div><span>Último diseño</span><strong>${esc(designLabel)}</strong></div>
+          </div>
+
+          ${insight.risks.length ? `<div class="record-alert"><i class="bi bi-exclamation-triangle"></i><span>${insight.risks.length} dato(s) para revisar</span></div>` : ""}
+
+          <div class="record-card-actions">
+            <button class="btn primary-btn" onclick="window.openClientRecord(${Number(client.id)})"><i class="bi bi-clipboard2-heart"></i>Abrir ficha</button>
+            <button class="icon-btn" title="WhatsApp" onclick="window.openWhatsApp(${Number(client.id)})"><i class="bi bi-whatsapp"></i></button>
+            <button class="icon-btn" title="Agendar o reagendar" onclick="window.rescheduleClientAppointment(${Number(client.id)})"><i class="bi bi-calendar2-week"></i></button>
+          </div>
+        </article>`;
+      }).join("") || '<div class="empty-state"><i class="bi bi-people"></i><strong>No hay clientas registradas</strong></div>'}</div>
+    </section>
+  </div>`;
+}
+
+function renderServices() {
+  const categories = [...new Set(DATA.services.map(service => service.category || "Otros"))].sort();
+  const visible = DATA.services.filter(service => serviceCategoryFilter === "all" || service.category === serviceCategoryFilter);
+  const activeCount = DATA.services.filter(service => service.active).length;
+
+  $("#servicesView").innerHTML = `<div class="grid-page">
+    <div class="page-heading compact-page-heading">
+      <div>
+        <span class="eyebrow">SERVICIOS</span>
+        <h1>Servicios</h1>
+        <p>Precios, duración y disponibilidad de la reserva pública.</p>
+      </div>
+      ${DATA.settings.role === "admin" ? '<button class="btn primary-btn page-icon-action" id="addServiceBtn"><i class="bi bi-plus-lg"></i><span>Nuevo</span></button>' : ""}
+    </div>
+
+    <div class="service-toolbar">
+      <label class="field">
+        <span>Categoría</span>
+        <select id="serviceCategoryFilter"><option value="all">Todas</option>${categories.map(category => `<option ${serviceCategoryFilter === category ? "selected" : ""}>${esc(category)}</option>`).join("")}</select>
+      </label>
+      <span class="service-result-count">${visible.length} servicio(s)</span>
+    </div>
+
+    <div class="compact-summary-strip service-summary-strip">
+      <article><span>Activos</span><strong>${activeCount}</strong></article>
+      <article><span>Pausados</span><strong>${DATA.services.length - activeCount}</strong></article>
+      <article><span>Categorías</span><strong>${categories.length}</strong></article>
+    </div>
+
+    <div class="cards-grid service-list">${visible.map(service => `
+      <article class="service-card service-card-compact ${service.active ? "" : "service-disabled"}" id="service-${service.id}" style="--service-color:${esc(service.color)}">
+        <div class="service-card-top">
+          <div>
+            <div class="meta-row">
+              <span class="badge">${esc(service.category)}</span>
+              <span class="badge ${service.active ? "status-complete" : "status-incomplete"}">${service.active ? "Disponible" : "Pausado"}</span>
+            </div>
+            <h3>${esc(service.name)}</h3>
+          </div>
+          ${DATA.settings.role === "admin" ? `<button class="icon-btn" type="button" title="Modificar servicio" data-edit-service="${service.id}"><i class="bi bi-pencil-square"></i></button>` : ""}
+        </div>
+
+        <div class="service-main-data">
+          <strong class="service-price">${money(service.price)}</strong>
+          <span><i class="bi bi-clock"></i>${service.duration} min</span>
+          <span><i class="bi bi-calendar-range"></i>Bloque ${totalDuration(service)} min</span>
+        </div>
+
+        <details class="service-details">
+          <summary>Ver descripción y tiempos <i class="bi bi-chevron-down"></i></summary>
+          <p>${esc(service.description || "Sin descripción pública.")}</p>
+          <div class="service-time-breakdown">
+            <span>Servicio <strong>${service.duration} min</strong></span>
+            <span>Preparación <strong>${service.prep} min</strong></span>
+            <span>Cierre <strong>${service.cleanup} min</strong></span>
+          </div>
+        </details>
+
+        ${DATA.settings.role === "admin" ? `<button class="btn ghost-btn service-edit-btn" type="button" data-edit-service="${service.id}"><i class="bi bi-pencil"></i>Editar servicio</button>` : ""}
+      </article>`).join("") || '<div class="empty-state"><i class="bi bi-stars"></i><strong>Sin servicios</strong></div>'}
+    </div>
+  </div>`;
+
+  $("#addServiceBtn")?.addEventListener("click", () => openServiceModal());
+  $("#serviceCategoryFilter").onchange = event => { serviceCategoryFilter = event.target.value; renderServices(); };
+  $$('[data-edit-service]', $("#servicesView")).forEach(button => button.onclick = () => openServiceModal(Number(button.dataset.editService)));
+}
 
   function renderInventory() {
     const categories = [...new Set(DATA.inventory.map(item => item.category))].sort();
@@ -571,29 +818,154 @@
       </div></div>`;
   }
 
-  function renderSettings() {
-    if (DATA.settings.role !== "admin") { $("#settingsView").innerHTML = `<div class="empty-state"><i class="bi bi-lock"></i><strong>Acceso restringido</strong></div>`; return; }
-    const workDayLabels = [[1,"Lunes"],[2,"Martes"],[3,"Miércoles"],[4,"Jueves"],[5,"Viernes"],[6,"Sábado"],[0,"Domingo"]];
-    const blockRows = (DATA.availabilityBlocks || []).sort((a,b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime)).map(block => `<article class="availability-block-row"><div><strong>${dateLabel(block.date,{weekday:"short",day:"numeric",month:"short",year:"numeric"})}</strong><span>${block.allDay ? "Todo el día" : `${esc(block.startTime)} a ${esc(block.endTime)}`} · ${esc(block.reason)}${block.source === "google" ? " · Google Calendar" : ""}</span></div><button type="button" class="icon-btn" onclick="window.removeAvailabilityBlock(${Number(block.id)})"><i class="bi bi-trash3"></i></button></article>`).join("");
-    $("#settingsView").innerHTML = `<div class="grid-page"><div class="page-heading"><div><span class="eyebrow">ADMINISTRACIÓN</span><h1>Configuración y preferencias</h1><p>Controla ByAlee, la agenda pública, las políticas y los recordatorios.</p></div><span class="badge status-complete"><i class="bi bi-shield-check"></i> Administrador</span></div><form id="settingsForm" class="settings-layout">
-      <section class="panel settings-section"><div class="panel-header compact"><div><span class="eyebrow">USUARIO</span><h2>Perfil administrador</h2></div></div><div class="form-grid">${field("Nombre profesional", "userName", DATA.settings.userName, "text", "required")}${field("Correo", "userEmail", DATA.settings.userEmail, "email")}${field("Teléfono", "studioPhone", DATA.settings.studioPhone)}<label class="field"><span>Rol</span><input value="Administrador" disabled></label></div></section>
-      <section class="panel settings-section"><div class="panel-header compact"><div><span class="eyebrow">NEGOCIO</span><h2>Datos de ByAlee</h2></div></div><div class="form-grid">${field("Nombre del local", "studioName", DATA.settings.studioName, "text", "required")}${field("Ciudad o zona", "city", DATA.settings.city)}<label class="field"><span>Moneda</span><select name="currency"><option value="Gs." ${DATA.settings.currency === "Gs." ? "selected" : ""}>Guaraníes</option><option value="$" ${DATA.settings.currency === "$" ? "selected" : ""}>Dólares</option></select></label>${field("Seña predeterminada", "defaultDeposit", DATA.settings.defaultDeposit, "number", 'min="0" step="5000"')}</div></section>
-      <section class="panel settings-section full-settings"><div class="panel-header compact"><div><span class="eyebrow">AGENDA</span><h2>Horarios y reserva pública</h2></div></div><div class="form-grid three">${field("Apertura", "openingTime", DATA.settings.openingTime, "time")}${field("Cierre", "closingTime", DATA.settings.closingTime, "time")}<label class="field"><span>Intervalo</span><select name="slotInterval">${[15,20,30,45,60].map(value => `<option value="${value}" ${Number(DATA.settings.slotInterval) === value ? "selected" : ""}>${value} minutos</option>`).join("")}</select></label>${field("Mantenimiento sugerido (días)", "maintenanceDays", DATA.settings.maintenanceDays, "number", 'min="1" max="90"')}</div><div class="preference-group settings-days"><span>Días de atención</span><div class="preference-options">${workDayLabels.map(([value,label]) => `<label class="check-option"><input type="checkbox" name="workDays" value="${value}" ${DATA.settings.workDays.includes(value) ? "checked" : ""}><span>${label}</span></label>`).join("")}</div></div><div class="settings-switches"><label class="check-option"><input type="checkbox" name="bookingEnabled" ${DATA.settings.bookingEnabled ? "checked" : ""}><span>Permitir reservas desde el enlace público</span></label><label class="check-option"><input type="checkbox" name="requireConsent" ${DATA.settings.requireConsent ? "checked" : ""}><span>Exigir consentimiento informado</span></label><label class="check-option"><input type="checkbox" name="requirePoliciesAcceptance" ${DATA.settings.requirePoliciesAcceptance ? "checked" : ""}><span>Exigir aceptación de políticas del local</span></label><label class="check-option"><input type="checkbox" name="autoOpenConfirmationWhatsApp" ${DATA.settings.autoOpenConfirmationWhatsApp ? "checked" : ""}><span>Abrir WhatsApp al confirmar</span></label><label class="check-option"><input type="checkbox" name="allowDepositProof" ${DATA.settings.allowDepositProof !== false ? "checked" : ""}><span>Permitir comprobante de seña</span></label><label class="check-option"><input type="checkbox" name="requireDepositChoice" ${DATA.settings.requireDepositChoice !== false ? "checked" : ""}><span>Exigir forma de confirmación de seña</span></label></div><label class="field full settings-message"><span>Mensaje de confirmación</span><textarea name="confirmationMessageTemplate" rows="4">${esc(DATA.settings.confirmationMessageTemplate)}</textarea></label></section>
-      <section class="panel settings-section"><div class="panel-header compact"><div><span class="eyebrow">CUMPLEAÑOS</span><h2>Recordatorios configurables</h2></div></div><label class="check-option"><input type="checkbox" name="birthdayNotificationsEnabled" ${DATA.settings.birthdayNotificationsEnabled ? "checked" : ""}><span>Mostrar cumpleaños próximos en el dashboard y la campana</span></label><div class="form-grid">${field("Avisar con días de anticipación", "birthdayNoticeDays", DATA.settings.birthdayNoticeDays, "number", 'min="0" max="60"')}</div><label class="field full"><span>Mensaje sugerido</span><textarea name="birthdayMessageTemplate" rows="4">${esc(DATA.settings.birthdayMessageTemplate)}</textarea></label><p class="settings-note">Solo se usan fechas de clientas que marcaron la autorización informativa.</p></section>
-      <section class="panel settings-section"><div class="panel-header compact"><div><span class="eyebrow">POLÍTICAS</span><h2>Condiciones del local</h2></div></div><label class="field full"><span>Texto visible al cliente</span><textarea name="bookingPoliciesText" rows="8">${esc(DATA.settings.bookingPoliciesText)}</textarea></label>${field("Versión", "bookingPoliciesVersion", DATA.settings.bookingPoliciesVersion)}</section>
-      <section class="panel settings-section full-settings"><div class="panel-header compact"><div><span class="eyebrow">DISPONIBILIDAD</span><h2>Bloquear fechas u horarios personales</h2><p class="muted">Los bloques se descuentan automáticamente de reservar.html.</p></div></div><div class="availability-form"><label class="field"><span>Fecha</span><input type="date" id="blockDate" min="${todayISO}"></label><label class="field"><span>Desde</span><input type="time" id="blockStart" value="${esc(DATA.settings.openingTime)}"></label><label class="field"><span>Hasta</span><input type="time" id="blockEnd" value="${esc(DATA.settings.closingTime)}"></label><label class="field"><span>Motivo</span><input id="blockReason" placeholder="Evento personal, descanso..."></label><label class="check-option block-all-day"><input type="checkbox" id="blockAllDay"><span>Bloquear todo el día</span></label><button type="button" class="btn primary-btn" id="addBlockBtn"><i class="bi bi-calendar-x"></i>Agregar bloqueo</button></div><div class="availability-block-list">${blockRows || '<div class="empty-inline">No hay bloqueos manuales.</div>'}</div></section>
-      <section class="panel settings-section full-settings"><div class="panel-header compact"><div><span class="eyebrow">GOOGLE CALENDAR</span><h2>Preparación para sincronización</h2></div><span class="badge ${DATA.settings.googleCalendarConnected ? "status-complete" : "status-incomplete"}">${DATA.settings.googleCalendarConnected ? "Conectado" : "Pendiente de backend"}</span></div><div class="google-calendar-card"><i class="bi bi-google"></i><div><strong>Evitar reservas sobre eventos ocupados</strong><p>La estructura queda preparada para consultar disponibilidad y crear/actualizar citas. La conexión real necesita OAuth y un backend para que reservar.html pueda consultar horarios sin exponer credenciales.</p></div></div><div class="form-grid"><label class="check-option"><input type="checkbox" name="googleCalendarEnabled" ${DATA.settings.googleCalendarEnabled ? "checked" : ""}><span>Dejar habilitada la integración cuando se conecte el backend</span></label>${field("ID del calendario", "googleCalendarId", DATA.settings.googleCalendarId)}</div><button type="button" class="btn ghost-btn" id="googleCalendarInfoBtn"><i class="bi bi-info-circle"></i>Qué falta para conectarlo</button></section>
-      <section class="panel settings-section"><div class="panel-header compact"><div><span class="eyebrow">APARIENCIA</span><h2>Color y tema</h2></div></div><div class="form-grid"><label class="field"><span>Color principal</span><input type="color" name="primaryColor" value="${esc(DATA.settings.primaryColor)}"></label><label class="field"><span>Modo</span><select name="appearance"><option value="light" ${DATA.settings.appearance === "light" ? "selected" : ""}>Claro</option><option value="dark" ${DATA.settings.appearance === "dark" ? "selected" : ""}>Oscuro</option><option value="system" ${DATA.settings.appearance === "system" ? "selected" : ""}>Sistema</option></select></label></div></section>
-      <section class="panel settings-section"><div class="panel-header compact"><div><span class="eyebrow">DATOS</span><h2>Respaldo del prototipo</h2></div></div><div class="settings-data-actions"><button type="button" class="btn ghost-btn" id="exportDataBtn"><i class="bi bi-download"></i>Exportar</button><label class="btn ghost-btn file-label"><i class="bi bi-upload"></i>Importar<input type="file" id="importDataInput" accept="application/json" hidden></label><button type="button" class="btn danger-btn" id="resetDemoBtn"><i class="bi bi-arrow-counterclockwise"></i>Restablecer demo</button></div></section>
-      <div class="settings-savebar"><span>Los cambios quedan guardados en este navegador.</span><button type="submit" class="btn primary-btn"><i class="bi bi-check2"></i>Guardar configuración</button></div></form></div>`;
-    $("#settingsForm").addEventListener("submit", saveSettings);
-    $("#settingsForm [name='primaryColor']").addEventListener("input", event => { DATA.settings.primaryColor = event.target.value; applyAppearance(); });
-    $("#settingsForm [name='appearance']").addEventListener("change", event => { DATA.settings.appearance = event.target.value; localStorage.setItem("lashflow_theme", event.target.value); applyAppearance(); });
-    $("#addBlockBtn").onclick = addAvailabilityBlockFromSettings;
-    $("#blockAllDay").onchange = event => { $("#blockStart").disabled = event.target.checked; $("#blockEnd").disabled = event.target.checked; };
-    $("#googleCalendarInfoBtn").onclick = () => alert("Para la sincronización real se necesita: proyecto en Google Cloud, OAuth 2.0, Calendar API habilitada y un backend que guarde los tokens. El esquema y la guía están incluidos en docs/ARQUITECTURA.md.");
-    $("#exportDataBtn").onclick = exportAllData; $("#importDataInput").onchange = importAllData; $("#resetDemoBtn").onclick = resetDemoData;
+function renderSettings() {
+  if (DATA.settings.role !== "admin") {
+    $("#settingsView").innerHTML = `<div class="empty-state"><i class="bi bi-lock"></i><strong>Acceso restringido</strong></div>`;
+    return;
   }
+
+  const workDayLabels = [[1,"Lunes"],[2,"Martes"],[3,"Miércoles"],[4,"Jueves"],[5,"Viernes"],[6,"Sábado"],[0,"Domingo"]];
+  const blockRows = (DATA.availabilityBlocks || [])
+    .sort((a,b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime))
+    .map(block => `<article class="availability-block-row">
+      <div><strong>${dateLabel(block.date,{weekday:"short",day:"numeric",month:"short",year:"numeric"})}</strong><span>${block.allDay ? "Todo el día" : `${esc(block.startTime)} a ${esc(block.endTime)}`} · ${esc(block.reason)}${block.source === "google" ? " · Google Calendar" : ""}</span></div>
+      <button type="button" class="icon-btn" onclick="window.removeAvailabilityBlock(${Number(block.id)})"><i class="bi bi-trash3"></i></button>
+    </article>`).join("");
+
+  const group = ({icon, title, description, content, open = false, badge = ""}) => `
+    <details class="settings-accordion" ${open ? "open" : ""}>
+      <summary>
+        <span class="settings-summary-icon"><i class="bi ${icon}"></i></span>
+        <span class="settings-summary-copy"><strong>${title}</strong><small>${description}</small></span>
+        ${badge}
+        <i class="bi bi-chevron-down settings-chevron"></i>
+      </summary>
+      <div class="settings-accordion-body">${content}</div>
+    </details>`;
+
+  const profileContent = `
+    <div class="settings-subsection">
+      <h3>Perfil administrador</h3>
+      <div class="form-grid">
+        ${field("Nombre profesional", "userName", DATA.settings.userName, "text", "required")}
+        ${field("Correo", "userEmail", DATA.settings.userEmail, "email")}
+        ${field("Teléfono", "studioPhone", DATA.settings.studioPhone)}
+        <label class="field"><span>Rol</span><input value="Administrador" disabled></label>
+      </div>
+    </div>
+    <div class="settings-subsection">
+      <h3>Datos del local</h3>
+      <div class="form-grid">
+        ${field("Nombre del local", "studioName", DATA.settings.studioName, "text", "required")}
+        ${field("Ciudad o zona", "city", DATA.settings.city)}
+        <label class="field"><span>Moneda</span><select name="currency"><option value="Gs." ${DATA.settings.currency === "Gs." ? "selected" : ""}>Guaraníes</option><option value="$" ${DATA.settings.currency === "$" ? "selected" : ""}>Dólares</option></select></label>
+        ${field("Seña predeterminada", "defaultDeposit", DATA.settings.defaultDeposit, "number", 'min="0" step="5000"')}
+      </div>
+    </div>`;
+
+  const bookingContent = `
+    <div class="form-grid three">
+      ${field("Apertura", "openingTime", DATA.settings.openingTime, "time")}
+      ${field("Cierre", "closingTime", DATA.settings.closingTime, "time")}
+      <label class="field"><span>Intervalo</span><select name="slotInterval">${[15,20,30,45,60].map(value => `<option value="${value}" ${Number(DATA.settings.slotInterval) === value ? "selected" : ""}>${value} minutos</option>`).join("")}</select></label>
+      ${field("Mantenimiento sugerido", "maintenanceDays", DATA.settings.maintenanceDays, "number", 'min="1" max="90"')}
+    </div>
+
+    <div class="preference-group settings-days">
+      <span>Días de atención</span>
+      <div class="preference-options">${workDayLabels.map(([value,label]) => `<label class="check-option"><input type="checkbox" name="workDays" value="${value}" ${DATA.settings.workDays.includes(value) ? "checked" : ""}><span>${label}</span></label>`).join("")}</div>
+    </div>
+
+    <div class="settings-switches settings-toggle-list">
+      <label class="check-option"><input type="checkbox" name="bookingEnabled" ${DATA.settings.bookingEnabled ? "checked" : ""}><span><strong>Reserva pública</strong><small>Permitir solicitudes desde el enlace.</small></span></label>
+      <label class="check-option"><input type="checkbox" name="requireConsent" ${DATA.settings.requireConsent ? "checked" : ""}><span><strong>Consentimiento obligatorio</strong><small>La clienta debe aceptarlo antes de enviar.</small></span></label>
+      <label class="check-option"><input type="checkbox" name="requirePoliciesAcceptance" ${DATA.settings.requirePoliciesAcceptance ? "checked" : ""}><span><strong>Políticas obligatorias</strong><small>Exigir aceptación de las condiciones del local.</small></span></label>
+      <label class="check-option"><input type="checkbox" name="autoOpenConfirmationWhatsApp" ${DATA.settings.autoOpenConfirmationWhatsApp ? "checked" : ""}><span><strong>WhatsApp al confirmar</strong><small>Abrir el mensaje preparado automáticamente.</small></span></label>
+      <label class="check-option"><input type="checkbox" name="allowDepositProof" ${DATA.settings.allowDepositProof !== false ? "checked" : ""}><span><strong>Comprobante de seña</strong><small>Permitir que la clienta cargue una imagen.</small></span></label>
+      <label class="check-option"><input type="checkbox" name="requireDepositChoice" ${DATA.settings.requireDepositChoice !== false ? "checked" : ""}><span><strong>Confirmación de seña</strong><small>Exigir WhatsApp o comprobante.</small></span></label>
+    </div>
+
+    <label class="field full settings-message"><span>Mensaje de confirmación</span><textarea name="confirmationMessageTemplate" rows="4">${esc(DATA.settings.confirmationMessageTemplate)}</textarea></label>`;
+
+  const birthdayContent = `
+    <label class="check-option settings-main-toggle"><input type="checkbox" name="birthdayNotificationsEnabled" ${DATA.settings.birthdayNotificationsEnabled ? "checked" : ""}><span><strong>Activar recordatorios de cumpleaños</strong><small>Solo se usan fechas autorizadas por la clienta.</small></span></label>
+    <div class="form-grid">${field("Avisar con días de anticipación", "birthdayNoticeDays", DATA.settings.birthdayNoticeDays, "number", 'min="0" max="60"')}</div>
+    <label class="field full"><span>Mensaje sugerido</span><textarea name="birthdayMessageTemplate" rows="4">${esc(DATA.settings.birthdayMessageTemplate)}</textarea></label>`;
+
+  const policiesContent = `
+    <label class="field full"><span>Texto visible al cliente</span><textarea name="bookingPoliciesText" rows="8">${esc(DATA.settings.bookingPoliciesText)}</textarea></label>
+    ${field("Versión", "bookingPoliciesVersion", DATA.settings.bookingPoliciesVersion)}`;
+
+  const availabilityContent = `
+    <p class="settings-note">Los bloqueos se descuentan automáticamente de los horarios disponibles en la reserva pública.</p>
+    <div class="availability-form">
+      <label class="field"><span>Fecha</span><input type="date" id="blockDate" min="${todayISO}"></label>
+      <label class="field"><span>Desde</span><input type="time" id="blockStart" value="${esc(DATA.settings.openingTime)}"></label>
+      <label class="field"><span>Hasta</span><input type="time" id="blockEnd" value="${esc(DATA.settings.closingTime)}"></label>
+      <label class="field"><span>Motivo</span><input id="blockReason" placeholder="Evento personal, descanso..."></label>
+      <label class="check-option block-all-day"><input type="checkbox" id="blockAllDay"><span>Bloquear todo el día</span></label>
+      <button type="button" class="btn primary-btn" id="addBlockBtn"><i class="bi bi-calendar-x"></i>Agregar bloqueo</button>
+    </div>
+    <div class="availability-block-list">${blockRows || '<div class="empty-inline">No hay bloqueos manuales.</div>'}</div>`;
+
+  const googleContent = `
+    <div class="google-calendar-card"><i class="bi bi-google"></i><div><strong>Evitar reservas sobre eventos ocupados</strong><p>La conexión real necesita OAuth y un backend seguro. Por ahora la disponibilidad se controla con la agenda y los bloqueos de ByAlee.</p></div></div>
+    <div class="form-grid">
+      <label class="check-option"><input type="checkbox" name="googleCalendarEnabled" ${DATA.settings.googleCalendarEnabled ? "checked" : ""}><span>Habilitar cuando el backend esté conectado</span></label>
+      ${field("ID del calendario", "googleCalendarId", DATA.settings.googleCalendarId)}
+    </div>
+    <button type="button" class="btn ghost-btn" id="googleCalendarInfoBtn"><i class="bi bi-info-circle"></i>Ver requisitos</button>`;
+
+  const appearanceContent = `
+    <div class="form-grid">
+      <label class="field"><span>Color principal</span><input type="color" name="primaryColor" value="${esc(DATA.settings.primaryColor)}"></label>
+      <label class="field"><span>Modo</span><select name="appearance"><option value="light" ${DATA.settings.appearance === "light" ? "selected" : ""}>Claro</option><option value="dark" ${DATA.settings.appearance === "dark" ? "selected" : ""}>Oscuro</option><option value="system" ${DATA.settings.appearance === "system" ? "selected" : ""}>Sistema</option></select></label>
+    </div>`;
+
+  const dataContent = `
+    <p class="settings-note">Exporta un respaldo antes de realizar cambios importantes.</p>
+    <div class="settings-data-actions">
+      <button type="button" class="btn ghost-btn" id="exportDataBtn"><i class="bi bi-download"></i>Exportar</button>
+      <label class="btn ghost-btn file-label"><i class="bi bi-upload"></i>Importar<input type="file" id="importDataInput" accept="application/json" hidden></label>
+      <button type="button" class="btn danger-btn" id="resetDemoBtn"><i class="bi bi-arrow-counterclockwise"></i>Restablecer demo</button>
+    </div>`;
+
+  $("#settingsView").innerHTML = `<div class="grid-page">
+    <div class="page-heading compact-page-heading">
+      <div><span class="eyebrow">ADMINISTRACIÓN</span><h1>Configuración</h1><p>Abre solamente la sección que necesitas modificar.</p></div>
+      <span class="badge status-complete"><i class="bi bi-shield-check"></i>Administrador</span>
+    </div>
+
+    <form id="settingsForm" class="settings-accordion-list">
+      ${group({icon:"bi-person-circle", title:"Perfil y local", description:"Nombre, contacto, moneda y seña.", content:profileContent, open:true})}
+      ${group({icon:"bi-calendar2-week", title:"Agenda y reservas", description:"Horarios, días, señas y confirmaciones.", content:bookingContent})}
+      ${group({icon:"bi-balloon-heart", title:"Cumpleaños", description:"Avisos y mensaje promocional.", content:birthdayContent})}
+      ${group({icon:"bi-file-earmark-text", title:"Políticas del local", description:"Condiciones visibles para las clientas.", content:policiesContent})}
+      ${group({icon:"bi-calendar-x", title:"Disponibilidad y bloqueos", description:"Eventos personales, descansos y días cerrados.", content:availabilityContent})}
+      ${group({icon:"bi-google", title:"Google Calendar", description:"Estado y preparación de la integración.", content:googleContent, badge:`<span class="badge ${DATA.settings.googleCalendarConnected ? "status-complete" : "status-incomplete"}">${DATA.settings.googleCalendarConnected ? "Conectado" : "Pendiente"}</span>`})}
+      ${group({icon:"bi-palette", title:"Apariencia", description:"Color principal y modo claro u oscuro.", content:appearanceContent})}
+      ${group({icon:"bi-database", title:"Datos y respaldo", description:"Exportar, importar o restablecer.", content:dataContent})}
+
+      <div class="settings-savebar settings-savebar-compact">
+        <span><i class="bi bi-info-circle"></i>Guarda al terminar los cambios.</span>
+        <button type="submit" class="btn primary-btn"><i class="bi bi-check2"></i>Guardar cambios</button>
+      </div>
+    </form>
+  </div>`;
+
+  $("#settingsForm").addEventListener("submit", saveSettings);
+  $("#settingsForm [name='primaryColor']").addEventListener("input", event => { DATA.settings.primaryColor = event.target.value; applyAppearance(); });
+  $("#settingsForm [name='appearance']").addEventListener("change", event => { DATA.settings.appearance = event.target.value; localStorage.setItem("lashflow_theme", event.target.value); applyAppearance(); });
+  $("#addBlockBtn")?.addEventListener("click", addAvailabilityBlockFromSettings);
+  $("#blockAllDay")?.addEventListener("change", event => {
+    $("#blockStart").disabled = event.target.checked;
+    $("#blockEnd").disabled = event.target.checked;
+  });
+  $("#googleCalendarInfoBtn")?.addEventListener("click", () => alert("Para la sincronización real se necesita: proyecto en Google Cloud, OAuth 2.0, Calendar API habilitada y un backend que guarde los tokens. El esquema y la guía están incluidos en docs/ARQUITECTURA.md."));
+  $("#exportDataBtn")?.addEventListener("click", exportAllData);
+  $("#importDataInput")?.addEventListener("change", importAllData);
+  $("#resetDemoBtn")?.addEventListener("click", resetDemoData);
+}
 
   function renderStaticViews() {
     renderAgenda();
@@ -758,34 +1130,91 @@
     }).join("")}</div></div>`;
   }
 
-  function summaryPane(client, insight) {
-    const record = insight.record || emptyRecord(client.id);
-    const design = record.design || {};
-    return `<section class="record-pane record-section" data-pane="summary">
-      <div class="client-profile-hero">
-        <div class="profile-photo" id="clientProfilePhoto"><span>${initials(client.name)}</span></div>
-        <div class="profile-main"><span class="eyebrow">FICHA DE CLIENTA</span><h3>${esc(client.name)}</h3><p>${esc(client.phone || "Sin WhatsApp")} · ${esc(client.instagram || "Sin Instagram")} · ${esc(client.address || "Sin domicilio")}</p><div class="meta-row"><span class="badge ${client.formStatus === "complete" ? "status-complete" : "status-incomplete"}">${client.formStatus === "complete" ? "Ficha completa" : "Ficha pendiente"}</span>${insight.risks.length ? `<span class="badge status-incomplete"><i class="bi bi-exclamation-triangle"></i> ${insight.risks.length} alerta(s)</span>` : '<span class="badge status-complete">Sin alertas marcadas</span>'}<span class="badge" id="clientPhotoCount">0 fotos</span></div></div>
-        <div class="profile-actions"><button type="button" class="btn primary-btn" onclick="window.repeatClientService(${client.id})"><i class="bi bi-arrow-repeat"></i>Repetir último</button><button type="button" class="btn ghost-btn" onclick="window.newAppointmentForClient(${client.id})"><i class="bi bi-calendar-plus"></i>Nueva cita</button></div>
+function summaryPane(client, insight) {
+  const record = insight.record || emptyRecord(client.id);
+  const design = record.design || {};
+  const usualService = insight.usualService;
+  const designLabel = design.effect || design.design || "Sin diseño";
+  const designMeta = [design.curvature, design.thickness, design.range].filter(Boolean).join(" · ");
+  const lastVisitLabel = insight.lastVisit
+    ? dateLabel(insight.lastVisit.date, {day:"numeric", month:"short", year:"numeric"})
+    : "Sin visitas";
+  const maintenanceLabel = insight.maintenanceDate
+    ? dateLabel(insight.maintenanceDate, {day:"numeric", month:"short"})
+    : "Sin calcular";
+
+  return `<section class="record-pane record-section" data-pane="summary">
+    <div class="client-profile-hero client-profile-compact">
+      <div class="profile-photo" id="clientProfilePhoto"><span>${initials(client.name)}</span></div>
+      <div class="profile-main">
+        <span class="eyebrow">FICHA DE CLIENTA</span>
+        <h3>${esc(client.name)}</h3>
+        <p>${esc(client.phone || "Sin WhatsApp")}${client.instagram ? ` · ${esc(client.instagram)}` : ""}</p>
+        <div class="meta-row profile-statuses">
+          <span class="badge ${client.formStatus === "complete" ? "status-complete" : "status-incomplete"}">${client.formStatus === "complete" ? "Ficha completa" : "Ficha pendiente"}</span>
+          ${insight.risks.length ? `<span class="badge status-incomplete"><i class="bi bi-exclamation-triangle"></i>${insight.risks.length} alerta(s)</span>` : '<span class="badge status-complete">Sin alertas</span>'}
+          <span class="badge" id="clientPhotoCount">0 fotos</span>
+        </div>
       </div>
-      ${insight.risks.length ? `<div class="alert-card danger"><i class="bi bi-exclamation-triangle"></i><div><strong>Revisar antes del servicio</strong><div class="risk-list">${insight.risks.map(flag => `<span class="badge status-incomplete">${esc(flag)}</span>`).join("")}</div></div></div>` : ""}
-      <div class="client-summary-grid">
-        <article class="summary-metric"><span>Servicio habitual</span><strong>${esc(insight.usualService?.name || client.favorite || "Sin definir")}</strong><small>${insight.usualService ? `${insight.usualService.duration} min · ${money(insight.usualService.price)}` : "Se calcula con el historial"}</small></article>
-        <article class="summary-metric"><span>Diseño habitual</span><strong>${esc(design.effect || design.design || "Sin diseño")}</strong><small>${esc([design.curvature,design.thickness,design.range].filter(Boolean).join(" · ") || "Sin detalles técnicos")}</small></article>
-        <article class="summary-metric"><span>Última visita</span><strong>${insight.lastVisit ? dateLabel(insight.lastVisit.date,{day:"numeric",month:"long",year:"numeric"}) : "Sin visitas"}</strong><small>${insight.lastVisit ? esc(serviceById(insight.lastVisit.serviceId).name) : "Primera atención"}</small></article>
-        <article class="summary-metric"><span>Mantenimiento sugerido</span><strong>${insight.maintenanceDate ? dateLabel(insight.maintenanceDate,{day:"numeric",month:"long"}) : "Sin calcular"}</strong><small>Cada ${DATA.settings.maintenanceDays} días</small></article>
+      <div class="profile-actions profile-actions-compact">
+        <button type="button" class="btn primary-btn" onclick="window.newAppointmentForClient(${client.id})"><i class="bi bi-calendar-plus"></i>Nueva cita</button>
+        <button type="button" class="btn ghost-btn" onclick="window.repeatClientService(${client.id})"><i class="bi bi-arrow-repeat"></i>Repetir</button>
       </div>
-      <div class="record-grid">
-        <div class="info-card"><h4>Detalles para repetir rápidamente</h4><dl class="detail-list"><div><dt>Técnica</dt><dd>${esc(design.technique || "-")}</dd></div><div><dt>Efecto</dt><dd>${esc(design.effect || "-")}</dd></div><div><dt>Diseño</dt><dd>${esc(design.design || "-")}</dd></div><div><dt>Volumen</dt><dd>${esc(design.volume || "-")}</dd></div><div><dt>Curvatura</dt><dd>${esc(design.curvature || "-")}</dd></div><div><dt>Rango</dt><dd>${esc(design.range || "-")}</dd></div></dl></div>
-        <div class="info-card"><h4>Actividad de la clienta</h4><dl class="detail-list"><div><dt>Visitas registradas</dt><dd>${insight.visits.length}</dd></div><div><dt>Gasto acumulado</dt><dd>${money(client.spent)}</dd></div><div><dt>Ticket promedio</dt><dd>${money(insight.averagePrice)}</dd></div><div><dt>Nota general</dt><dd>${esc(client.note || "Sin notas")}</dd></div></dl></div>
+    </div>
+
+    ${insight.risks.length ? `<div class="alert-card danger compact-alert"><i class="bi bi-exclamation-triangle"></i><div><strong>Revisar antes del servicio</strong><div class="risk-list">${insight.risks.map(flag => `<span class="badge status-incomplete">${esc(flag)}</span>`).join("")}</div></div></div>` : ""}
+
+    <div class="client-summary-grid client-summary-compact">
+      <article class="summary-metric">
+        <span>Servicio habitual</span>
+        <strong>${esc(usualService?.name || client.favorite || "Sin definir")}</strong>
+        <small>${usualService ? `${usualService.duration} min · ${money(usualService.price)}` : "Según historial"}</small>
+      </article>
+      <article class="summary-metric">
+        <span>Diseño habitual</span>
+        <strong>${esc(designLabel)}</strong>
+        <small>${esc(designMeta || "Sin detalles técnicos")}</small>
+      </article>
+      <article class="summary-metric">
+        <span>Última visita</span>
+        <strong>${lastVisitLabel}</strong>
+        <small>${insight.lastVisit ? esc(serviceById(insight.lastVisit.serviceId).name) : "Primera atención"}</small>
+      </article>
+      <article class="summary-metric">
+        <span>Próximo mantenimiento</span>
+        <strong>${maintenanceLabel}</strong>
+        <small>Cada ${DATA.settings.maintenanceDays} días</small>
+      </article>
+    </div>
+
+    <details class="record-overview-details">
+      <summary><span><i class="bi bi-stars"></i>Detalles para repetir el trabajo</span><i class="bi bi-chevron-down"></i></summary>
+      <div class="record-overview-grid">
+        <dl class="detail-list">
+          <div><dt>Técnica</dt><dd>${esc(design.technique || "-")}</dd></div>
+          <div><dt>Efecto</dt><dd>${esc(design.effect || "-")}</dd></div>
+          <div><dt>Diseño</dt><dd>${esc(design.design || "-")}</dd></div>
+          <div><dt>Volumen</dt><dd>${esc(design.volume || "-")}</dd></div>
+          <div><dt>Curvatura</dt><dd>${esc(design.curvature || "-")}</dd></div>
+          <div><dt>Rango</dt><dd>${esc(design.range || "-")}</dd></div>
+        </dl>
+        <dl class="detail-list">
+          <div><dt>Visitas</dt><dd>${insight.visits.length}</dd></div>
+          <div><dt>Gasto acumulado</dt><dd>${money(client.spent)}</dd></div>
+          <div><dt>Ticket promedio</dt><dd>${money(insight.averagePrice)}</dd></div>
+          <div><dt>Nota general</dt><dd>${esc(client.note || "Sin notas")}</dd></div>
+        </dl>
       </div>
-      <div class="quick-actions-grid four">
-        <button type="button" class="quick-action" data-record-go="consultation"><i class="bi bi-exclamation-triangle"></i><strong>Alertas y consulta</strong><span>Alergias, sensibilidad y datos a revisar.</span></button>
-        <button type="button" class="quick-action" data-record-go="history"><i class="bi bi-clock-history"></i><strong>Historial completo</strong><span>Servicios, precios y observaciones.</span></button>
-        <button type="button" class="quick-action" data-record-go="design"><i class="bi bi-eye"></i><strong>Diseño técnico</strong><span>Curvatura, grosor, efecto y mapeo.</span></button>
-        <button type="button" class="quick-action" data-record-go="gallery"><i class="bi bi-camera"></i><strong>Fotografías</strong><span>Antes, después, retención o inspiración.</span></button>
-      </div>
-    </section>`;
-  }
+    </details>
+
+    <div class="quick-actions-grid quick-actions-compact">
+      <button type="button" class="quick-action" data-record-go="consultation"><i class="bi bi-exclamation-triangle"></i><strong>Alertas</strong></button>
+      <button type="button" class="quick-action" data-record-go="history"><i class="bi bi-clock-history"></i><strong>Historial</strong></button>
+      <button type="button" class="quick-action" data-record-go="design"><i class="bi bi-eye"></i><strong>Diseño</strong></button>
+      <button type="button" class="quick-action" data-record-go="gallery"><i class="bi bi-camera"></i><strong>Fotos</strong></button>
+    </div>
+  </section>`;
+}
 
   function renderRecordForm(client, record) {
     const insight = clientInsights(client.id);
