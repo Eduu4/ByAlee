@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="es" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Acceso administrador — ByAlee</title>
+  <meta name="theme-color" content="#8F5C70">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+  <link rel="stylesheet" href="assets/css/styles.css">
+  <style>
+    body{min-height:100vh;display:grid;place-items:center;padding:20px;background:linear-gradient(145deg,var(--bg),var(--primary-soft))}
+    .login-shell{width:min(900px,100%);display:grid;grid-template-columns:1fr 1fr;border:1px solid var(--line);background:var(--surface);border-radius:28px;overflow:hidden;box-shadow:var(--shadow)}
+    .login-brand{padding:42px;background:linear-gradient(145deg,var(--primary),var(--primary-dark));color:white;display:flex;flex-direction:column;justify-content:space-between;min-height:520px}.login-brand h1{font-size:42px;margin:15px 0}.login-brand p{line-height:1.65;color:rgba(255,255,255,.78)}.login-mark{width:58px;height:58px;border-radius:18px;background:rgba(255,255,255,.16);display:grid;place-items:center;font-family:Fraunces;font-size:22px}.login-public{display:flex;align-items:center;gap:9px;font-size:11px;color:rgba(255,255,255,.82)}
+    .login-card{padding:42px;display:flex;flex-direction:column;justify-content:center}.login-card h2{font-size:30px;margin-bottom:7px}.login-card>p{font-size:12px;color:var(--muted);line-height:1.55;margin-bottom:24px}.login-card .field{margin-bottom:13px}.login-card .btn{width:100%;margin-top:8px}.setup-box{margin-top:17px;padding:13px;border:1px dashed var(--line);border-radius:14px;background:var(--surface-2);font-size:10px;color:var(--muted);line-height:1.55}.setup-box strong{display:block;color:var(--text);margin-bottom:4px}.login-message{font-size:10px;font-weight:700;margin-top:10px;display:none;line-height:1.5}.login-message.error{display:block;color:var(--danger)}.login-message.success{display:block;color:var(--mint)}.login-loading{opacity:.68;pointer-events:none}
+    @media(max-width:720px){body{padding:0;background:var(--surface)}.login-shell{grid-template-columns:1fr;border:0;border-radius:0;min-height:100vh}.login-brand{min-height:auto;padding:25px}.login-brand h1{font-size:30px;margin:12px 0}.login-brand p{display:none}.login-card{padding:28px 20px}.login-public{margin-top:18px}}
+  </style>
+</head>
+<body>
+  <main class="login-shell">
+    <section class="login-brand">
+      <div><div class="login-mark">BA</div><span class="eyebrow" style="color:white;display:block;margin-top:25px">BYALEE</span><h1>Panel privado del estudio</h1><p>Clientas, fichas, agenda, inventario, configuraciones y datos sensibles están protegidos por autenticación real.</p></div>
+      <a class="login-public" href="/reservar"><i class="bi bi-box-arrow-up-right"></i> Abrir reserva pública</a>
+    </section>
+    <section class="login-card" id="loginCard">
+      <span class="eyebrow">ADMINISTRACIÓN</span>
+      <h2>Iniciar sesión</h2>
+      <p>Ingresá con el usuario creado en Supabase Authentication. La sesión queda protegida y se mantiene entre visitas.</p>
+      <form id="loginForm">
+        <label class="field"><span>Correo</span><input id="loginEmail" type="email" autocomplete="username" placeholder="correo@ejemplo.com" required></label>
+        <label class="field"><span>Contraseña</span><input id="loginPassword" type="password" autocomplete="current-password" required></label>
+        <button class="btn primary-btn" id="loginSubmit" type="submit"><i class="bi bi-shield-lock"></i>Ingresar</button>
+        <div class="login-message" id="loginMessage" role="alert"></div>
+      </form>
+      <div class="setup-box"><strong>Primera configuración</strong>Creá el usuario administrador desde Supabase → Authentication → Users. El archivo <code>database/supabase-schema.sql</code> vincula automáticamente ese usuario con el estudio ByAlee.</div>
+    </section>
+  </main>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/platform.js"></script>
+  <script>
+    (() => {
+      "use strict";
+      const form = document.getElementById("loginForm");
+      const card = document.getElementById("loginCard");
+      const message = document.getElementById("loginMessage");
+      const submit = document.getElementById("loginSubmit");
+
+      const setMessage = (text, type = "error") => {
+        message.textContent = text;
+        message.className = `login-message ${type}`;
+      };
+
+      const clearMessage = () => {
+        message.textContent = "";
+        message.className = "login-message";
+      };
+
+      const safeNext = () => {
+        const value = new URLSearchParams(location.search).get("next") || "/admin";
+        return value.startsWith("/") && !value.startsWith("//") ? value : "/admin";
+      };
+
+      async function initialize() {
+        const setupMessage = new URLSearchParams(location.search).get("setup");
+        if (setupMessage) setMessage(setupMessage, "error");
+        const platform = await window.ByAleePlatform.ready;
+        if (!platform.configured || !platform.client) {
+          setMessage(platform.error?.message || "Supabase todavía no está configurado en Vercel.", "error");
+          submit.disabled = true;
+          return;
+        }
+        const { data } = await platform.client.auth.getSession();
+        if (data.session) location.replace(safeNext());
+      }
+
+      form.addEventListener("submit", async event => {
+        event.preventDefault();
+        clearMessage();
+        card.classList.add("login-loading");
+        submit.disabled = true;
+        try {
+          const platform = await window.ByAleePlatform.ready;
+          if (!platform.configured || !platform.client) throw platform.error || new Error("Supabase no está configurado.");
+          const email = document.getElementById("loginEmail").value.trim().toLowerCase();
+          const password = document.getElementById("loginPassword").value;
+          const { error } = await platform.client.auth.signInWithPassword({ email, password });
+          if (error) throw error;
+          setMessage("Acceso correcto. Abriendo el panel…", "success");
+          location.replace(safeNext());
+        } catch (error) {
+          console.error(error);
+          const text = /invalid login credentials/i.test(error.message || "")
+            ? "Correo o contraseña incorrectos."
+            : (error.message || "No se pudo iniciar sesión.");
+          setMessage(text, "error");
+        } finally {
+          card.classList.remove("login-loading");
+          submit.disabled = false;
+        }
+      });
+      form.addEventListener("input", clearMessage);
+      initialize();
+    })();
+  </script>
+</body>
+</html>

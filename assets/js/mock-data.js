@@ -9,30 +9,34 @@
   window.LASHFLOW_DATA = {
     today: iso(0),
     services: [
-      {id:1,name:"Clásicas",duration:120,prep:10,cleanup:10,price:150000,color:"#A66C83"},
-      {id:2,name:"Híbridas",duration:150,prep:10,cleanup:10,price:190000,color:"#8F79A8"},
-      {id:3,name:"Volumen ruso",duration:180,prep:15,cleanup:15,price:240000,color:"#C08E45"},
-      {id:4,name:"Mega volumen",duration:240,prep:15,cleanup:15,price:320000,color:"#6F5C8A"},
-      {id:5,name:"Lifting",duration:60,prep:5,cleanup:10,price:120000,color:"#5E8B7B"},
-      {id:6,name:"Retoque",duration:80,prep:5,cleanup:10,price:130000,color:"#C16B73"},
-      {id:7,name:"Retiro",duration:35,prep:5,cleanup:10,price:70000,color:"#7A8B91"},
-      {id:8,name:"Uñas semipermanentes",duration:90,prep:10,cleanup:10,price:100000,color:"#5E82A6"}
+      {id:1,name:"Clásicas",category:"Pestañas",duration:120,prep:10,cleanup:10,price:150000,color:"#A66C83"},
+      {id:2,name:"Híbridas",category:"Pestañas",duration:150,prep:10,cleanup:10,price:190000,color:"#8F79A8"},
+      {id:3,name:"Volumen ruso",category:"Pestañas",duration:180,prep:15,cleanup:15,price:240000,color:"#C08E45"},
+      {id:4,name:"Mega volumen",category:"Pestañas",duration:240,prep:15,cleanup:15,price:320000,color:"#6F5C8A"},
+      {id:5,name:"Lifting",category:"Pestañas",duration:60,prep:5,cleanup:10,price:120000,color:"#5E8B7B"},
+      {id:6,name:"Retoque",category:"Pestañas",duration:80,prep:5,cleanup:10,price:130000,color:"#C16B73"},
+      {id:7,name:"Retiro",category:"Pestañas",duration:35,prep:5,cleanup:10,price:70000,color:"#7A8B91"},
+      {id:8,name:"Uñas semipermanentes",category:"Manos",duration:90,prep:10,cleanup:10,price:100000,color:"#5E82A6"},
+      {id:9,name:"Perfilado de cejas",category:"Cejas",duration:45,prep:5,cleanup:10,price:80000,color:"#A6795B",description:"Diseño y perfilado adaptado al rostro."},
+      {id:10,name:"Laminado de cejas",category:"Cejas",duration:70,prep:10,cleanup:10,price:140000,color:"#94705E",description:"Peinado y definición de cejas con acabado duradero."},
+      {id:11,name:"Pedicure",category:"Pies",duration:75,prep:10,cleanup:15,price:120000,color:"#5D8F91",description:"Cuidado general y esmaltado de pies."},
+      {id:12,name:"Spa de pies",category:"Pies",duration:60,prep:10,cleanup:15,price:100000,color:"#6A8C7D",description:"Limpieza, exfoliación e hidratación de pies."}
     ],
     appointments: [
       {id:101,date:iso(0),time:"08:30",clientId:1,client:"María Gómez",serviceId:3,source:"WhatsApp",status:"confirmed",deposit:50000,notes:"Usar adhesivo sensible.",phone:"0981 234 567",formStatus:"complete"},
       {id:102,date:iso(0),time:"12:00",clientId:2,client:"Ana López",serviceId:6,source:"Página web",status:"confirmed",deposit:50000,notes:"Retoque de 3 semanas.",phone:"0972 445 121",formStatus:"complete"},
       {id:103,date:iso(0),time:"14:00",clientId:3,client:"Sofía Benítez",serviceId:5,source:"Instagram",status:"pending",deposit:0,notes:"Primera visita.",phone:"0984 903 115",formStatus:"pending"},
       {id:104,date:iso(0),time:"16:00",clientId:4,client:"Lucía Vera",serviceId:1,source:"WhatsApp",status:"confirmed",deposit:50000,notes:"Prefiere resultado natural.",phone:"0991 522 411",formStatus:"complete"},
-      {id:105,date:iso(1),time:"09:00",clientId:5,client:"Camila Ortiz",serviceId:4,source:"Página web",status:"confirmed",deposit:100000,notes:"Mega volumen.",phone:"0982 781 232",formStatus:"complete"},
+      {id:105,date:iso(1),time:"09:00",clientId:5,client:"Carla Ortiz",serviceId:4,source:"Página web",status:"confirmed",deposit:100000,notes:"Mega volumen.",phone:"0982 781 232",formStatus:"complete"},
       {id:106,date:iso(1),time:"14:00",clientId:6,client:"Paola Rojas",serviceId:8,source:"WhatsApp",status:"pending",deposit:0,notes:"Color nude.",phone:"0971 811 650",formStatus:"pending"}
     ],
     clients: [
-      {id:1,name:"María Gómez",birthDate:"1997-04-12",address:"San Lorenzo",phone:"0981 234 567",email:"maria@example.com",instagram:"@mariag",firstTime:false,last:"26 jun",favorite:"Volumen ruso",visits:14,spent:2920000,note:"Adhesivo sensible",formStatus:"complete"},
-      {id:2,name:"Ana López",birthDate:"1999-09-03",address:"Fernando de la Mora",phone:"0972 445 121",email:"ana@example.com",instagram:"@anal",firstTime:false,last:"27 jun",favorite:"Retoque",visits:9,spent:1310000,note:"Prefiere 12-13-14 mm",formStatus:"complete"},
-      {id:3,name:"Sofía Benítez",birthDate:"",address:"",phone:"0984 903 115",email:"",instagram:"@sofib",firstTime:true,last:"Primera cita",favorite:"Lifting",visits:0,spent:0,note:"Sin ficha técnica",formStatus:"pending"},
-      {id:4,name:"Lucía Vera",birthDate:"2000-01-22",address:"Luque",phone:"0991 522 411",email:"lucia@example.com",instagram:"@lucia.v",firstTime:false,last:"2 jul",favorite:"Clásicas",visits:6,spent:850000,note:"Estilo natural",formStatus:"complete"},
-      {id:5,name:"Camila Ortiz",birthDate:"1996-06-18",address:"Asunción",phone:"0982 781 232",email:"camila@example.com",instagram:"@camiortiz",firstTime:false,last:"18 jun",favorite:"Mega volumen",visits:11,spent:3010000,note:"Curvatura D",formStatus:"complete"},
-      {id:6,name:"Paola Rojas",birthDate:"",address:"",phone:"0971 811 650",email:"",instagram:"",firstTime:false,last:"10 jul",favorite:"Uñas",visits:4,spent:390000,note:"Tonos nude",formStatus:"pending"}
+      {id:1,name:"María Gómez",birthDate:"1997-04-12",birthdayMarketingConsent:true,address:"San Lorenzo",phone:"0981 234 567",email:"maria@example.com",instagram:"@mariag",firstTime:false,last:"26 jun",favorite:"Volumen ruso",visits:14,spent:2920000,note:"Adhesivo sensible",formStatus:"complete"},
+      {id:2,name:"Ana López",birthDate:"1999-09-03",birthdayMarketingConsent:true,address:"Fernando de la Mora",phone:"0972 445 121",email:"ana@example.com",instagram:"@anal",firstTime:false,last:"27 jun",favorite:"Retoque",visits:9,spent:1310000,note:"Prefiere 12-13-14 mm",formStatus:"complete"},
+      {id:3,name:"Sofía Benítez",birthDate:"2002-07-23",birthdayMarketingConsent:true,address:"",phone:"0984 903 115",email:"",instagram:"@sofib",firstTime:true,last:"Primera cita",favorite:"Lifting",visits:0,spent:0,note:"Sin ficha técnica",formStatus:"pending"},
+      {id:4,name:"Lucía Vera",birthDate:"2000-01-22",birthdayMarketingConsent:true,address:"Luque",phone:"0991 522 411",email:"lucia@example.com",instagram:"@lucia.v",firstTime:false,last:"2 jul",favorite:"Clásicas",visits:6,spent:850000,note:"Estilo natural",formStatus:"complete"},
+      {id:5,name:"Carla Ortiz",birthDate:"1996-06-18",birthdayMarketingConsent:true,address:"Asunción",phone:"0982 781 232",email:"carla@example.com",instagram:"@carlaortiz",firstTime:false,last:"18 jun",favorite:"Mega volumen",visits:11,spent:3010000,note:"Curvatura D",formStatus:"complete"},
+      {id:6,name:"Paola Rojas",birthDate:"1998-07-27",birthdayMarketingConsent:true,address:"",phone:"0971 811 650",email:"",instagram:"",firstTime:false,last:"10 jul",favorite:"Uñas",visits:4,spent:390000,note:"Tonos nude",formStatus:"pending"}
     ],
     records: [
       {
@@ -70,12 +74,17 @@
       {id:204,clientId:4,date:iso(-18),serviceId:1,professional:"ByAlee",source:"Instagram",price:150000,design:"Natural",range:"7–10 mm",curvature:"C",notes:"Longitud cómoda con anteojos."}
     ],
     inventory: [
-      {name:"Adhesivo Sensitive Pro",stock:2,min:4,unit:"unidades",category:"Adhesivos"},
-      {name:"Parches de gel",stock:5,min:10,unit:"pares",category:"Accesorios"},
-      {name:"Pestañas 0.07 D",stock:8,min:5,unit:"bandejas",category:"Pestañas"},
-      {name:"Microbrush",stock:22,min:15,unit:"paquetes",category:"Accesorios"},
-      {name:"Primer profesional",stock:3,min:3,unit:"unidades",category:"Preparación"},
-      {name:"Removedor en crema",stock:6,min:3,unit:"unidades",category:"Retiro"}
+      {id:1,name:"Adhesivo Sensitive Pro",stock:2,min:4,unit:"unidades",category:"Adhesivos",priority:"professional",location:"Estación principal"},
+      {id:2,name:"Parches de gel",stock:5,min:10,unit:"pares",category:"Accesorios",priority:"professional",location:"Cajón 1"},
+      {id:3,name:"Pestañas 0.07 D",stock:8,min:5,unit:"bandejas",category:"Pestañas",priority:"professional",location:"Estante de pestañas"},
+      {id:4,name:"Microbrush",stock:22,min:15,unit:"paquetes",category:"Accesorios",priority:"professional",location:"Cajón 2"},
+      {id:5,name:"Primer profesional",stock:3,min:3,unit:"unidades",category:"Preparación",priority:"professional",location:"Estación principal"},
+      {id:6,name:"Removedor en crema",stock:6,min:3,unit:"unidades",category:"Retiro",priority:"professional",location:"Estación principal"},
+      {id:7,name:"Desinfectante de superficies",stock:4,min:2,unit:"botellas",category:"Limpieza",priority:"general",location:"Depósito"},
+      {id:8,name:"Guantes descartables",stock:3,min:2,unit:"cajas",category:"Higiene",priority:"general",location:"Depósito"}
+    ],
+    availabilityBlocks: [
+      {id:1,date:iso(4),allDay:false,startTime:"15:00",endTime:"20:00",reason:"Evento personal",source:"manual"}
     ],
     maintenance: [
       {client:"Rocío Acosta",date:iso(1),lastService:"Volumen ruso"},

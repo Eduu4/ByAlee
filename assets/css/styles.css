@@ -497,3 +497,30 @@ h2{font-family:Fraunces;font-size:22px;margin-bottom:0}
   .check-grid{grid-template-columns:1fr}.record-section-heading{align-items:flex-start}.record-section-heading .btn{font-size:10px!important;min-width:40px}.record-section-heading .btn i{font-size:14px}
   .history-item{padding:11px}.history-price{font-size:13px}
 }
+
+
+/* LashFlow v5: agenda flexible, cumpleaños, inventario y correcciones móviles */
+.badge.status-canceled{background:var(--danger-soft);color:var(--danger);border-color:transparent}
+.danger-icon{color:var(--danger)}
+.appointment-reason{font-size:9px;color:var(--muted);max-width:210px;margin-top:5px;line-height:1.4}
+.birthday-panel[hidden]{display:none}.birthday-list{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}.birthday-card{display:grid;grid-template-columns:42px 1fr auto;align-items:center;gap:11px;border:1px solid var(--line);border-radius:15px;padding:12px;background:var(--surface-2)}.birthday-icon{width:42px;height:42px;border-radius:14px;background:var(--gold-soft);color:var(--gold);display:grid;place-items:center;font-size:19px}.birthday-card strong,.birthday-card span{display:block}.birthday-card strong{font-size:12px}.birthday-card span{font-size:10px;color:var(--muted);margin-top:4px}.birthday-card .btn{font-size:10px;min-height:36px}.birthday-counter{background:var(--gold)}.birthday-badge{background:var(--gold-soft);color:var(--gold);border-color:transparent}.notification-mini-icon.birthday{background:var(--gold-soft);color:var(--gold)}
+.compact-filter-row{display:flex;align-items:end;gap:12px;margin-bottom:16px}.compact-filter-row .field{max-width:260px}.compact-filter-row>.muted{padding-bottom:11px;font-size:11px}
+.inventory-filter-bar{display:grid;grid-template-columns:minmax(220px,1.3fr) minmax(170px,.7fr) minmax(170px,.7fr) auto;gap:10px;align-items:end;margin-bottom:17px;padding:14px;border:1px solid var(--line);border-radius:17px;background:var(--surface);box-shadow:var(--shadow)}.inventory-filter-count{font-size:11px;color:var(--muted);font-weight:700;padding-bottom:12px}.inventory-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:10px}.inventory-card-head .icon-btn{width:35px;height:35px}.inventory-actions{display:grid;grid-template-columns:1fr 1fr 1.15fr;gap:7px;margin-top:14px}.inventory-actions .btn{font-size:10px;padding:0 8px;min-height:37px}.inventory-low{border-color:color-mix(in srgb,var(--danger) 38%,var(--line))}
+.full-settings{grid-column:1/-1!important}.availability-form{display:grid;grid-template-columns:1fr .7fr .7fr 1.3fr auto auto;gap:9px;align-items:end}.block-all-day{min-height:43px;align-items:center}.availability-block-list{display:grid;gap:8px;margin-top:14px}.availability-block-row{display:flex;align-items:center;justify-content:space-between;gap:12px;border:1px solid var(--line);background:var(--surface-2);border-radius:13px;padding:11px}.availability-block-row strong,.availability-block-row span{display:block}.availability-block-row strong{font-size:11px}.availability-block-row span{font-size:9px;color:var(--muted);margin-top:4px}.google-calendar-card{display:grid;grid-template-columns:46px 1fr;gap:13px;align-items:start;padding:14px;border:1px solid var(--line);border-radius:16px;background:var(--surface-2);margin-bottom:13px}.google-calendar-card>i{width:46px;height:46px;border-radius:14px;background:var(--surface);display:grid;place-items:center;font-size:21px}.google-calendar-card strong{font-size:12px}.google-calendar-card p{font-size:10px;line-height:1.55;color:var(--muted);margin:5px 0 0}
+.record-row-actions .badge i{font-size:11px}.record-row-actions .btn{white-space:nowrap}
+.check-option input[type="checkbox"],.radio-option input[type="radio"]{flex:0 0 auto;width:17px;height:17px}
+
+@media(max-width:1050px){.birthday-list{grid-template-columns:1fr 1fr}.availability-form{grid-template-columns:1fr 1fr 1fr}.availability-form .block-all-day,.availability-form .btn{align-self:end}.inventory-filter-bar{grid-template-columns:1fr 1fr}.inventory-filter-count{padding-bottom:0}}
+@media(max-width:700px){
+  .birthday-list{grid-template-columns:1fr}.birthday-card{grid-template-columns:40px 1fr}.birthday-card .btn{grid-column:1/-1;width:100%}
+  .inventory-filter-bar{grid-template-columns:1fr}.inventory-filter-count{padding:0}.inventory-actions{grid-template-columns:1fr 1fr}.inventory-actions .primary-btn{grid-column:1/-1}
+  .availability-form{grid-template-columns:1fr 1fr}.availability-form .field:first-child,.availability-form .field:nth-child(4),.availability-form .block-all-day,.availability-form .btn{grid-column:1/-1}
+  .record-row-actions{gap:6px}.record-row-actions .badge{min-width:34px;justify-content:center}.record-row-actions .btn{width:42px;min-width:42px;padding:0;font-size:0}.record-row-actions .btn i{font-size:16px;margin:0}
+  .client-card-actions{display:grid;grid-template-columns:1fr}.client-card-actions .btn{width:100%}
+  .appointment-actions{flex-wrap:wrap;max-width:92px}.appointment-actions .icon-btn{width:36px;height:36px}
+  .topbar{padding:0 10px}.topbar-actions{gap:6px}.topbar-actions .primary-btn{width:43px;padding:0;font-size:0}.topbar-actions .primary-btn i{font-size:16px;margin:0}.search-box{width:100%;padding:0 10px}
+}
+
+/* Evita mostrar el panel antes de validar la sesión real. */
+html.auth-pending body{opacity:0;pointer-events:none}
+html.auth-ready body{opacity:1;transition:opacity .16s ease}

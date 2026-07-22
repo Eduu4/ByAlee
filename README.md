@@ -1,127 +1,140 @@
-# LashFlow — prototipo de gestión integral v4
+# ByAlee — agenda, clientas y reservas reales
 
-Frontend funcional en HTML, CSS y JavaScript puro. Esta versión sigue sin backend y está pensada para probar el flujo completo antes de conectar una base de datos.
+Esta versión conserva la interfaz HTML/CSS/JavaScript del proyecto y reemplaza el almacenamiento aislado del navegador por una arquitectura compartida:
 
-## Cómo abrirlo
+- **Supabase Auth** para el login del administrador.
+- **Supabase PostgreSQL + RLS** para clientas, fichas, citas, servicios, inventario, bloqueos y configuración.
+- **Supabase Storage privado** para comprobantes y fotografías.
+- **Vercel Functions** para recibir reservas públicas sin exponer claves privadas.
+- **Supabase Realtime** para mostrar nuevas solicitudes en el panel.
 
-1. Descomprime la carpeta.
-2. Ábrela con Visual Studio Code.
-3. Ejecuta `index.html` mediante **Live Server**.
-4. Abre `reservar.html` desde el mismo Live Server para simular la reserva de una clienta.
+## Rutas en Vercel
 
-Es importante que ambas páginas utilicen la misma dirección y el mismo puerto. Por ejemplo:
+| Dirección | Uso |
+|---|---|
+| `/` o `/reservar` | Reserva pública. No requiere login. |
+| `/login` | Inicio de sesión de ByAlee. |
+| `/admin` | Panel privado. Redirige al login cuando no existe sesión. |
 
-- `http://127.0.0.1:5500/index.html`
-- `http://127.0.0.1:5500/reservar.html`
+## 1. Crear el proyecto de Supabase
 
-Así comparten `localStorage`, IndexedDB y las notificaciones entre pestañas.
+1. Crea un proyecto nuevo en Supabase.
+2. Abre **SQL Editor**.
+3. Copia y ejecuta todo el contenido de `database/supabase-schema.sql`.
+4. Comprueba que se crearon las tablas del esquema `public` y el bucket privado `byalee-private`.
 
-## Cambios de la versión 4
+El SQL crea el estudio **ByAlee**, las políticas RLS, servicios iniciales, configuración, inventario de prueba y el disparador que vincula usuarios de Auth con el estudio.
 
-### Notificaciones funcionales
+## 2. Crear el usuario administrador
 
-- La campana permanece visible también en dispositivos móviles.
-- Muestra la cantidad de solicitudes online pendientes.
-- Al presionarla se abre un panel con las solicitudes recientes.
-- El dashboard verifica cambios entre pestañas mediante `BroadcastChannel`, eventos de almacenamiento, foco de ventana y una comprobación periódica liviana.
-- El título de la pestaña muestra la cantidad pendiente, por ejemplo: `(2) LashFlow`.
+En Supabase:
 
-### Agenda con filtro por fecha
+1. Abre **Authentication → Users**.
+2. Crea un usuario con el correo real de la administradora y una contraseña segura.
+3. Desactiva el registro público por correo si solamente ByAlee debe crear usuarios.
 
-La sección **Agenda** ahora permite:
+El trigger del SQL crea automáticamente su fila en `public.profiles` con rol `admin`. El script también vincula usuarios que hayan sido creados antes de ejecutar el SQL.
 
-- Elegir una fecha específica.
-- Filtrar por estado de cita.
-- Mostrar solamente las citas de hoy.
-- Limpiar los filtros.
-- Ver cuántos resultados coinciden.
-- Consultar el estado de la seña y abrir un comprobante adjunto.
+## 3. Obtener las claves
 
-Se eliminó la repetición de botones globales para crear citas. La acción principal queda en la barra superior, además de las acciones contextuales dentro de la ficha de una clienta.
+En Supabase abre la configuración de API del proyecto y copia:
 
-### Reserva pública más flexible
+- URL del proyecto.
+- Publishable key; en proyectos antiguos puede llamarse `anon key`.
+- Service role key o secret key de servidor.
 
-En `reservar.html`:
+La clave de servicio **solo** se configura en Vercel. Nunca debe escribirse en HTML, JavaScript público ni subirse al repositorio.
 
-- Solo son obligatorios el nombre y el WhatsApp para identificar a la clienta.
-- Cumpleaños, correo, Instagram y domicilio están dentro de una sección opcional.
-- La consulta previa explica claramente qué información se debe marcar.
-- La clienta puede agregar detalles o dejarlos para el día de la atención.
-- Puede indicar que la seña fue coordinada por WhatsApp.
-- Puede subir una imagen del comprobante.
-- La imagen se comprime y se guarda en IndexedDB.
-- La solicitud aparece en el dashboard como pendiente de confirmación.
-- El consentimiento tiene una casilla grande y visible con una indicación explícita.
+## 4. Configurar Vercel
 
-### Ficha de clienta mejorada
+En el proyecto de Vercel abre **Settings → Environment Variables** y agrega:
 
-- La ficha abre primero en **Resumen**.
-- Las alertas, servicio habitual, diseño, última visita y mantenimiento aparecen antes que la información secundaria.
-- Los accesos rápidos llevan correctamente a Alertas, Historial, Diseño y Fotos.
-- Se corrigió el problema que hacía que las pestañas no ocultaran las demás secciones.
-- En celulares, la ficha utiliza una vista de pantalla completa, pestañas desplazables y tarjetas más compactas.
+```text
+SUPABASE_URL=https://TU-PROYECTO.supabase.co
+SUPABASE_PUBLISHABLE_KEY=TU_CLAVE_PUBLICA
+SUPABASE_SERVICE_ROLE_KEY=TU_CLAVE_PRIVADA_DE_SERVIDOR
+BYALEE_STUDIO_SLUG=byalee
+```
 
-### Servicios realmente editables
+Selecciona al menos **Production**. También conviene seleccionar **Preview** para probar ramas antes de publicarlas. Luego realiza un nuevo deployment.
 
-El administrador puede presionar el lápiz o **Editar servicio** para cambiar:
+`SUPABASE_ANON_KEY` también es aceptada como alternativa a `SUPABASE_PUBLISHABLE_KEY`.
 
-- Nombre.
-- Precio.
-- Duración.
-- Preparación.
-- Limpieza.
-- Color.
-- Descripción pública.
-- Disponibilidad para reservas.
+## 5. Subir esta versión al repositorio
 
-Los controles usan una vinculación directa con el servicio seleccionado para evitar que la pantalla se comporte solamente como alta de servicios.
+Reemplaza el contenido actual del repositorio con esta carpeta y ejecuta:
 
-### Preferencias del administrador
+```bash
+git add .
+git commit -m "Conectar ByAlee con Supabase y login real"
+git push origin main
+```
 
-En **Configuración → Horarios y automatización** se puede decidir:
+Vercel, al estar conectado con la rama `main`, creará el deployment. Después abre:
 
-- Si se permiten reservas públicas.
-- Si el consentimiento es obligatorio.
-- Si WhatsApp se abre al confirmar.
-- Si la clienta puede omitir los detalles opcionales.
-- Si se permite subir comprobante de seña.
-- Si se exige elegir una forma de confirmación de la seña.
+```text
+https://by-alee.vercel.app/login
+```
 
-## Confirmación por WhatsApp
+## Qué ya guarda en la base de datos
 
-Cuando la lashista confirma una solicitud, el prototipo puede abrir WhatsApp con el mensaje preparado. La lashista debe presionar **Enviar**.
+- Administradores y profesionales.
+- Configuración de ByAlee.
+- Servicios editables y su disponibilidad pública.
+- Clientas y fecha de cumpleaños con consentimiento.
+- Fichas, alertas, preferencias y consentimientos.
+- Solicitudes públicas, citas confirmadas, canceladas y reagendadas.
+- Visitas e historial técnico.
+- Inventario profesional y general.
+- Días u horarios bloqueados.
+- Comprobantes y fotografías privadas.
 
-El envío completamente automático requiere un backend, WhatsApp Business Cloud API y, según el caso, plantillas aprobadas por Meta.
+La reserva pública valida nuevamente el horario en el servidor y la base de datos incluye una restricción para evitar dos citas activas superpuestas.
 
-## Almacenamiento utilizado
+## Flujo real de una reserva
 
-### LocalStorage
+```text
+Clienta abre /reservar
+        ↓
+Vercel Function /api/bookings
+        ↓
+Supabase PostgreSQL
+        ↓
+Realtime avisa al panel /admin
+        ↓
+ByAlee confirma, cancela o reagenda
+```
 
-- `lashflow_demo_appointments`
-- `lashflow_demo_clients`
-- `lashflow_demo_records`
-- `lashflow_demo_visits`
-- `lashflow_demo_services`
-- `lashflow_demo_settings`
-- `lashflow_demo_sync`
-- `lashflow_theme`
+## Seguridad aplicada
 
-### IndexedDB
+- El dashboard consulta datos únicamente con una sesión de Supabase Auth.
+- Las tablas tienen Row Level Security por estudio.
+- La reserva pública escribe mediante una Function de Vercel y no recibe la clave de servicio.
+- El bucket de fotos y comprobantes es privado.
+- Las imágenes del panel se abren mediante enlaces firmados temporales.
+- El servidor vuelve a comprobar jornada, bloqueos, duración y superposición.
 
-Base: `lashflow_images_db`
+## Datos anteriores del prototipo
 
-- `images`: fotografías de las fichas.
-- `bookingProofs`: comprobantes de señas.
+Los datos que estaban en `localStorage` no aparecen automáticamente en Supabase. Puedes usar la exportación/importación del panel para mover datos estructurados de una versión anterior. Las fotografías antiguas almacenadas solamente en IndexedDB pueden requerir volver a cargarse.
 
-## Limitaciones del prototipo
+## Desarrollo local opcional
 
-Los datos solo están disponibles en el navegador y dispositivo donde fueron guardados. Para una versión real hacen falta:
+Para probar las Functions de Vercel localmente:
 
-- Backend y base de datos.
-- Usuarios, contraseñas y permisos.
-- Almacenamiento privado de imágenes.
-- Enlaces públicos seguros.
-- Copias de seguridad.
-- Registro de auditoría de consentimientos.
-- Política de privacidad y conservación de datos.
-- Integración oficial con WhatsApp.
+```bash
+npm install
+vercel link
+vercel env pull .env.local
+vercel dev
+```
+
+No es obligatorio usar Docker para desplegar esta versión en Vercel.
+
+## Pendiente para siguientes etapas
+
+- Sincronización bidireccional con Google Calendar.
+- Recuperación de contraseña desde la interfaz.
+- Auditoría detallada de cambios y consentimientos.
+- Envío automático mediante WhatsApp Business API.
+- Roles más detallados para varias profesionales.

@@ -10,15 +10,18 @@
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
   <link rel="stylesheet" href="assets/css/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="assets/js/platform.js"></script>
+  <script src="assets/js/auth.js"></script>
 </head>
 <body>
   <div class="app-shell">
     <aside class="sidebar" id="sidebar">
       <div class="brand">
-        <div class="brand-mark">BA</div>
+        <div class="brand-mark">LF</div>
         <div>
           <strong>ByAlee</strong>
-          <span>Beauty Studio</span>
+          <span>Gestión del estudio</span>
         </div>
       </div>
 
@@ -34,17 +37,18 @@
         <button class="nav-link" data-view="inventory"><i class="bi bi-box-seam"></i><span>Inventario</span></button>
         <button class="nav-link" data-view="finance"><i class="bi bi-wallet2"></i><span>Finanzas</span></button>
         <button class="nav-link admin-only" data-view="settings"><i class="bi bi-sliders"></i><span>Configuración</span></button>
-        <a class="nav-link" href="reservar.html"><i class="bi bi-link-45deg"></i><span>Mi enlace de reservas</span></a>
+        <a class="nav-link" href="/reservar"><i class="bi bi-link-45deg"></i><span>Mi enlace de reservas</span></a>
       </nav>
 
       <div class="sidebar-profile">
-        <div class="avatar">CM</div>
+        <div class="avatar">BA</div>
         <div class="profile-copy">
           <strong>ByAlee</strong>
           <span>Administradora</span>
         </div>
         <button class="icon-btn admin-only" id="adminSettingsBtn" aria-label="Abrir configuración"><i class="bi bi-gear"></i></button>
         <button class="icon-btn" id="themeToggle" aria-label="Cambiar tema"><i class="bi bi-moon-stars"></i></button>
+        <button class="icon-btn" id="logoutBtn" aria-label="Cerrar sesión" title="Cerrar sesión"><i class="bi bi-box-arrow-right"></i></button>
       </div>
     </aside>
 
@@ -60,19 +64,19 @@
           <div class="search-results" id="globalSearchResults" hidden></div>
         </div>
         <div class="topbar-actions">
-          <a class="btn ghost-btn" href="reservar.html" target="_blank"><i class="bi bi-box-arrow-up-right"></i><span>Ver reserva online</span></a>
-          <button class="icon-btn notification-btn" id="notificationBtn" title="Solicitudes de cita"><i class="bi bi-bell"></i><span id="notificationDot"></span></button>
+          <a class="btn ghost-btn" href="/reservar" target="_blank"><i class="bi bi-box-arrow-up-right"></i><span>Ver reserva online</span></a>
+          <button class="icon-btn notification-btn" id="notificationBtn" title="Notificaciones"><i class="bi bi-bell"></i><span id="notificationDot"></span></button>
           <button class="btn primary-btn" id="newAppointmentBtn"><i class="bi bi-plus-lg"></i>Nueva cita</button>
         </div>
       </header>
 
       <aside class="notification-popover" id="notificationPopover" hidden aria-live="polite">
         <div class="notification-popover-head">
-          <div><span class="eyebrow">NOTIFICACIONES</span><h3>Solicitudes pendientes</h3></div>
+          <div><span class="eyebrow">NOTIFICACIONES</span><h3>Solicitudes y recordatorios</h3></div>
           <button class="icon-btn" id="closeNotificationPopover" aria-label="Cerrar notificaciones"><i class="bi bi-x-lg"></i></button>
         </div>
         <div id="notificationPopoverList" class="notification-popover-list"></div>
-        <button class="btn ghost-btn notification-popover-action" id="viewAllRequestsBtn"><i class="bi bi-calendar-check"></i>Ver solicitudes en el dashboard</button>
+        <button class="btn ghost-btn notification-popover-action" id="viewAllRequestsBtn"><i class="bi bi-calendar-check"></i>Ir al dashboard</button>
       </aside>
 
       <main class="content">
@@ -80,7 +84,7 @@
           <div class="hero-row">
             <div>
               <span class="eyebrow" id="todayLabel">MI JORNADA</span>
-              <h1>Buenos días, ByAlee<span>✨</span></h1>
+              <h1>Buenos días, ByAlee <span>✨</span></h1>
               <p id="summaryText">Hoy tienes citas programadas.</p>
             </div>
             <div class="day-actions">
@@ -123,6 +127,14 @@
               <span class="request-counter" id="bookingRequestCount">0</span>
             </div>
             <div class="booking-request-list" id="bookingRequestList"></div>
+          </section>
+
+          <section class="panel birthday-panel" id="birthdayPanel">
+            <div class="panel-header compact">
+              <div><span class="eyebrow">CUMPLEAÑOS</span><h2>Detalles especiales para clientas</h2><p class="muted">Solo aparecen clientas que autorizaron usar su fecha para recordatorios informativos o promociones.</p></div>
+              <span class="request-counter birthday-counter" id="birthdayCount">0</span>
+            </div>
+            <div class="birthday-list" id="birthdayList"></div>
           </section>
 
           <div class="dashboard-grid">
@@ -243,6 +255,7 @@
               <option value="pending">Pendiente</option>
               <option value="requested">Solicitud web</option>
               <option value="rejected">Rechazada</option>
+              <option value="canceled">Cancelada</option>
             </select>
           </label>
 
@@ -253,6 +266,7 @@
 
           <div class="client-hint full" id="appointmentClientHint" hidden></div>
 
+          <input type="hidden" name="rescheduleReason" id="rescheduleReason">
           <label class="field full">
             <span>Notas</span>
             <textarea name="notes" rows="3" placeholder="Preferencias, alergias o indicaciones..."></textarea>
@@ -283,6 +297,7 @@
         <input type="hidden" name="serviceId" id="editingServiceId">
         <div class="form-grid">
           <label class="field full"><span>Nombre del servicio</span><input name="name" required placeholder="Ej. Volumen tecnológico"></label>
+          <label class="field"><span>Categoría</span><select name="category"><option>Pestañas</option><option>Cejas</option><option>Manos</option><option>Pies</option><option>Rostro</option><option>Otro</option></select></label>
           <label class="field"><span>Duración del servicio (min)</span><input name="duration" type="number" min="5" step="5" required></label>
           <label class="field"><span>Precio (Gs.)</span><input name="price" type="number" min="0" step="5000" required></label>
           <label class="field"><span>Preparación (min)</span><input name="prep" type="number" min="0" step="5" required></label>
@@ -298,6 +313,26 @@
           <button type="button" class="btn ghost-btn" data-close-service>Cancelar</button>
           <button type="submit" class="btn primary-btn"><i class="bi bi-check2"></i>Guardar servicio</button>
         </div>
+      </form>
+    </div>
+  </div>
+
+
+  <div class="modal-backdrop" id="inventoryModal" aria-hidden="true">
+    <div class="modal-card">
+      <div class="modal-header"><div><span class="eyebrow">INVENTARIO</span><h2 id="inventoryModalTitle">Producto</h2></div><button class="icon-btn" data-close-inventory><i class="bi bi-x-lg"></i></button></div>
+      <form id="inventoryForm">
+        <input type="hidden" name="inventoryId" id="editingInventoryId">
+        <div class="form-grid">
+          <label class="field full"><span>Producto</span><input name="name" required placeholder="Ej. Adhesivo profesional"></label>
+          <label class="field"><span>Categoría</span><input name="category" required list="inventoryCategories" placeholder="Pestañas, Limpieza..."><datalist id="inventoryCategories"><option>Pestañas</option><option>Adhesivos</option><option>Accesorios</option><option>Preparación</option><option>Retiro</option><option>Higiene</option><option>Limpieza</option><option>Oficina</option></datalist></label>
+          <label class="field"><span>Prioridad</span><select name="priority"><option value="professional">Producto de trabajo</option><option value="general">Limpieza / local</option></select></label>
+          <label class="field"><span>Stock actual</span><input name="stock" type="number" min="0" step="1" required></label>
+          <label class="field"><span>Stock mínimo</span><input name="min" type="number" min="0" step="1" required></label>
+          <label class="field"><span>Unidad</span><input name="unit" required placeholder="unidades, cajas, pares..."></label>
+          <label class="field"><span>Ubicación</span><input name="location" placeholder="Estante, cajón, depósito..."></label>
+        </div>
+        <div class="modal-actions"><button type="button" class="btn danger-btn" id="deleteInventoryBtn" hidden><i class="bi bi-trash3"></i>Eliminar</button><span class="action-spacer"></span><button type="button" class="btn ghost-btn" data-close-inventory>Cancelar</button><button type="submit" class="btn primary-btn"><i class="bi bi-check2"></i>Guardar producto</button></div>
       </form>
     </div>
   </div>
@@ -328,7 +363,7 @@
         <div id="recordFormContent"></div>
         <div class="modal-actions record-actions">
           <button type="button" class="btn ghost-btn" id="printRecordBtn"><i class="bi bi-printer"></i>Imprimir</button>
-          <button type="button" class="btn ghost-btn" id="copyFormLinkBtn"><i class="bi bi-link-45deg"></i>Copiar enlace</button>
+          <button type="button" class="btn ghost-btn" id="copyFormLinkBtn"><i class="bi bi-link-45deg"></i>Copiar reserva</button>
           <span class="action-spacer"></span>
           <button type="button" class="btn ghost-btn" data-close-record>Cancelar</button>
           <button type="submit" class="btn primary-btn"><i class="bi bi-check2"></i>Guardar ficha</button>
@@ -340,6 +375,7 @@
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
   <script src="assets/js/mock-data.js"></script>
+  <script src="assets/js/admin-data.js"></script>
   <script src="assets/js/app.js"></script>
 </body>
 </html>

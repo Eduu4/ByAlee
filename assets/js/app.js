@@ -8,16 +8,18 @@
     records: "lashflow_demo_records",
     visits: "lashflow_demo_visits",
     services: "lashflow_demo_services",
+    inventory: "lashflow_demo_inventory",
+    availabilityBlocks: "lashflow_demo_availability_blocks",
     settings: "lashflow_demo_settings"
   };
 
   const DEFAULT_SETTINGS = {
     role: "admin",
     userName: "ByAlee",
-    userEmail: "ByAlee@ByAlee.local",
-    studioName: "ByAlee Beauty Studio",
+    userEmail: "",
+    studioName: "ByAlee",
     studioPhone: "0981 000 000",
-    city: "San Lorenzo",
+    city: "Luque",
     openingTime: "08:00",
     closingTime: "20:00",
     slotInterval: 30,
@@ -32,6 +34,16 @@
     allowOptionalBookingDetails: true,
     allowDepositProof: true,
     requireDepositChoice: true,
+    birthdayNotificationsEnabled: true,
+    birthdayNoticeDays: 7,
+    birthdayMessageTemplate: "Hola {nombre} 🎉 Se acerca tu cumpleaños. Desde {estudio} queremos prepararte algo especial. ¿Te gustaría conocer las promociones disponibles?",
+    requirePoliciesAcceptance: true,
+    bookingPoliciesVersion: "1.0",
+    bookingPoliciesText: "La cita queda confirmada únicamente cuando la profesional la acepta. Si necesitás cancelar o reagendar, avisá con la mayor anticipación posible. La seña y su devolución se gestionan según el tiempo de aviso. Llegadas tardías pueden reducir el tiempo del servicio. La profesional puede suspender la atención si detecta una condición que pueda afectar la seguridad del procedimiento.",
+    googleCalendarEnabled: false,
+    googleCalendarId: "primary",
+    googleCalendarConnected: false,
+    timezone: "America/Asuncion",
     confirmationMessageTemplate: "Hola {nombre} 😊 Tu cita de {servicio} fue confirmada para el {fecha} a las {hora}. Te esperamos en {estudio}.",
     workDays: [1, 2, 3, 4, 5, 6]
   };
@@ -59,6 +71,8 @@
   DATA.records = loadArray(KEYS.records, DATA.records);
   DATA.visits = loadArray(KEYS.visits, DATA.visits);
   DATA.services = loadArray(KEYS.services, DATA.services);
+  DATA.inventory = loadArray(KEYS.inventory, DATA.inventory || []);
+  DATA.availabilityBlocks = loadArray(KEYS.availabilityBlocks, DATA.availabilityBlocks || []);
   DATA.settings = loadObject(KEYS.settings, DEFAULT_SETTINGS);
 
   const $ = (selector, parent = document) => parent.querySelector(selector);
@@ -73,7 +87,11 @@
   };
   const toTime = total => `${String(Math.floor(total / 60)).padStart(2, "0")}:${String(total % 60).padStart(2, "0")}`;
   const initials = name => String(name || "CL").split(" ").filter(Boolean).slice(0, 2).map(part => part[0]).join("").toUpperCase();
-  const todayISO = DATA.today || new Date().toISOString().slice(0, 10);
+  const localISODate = () => {
+    const now = new Date();
+    return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+  };
+  const todayISO = DATA.today || localISODate();
   const addDays = (isoDate, amount) => {
     const date = new Date(`${isoDate}T12:00:00`);
     date.setDate(date.getDate() + Number(amount || 0));
@@ -85,8 +103,8 @@
   const totalDuration = service => Number(service?.duration || 0) + Number(service?.prep || 0) + Number(service?.cleanup || 0);
   const clientById = id => DATA.clients.find(client => client.id === Number(id));
   const recordByClient = id => DATA.records.find(record => record.clientId === Number(id));
-  const appointmentStatusLabel = status => ({confirmed:"Confirmada",requested:"Solicitud online",pending:"Pendiente",rejected:"Rechazada",completed:"Finalizada"}[status] || "Pendiente");
-  const appointmentStatusClass = status => ({confirmed:"confirmed",requested:"requested",pending:"pending",rejected:"rejected",completed:"complete"}[status] || "pending");
+  const appointmentStatusLabel = status => ({confirmed:"Confirmada",requested:"Solicitud online",pending:"Pendiente",rejected:"Rechazada",canceled:"Cancelada",completed:"Finalizada"}[status] || "Pendiente");
+  const appointmentStatusClass = status => ({confirmed:"confirmed",requested:"requested",pending:"pending",rejected:"rejected",canceled:"canceled",completed:"complete"}[status] || "pending");
   const depositStatusLabel = appointment => {
     if (appointment.depositStatus === "proof_uploaded") return "Comprobante adjunto";
     if (appointment.depositStatus === "confirmed_whatsapp") return "Seña confirmada por WhatsApp";
@@ -106,6 +124,11 @@
   let currentRecordClientId = null;
   let editingAppointmentId = null;
   let editingVisitId = null;
+  let pendingReschedule = null;
+  let inventoryCategoryFilter = "all";
+  let inventoryPriorityFilter = "professional";
+  let inventorySearch = "";
+  let serviceCategoryFilter = "all";
   let sharedAppointmentsSnapshot = localStorage.getItem(KEYS.appointments) || JSON.stringify(DATA.appointments);
 
   const medicalLabels = {
@@ -142,9 +165,17 @@
         if (type === "appointments") sharedAppointmentsSnapshot = serialized;
       }
     });
+    if (window.ByAleeDB?.isRemote?.()) window.ByAleeDB.scheduleSync(requested, DATA);
   }
 
   function normalizeData() {
+    const inferCategory = name => {
+      const n = normalize(name);
+      if (n.includes("ceja")) return "Cejas";
+      if (n.includes("pie") || n.includes("pedicure")) return "Pies";
+      if (n.includes("una") || n.includes("manic")) return "Manos";
+      return "Pestañas";
+    };
     DATA.services.forEach((service, index) => {
       service.id = Number(service.id || index + 1);
       service.duration = Number(service.duration || 60);
@@ -153,6 +184,7 @@
       service.price = Number(service.price || 0);
       if (typeof service.active !== "boolean") service.active = true;
       service.description ||= "";
+      service.category ||= inferCategory(service.name);
       service.color ||= "#8f5c70";
     });
     DATA.clients.forEach((client, index) => {
@@ -160,6 +192,7 @@
       if (!client.formStatus) client.formStatus = recordByClient(client.id)?.consent?.accepted ? "complete" : "pending";
       client.visits = Number(client.visits || 0);
       client.spent = Number(client.spent || 0);
+      if (typeof client.birthdayMarketingConsent !== "boolean") client.birthdayMarketingConsent = false;
     });
     DATA.appointments.forEach(appointment => {
       if (!appointment.clientId) {
@@ -169,10 +202,34 @@
       const client = clientById(appointment.clientId);
       appointment.formStatus = client?.formStatus || appointment.formStatus || "pending";
       appointment.status ||= appointment.source === "Página web" ? "requested" : "pending";
+      if (!Array.isArray(appointment.rescheduleHistory)) appointment.rescheduleHistory = [];
+    });
+    DATA.inventory ||= [];
+    DATA.inventory.forEach((item, index) => {
+      item.id = Number(item.id || index + 1);
+      item.stock = Number(item.stock || 0);
+      item.min = Number(item.min || 0);
+      item.unit ||= "unidades";
+      item.category ||= "Otros";
+      item.priority ||= ["Limpieza","Higiene","Oficina"].includes(item.category) ? "general" : "professional";
+      item.location ||= "";
+    });
+    DATA.availabilityBlocks ||= [];
+    DATA.availabilityBlocks.forEach((block, index) => {
+      block.id = Number(block.id || index + 1);
+      block.allDay = Boolean(block.allDay);
+      block.startTime ||= DATA.settings.openingTime || "08:00";
+      block.endTime ||= DATA.settings.closingTime || "20:00";
+      block.source ||= "manual";
+      block.reason ||= "Horario no disponible";
     });
     if (!Array.isArray(DATA.settings.workDays)) DATA.settings.workDays = [1,2,3,4,5,6];
+    if (/camila/i.test(DATA.settings.userName || "")) DATA.settings.userName = "ByAlee";
+    if (/camila|beauty studio/i.test(DATA.settings.studioName || "")) DATA.settings.studioName = "ByAlee";
+    DATA.visits.forEach(visit => { if (/camila/i.test(visit.professional || "")) visit.professional = "ByAlee"; });
   }
   normalizeData();
+  persist("settings","services","inventory","availabilityBlocks","visits");
 
   function dateLabel(isoDate, options = {day:"numeric", month:"short"}) {
     if (!isoDate) return "Sin fecha";
@@ -260,9 +317,45 @@
     return {client, record, visits, appointments, usualService, lastService, lastVisit, averagePrice, maintenanceDate, risks:getRiskFlags(record)};
   }
 
+
+
+  const appointmentFreesSlot = appointment => ["rejected", "canceled"].includes(appointment?.status);
+
+  function upcomingBirthdays() {
+    if (!DATA.settings.birthdayNotificationsEnabled) return [];
+    const noticeDays = Math.max(0, Number(DATA.settings.birthdayNoticeDays || 0));
+    const base = new Date(`${todayISO}T12:00:00`);
+    return DATA.clients.map(client => {
+      if (!client.birthDate || !client.birthdayMarketingConsent) return null;
+      const parts = client.birthDate.split("-").map(Number);
+      if (parts.length !== 3) return null;
+      let next = new Date(base.getFullYear(), parts[1] - 1, parts[2], 12, 0, 0, 0);
+      if (next < base) next = new Date(base.getFullYear() + 1, parts[1] - 1, parts[2], 12, 0, 0, 0);
+      const days = Math.round((next - base) / 86400000);
+      return {client, days, date: next.toISOString().slice(0, 10)};
+    }).filter(Boolean).filter(item => item.days <= noticeDays).sort((a,b) => a.days - b.days || a.client.name.localeCompare(b.client.name));
+  }
+
+  function availabilityBlocksForDate(date) {
+    return (DATA.availabilityBlocks || []).filter(block => block.date === date);
+  }
+
+  function blockOverlaps(block, start, end) {
+    if (block.allDay) return true;
+    const from = minutes(block.startTime);
+    const to = minutes(block.endTime);
+    return start < to && end > from;
+  }
+
+  function birthdayMessage(client) {
+    const values = {nombre:client.name || "", estudio:DATA.settings.studioName || "ByAlee"};
+    return String(DATA.settings.birthdayMessageTemplate || DEFAULT_SETTINGS.birthdayMessageTemplate)
+      .replace(/\{(nombre|estudio)\}/g, (_, key) => values[key] || "");
+  }
+
   function selectedAppointments() {
     return DATA.appointments
-      .filter(appointment => appointment.date === selectedDate && appointment.status !== "rejected" && (activeFilter === "all" || appointment.status === activeFilter))
+      .filter(appointment => appointment.date === selectedDate && !appointmentFreesSlot(appointment) && (activeFilter === "all" || appointment.status === activeFilter))
       .sort((a, b) => minutes(a.time) - minutes(b.time));
   }
 
@@ -278,12 +371,13 @@
 
   function renderDashboard() {
     const all = DATA.appointments
-      .filter(appointment => appointment.date === selectedDate && appointment.status !== "rejected")
+      .filter(appointment => appointment.date === selectedDate && !appointmentFreesSlot(appointment))
       .sort((a, b) => minutes(a.time) - minutes(b.time));
     const shown = selectedAppointments();
     const requests = DATA.appointments
       .filter(appointment => appointment.status === "requested")
       .sort((a, b) => a.date.localeCompare(b.date) || minutes(a.time) - minutes(b.time));
+    const birthdays = upcomingBirthdays();
     const revenue = all.reduce((sum, appointment) => sum + Number(serviceById(appointment.serviceId).price || 0), 0);
     const occupied = all.reduce((sum, appointment) => sum + totalDuration(serviceById(appointment.serviceId)), 0);
     const workday = Math.max(0, minutes(DATA.settings.closingTime) - minutes(DATA.settings.openingTime));
@@ -303,129 +397,74 @@
     $("#summaryText").textContent = all.length
       ? `Tienes ${all.length} citas, ${dayRequests} solicitud(es) online, ${dayPending} pendiente(s) y ${all.filter(a => formStatusForAppointment(a) !== "complete").length} ficha(s) por completar.`
       : requests.length
-        ? `No hay citas cargadas para este día, pero tienes ${requests.length} solicitud(es) online por revisar.`
+        ? `No hay citas para este día, pero tienes ${requests.length} solicitud(es) online por revisar.`
         : "No tienes citas programadas para este día.";
 
     const dateObj = new Date(`${selectedDate}T12:00:00`);
     $("#selectedDateLabel").textContent = selectedDate === todayISO ? "Hoy" : dateObj.toLocaleDateString("es-PY", {weekday:"short", day:"numeric", month:"short"});
     $("#todayLabel").textContent = dateObj.toLocaleDateString("es-PY", {weekday:"long", day:"numeric", month:"long"}).toUpperCase();
 
-    const requestPanel = $("#bookingRequestsPanel");
     const requestList = $("#bookingRequestList");
-    const requestCount = $("#bookingRequestCount");
-    if (requestPanel && requestList && requestCount) {
-      requestCount.textContent = requests.length;
-      requestList.innerHTML = requests.length ? requests.map(appointment => {
-        const service = serviceById(appointment.serviceId);
-        const client = clientById(appointment.clientId);
-        const formStatus = formStatusForAppointment(appointment);
-        const isPast = appointment.date < todayISO;
-        return `<article class="booking-request-card" id="request-${appointment.id}">
-          <div class="request-main">
-            <div class="client-avatar">${initials(appointment.client)}</div>
-            <div class="request-copy">
-              <div class="meta-row">
-                <span class="badge status-requested"><i class="bi bi-globe2"></i> Solicitud online</span>
-                ${isPast ? '<span class="badge status-rejected">Fecha vencida</span>' : ""}
-                <span class="badge ${formStatus === "complete" ? "status-complete" : "status-incomplete"}">${formStatus === "complete" ? "Ficha lista" : "Ficha pendiente"}</span>
-                <span class="badge ${appointment.depositStatus === "proof_uploaded" || appointment.depositStatus === "confirmed_whatsapp" ? "status-complete" : "status-incomplete"}"><i class="bi bi-cash-coin"></i> ${esc(depositStatusLabel(appointment))}</span>
-              </div>
-              <h3>${esc(appointment.client)} · ${esc(service.name)}</h3>
-              <p>${dateLabel(appointment.date,{weekday:"long",day:"numeric",month:"long"})} a las ${esc(appointment.time)} · ${esc(appointment.phone || client?.phone || "Sin WhatsApp")}${appointment.notes ? ` · ${esc(appointment.notes)}` : ""}</p>
-            </div>
-          </div>
-          <div class="request-actions">
-            <button class="btn primary-btn" onclick="window.confirmAppointment(${Number(appointment.id)})"><i class="bi bi-check2"></i>${DATA.settings.autoOpenConfirmationWhatsApp ? "Confirmar + WhatsApp" : "Confirmar"}</button>
-            <button class="btn ghost-btn" onclick="window.editAppointment(${Number(appointment.id)})"><i class="bi bi-pencil"></i>Editar</button>
-            ${appointment.depositProofId ? `<button class="btn ghost-btn" onclick="window.openDepositProof(${Number(appointment.id)})"><i class="bi bi-image"></i>Comprobante</button>` : ""}
-            <button class="icon-btn" title="Abrir ficha" onclick="window.openClientRecord(${Number(appointment.clientId)})"><i class="bi bi-clipboard2-heart"></i></button>
-            <button class="icon-btn" title="Rechazar solicitud" onclick="window.rejectAppointment(${Number(appointment.id)})"><i class="bi bi-x-lg"></i></button>
-          </div>
-        </article>`;
-      }).join("") : `<div class="empty-state compact-empty"><i class="bi bi-check2-circle"></i><strong>No hay solicitudes por revisar</strong><p>Las nuevas reservas enviadas desde el enlace público aparecerán aquí.</p></div>`;
-    }
+    $("#bookingRequestCount").textContent = requests.length;
+    requestList.innerHTML = requests.length ? requests.map(appointment => {
+      const service = serviceById(appointment.serviceId);
+      const client = clientById(appointment.clientId);
+      const formStatus = formStatusForAppointment(appointment);
+      const isPast = appointment.date < todayISO;
+      const generalDetails = [appointment.requestedAreas?.join(", "), appointment.preferenceStyle, appointment.clientRequest].filter(Boolean).join(" · ");
+      return `<article class="booking-request-card" id="request-${appointment.id}">
+        <div class="request-main"><div class="client-avatar">${initials(appointment.client)}</div><div class="request-copy">
+          <div class="meta-row"><span class="badge status-requested"><i class="bi bi-globe2"></i> Solicitud online</span>${isPast ? '<span class="badge status-rejected">Fecha vencida</span>' : ""}<span class="badge ${formStatus === "complete" ? "status-complete" : "status-incomplete"}">${formStatus === "complete" ? "Ficha lista" : "Ficha pendiente"}</span><span class="badge ${appointment.depositStatus === "proof_uploaded" || appointment.depositStatus === "confirmed_whatsapp" ? "status-complete" : "status-incomplete"}"><i class="bi bi-cash-coin"></i> ${esc(depositStatusLabel(appointment))}</span></div>
+          <h3>${esc(appointment.client)} · ${esc(service.name)}</h3>
+          <p>${dateLabel(appointment.date,{weekday:"long",day:"numeric",month:"long"})} a las ${esc(appointment.time)} · ${esc(appointment.phone || client?.phone || "Sin WhatsApp")}${generalDetails ? ` · ${esc(generalDetails)}` : ""}${appointment.notes ? ` · ${esc(appointment.notes)}` : ""}</p>
+        </div></div>
+        <div class="request-actions"><button class="btn primary-btn" onclick="window.confirmAppointment(${Number(appointment.id)})"><i class="bi bi-check2"></i>${DATA.settings.autoOpenConfirmationWhatsApp ? "Confirmar + WhatsApp" : "Confirmar"}</button><button class="btn ghost-btn" onclick="window.editAppointment(${Number(appointment.id)})"><i class="bi bi-pencil"></i>Editar</button>${appointment.depositProofId ? `<button class="btn ghost-btn" onclick="window.openDepositProof(${Number(appointment.id)})"><i class="bi bi-image"></i>Comprobante</button>` : ""}<button class="icon-btn" title="Abrir ficha" onclick="window.openClientRecord(${Number(appointment.clientId)})"><i class="bi bi-clipboard2-heart"></i></button><button class="icon-btn" title="Rechazar solicitud" onclick="window.rejectAppointment(${Number(appointment.id)})"><i class="bi bi-x-lg"></i></button></div>
+      </article>`;
+    }).join("") : `<div class="empty-state compact-empty"><i class="bi bi-check2-circle"></i><strong>No hay solicitudes por revisar</strong><p>Las nuevas reservas del enlace público aparecerán aquí.</p></div>`;
 
+    const birthdayPanel = $("#birthdayPanel");
+    if (birthdayPanel) birthdayPanel.hidden = !DATA.settings.birthdayNotificationsEnabled;
+    $("#birthdayCount").textContent = birthdays.length;
+    $("#birthdayList").innerHTML = birthdays.length ? birthdays.map(item => `<article class="birthday-card"><div class="birthday-icon"><i class="bi bi-balloon-heart"></i></div><div><strong>${esc(item.client.name)}</strong><span>${item.days === 0 ? "Cumple hoy" : item.days === 1 ? "Cumple mañana" : `Cumple en ${item.days} días`} · ${dateLabel(item.date,{day:"numeric",month:"long"})}</span></div><button class="btn ghost-btn" onclick="window.openBirthdayWhatsApp(${Number(item.client.id)})"><i class="bi bi-whatsapp"></i>Preparar saludo</button></article>`).join("") : `<div class="empty-state compact-empty"><i class="bi bi-calendar-heart"></i><strong>Sin cumpleaños próximos</strong><p>El plazo se configura desde Configuración.</p></div>`;
+
+    const notificationItems = [
+      ...requests.map(appointment => ({kind:"request", appointment})),
+      ...birthdays.map(item => ({kind:"birthday", item}))
+    ];
+    const notificationTotal = notificationItems.length;
     const notification = $("#notificationBtn");
     const notificationDot = $("#notificationDot");
-    if (notification && notificationDot) {
-      notification.classList.toggle("has-requests", requests.length > 0);
-      notificationDot.textContent = requests.length ? String(Math.min(requests.length, 99)) : "";
-      notificationDot.hidden = requests.length === 0;
-      notification.title = requests.length ? `${requests.length} solicitud(es) de cita` : "Sin solicitudes nuevas";
-    }
-    document.title = requests.length ? `(${requests.length}) ByAlee — Solicitudes pendientes` : "ByAlee — Mi jornada";
+    notification.classList.toggle("has-requests", notificationTotal > 0);
+    notificationDot.textContent = notificationTotal ? String(Math.min(notificationTotal, 99)) : "";
+    notificationDot.hidden = notificationTotal === 0;
+    notification.title = notificationTotal ? `${notificationTotal} notificación(es)` : "Sin notificaciones nuevas";
+    document.title = notificationTotal ? `(${notificationTotal}) ByAlee` : "ByAlee";
     const popoverList = $("#notificationPopoverList");
-    if (popoverList) {
-      popoverList.innerHTML = requests.length ? requests.slice(0, 8).map(appointment => {
+    popoverList.innerHTML = notificationItems.length ? notificationItems.slice(0, 10).map(entry => {
+      if (entry.kind === "request") {
+        const appointment = entry.appointment;
         const service = serviceById(appointment.serviceId);
-        return `<article class="notification-mini-item"><span class="notification-mini-icon"><i class="bi bi-calendar-plus"></i></span><div><strong>${esc(appointment.client)}</strong><small>${esc(service.name)} · ${dateLabel(appointment.date,{day:"2-digit",month:"short"})} ${esc(appointment.time)} · ${esc(depositStatusLabel(appointment))}</small></div><button class="icon-btn" title="Revisar" onclick="window.focusBookingRequest(${Number(appointment.id)})"><i class="bi bi-chevron-right"></i></button></article>`;
-      }).join("") : `<div class="search-empty"><i class="bi bi-check2-circle"></i><strong>Todo al día</strong><span>No hay solicitudes pendientes.</span></div>`;
-    }
+        return `<article class="notification-mini-item"><span class="notification-mini-icon"><i class="bi bi-calendar-plus"></i></span><div><strong>${esc(appointment.client)}</strong><small>${esc(service.name)} · ${dateLabel(appointment.date,{day:"2-digit",month:"short"})} ${esc(appointment.time)}</small></div><button class="icon-btn" title="Revisar" onclick="window.focusBookingRequest(${Number(appointment.id)})"><i class="bi bi-chevron-right"></i></button></article>`;
+      }
+      const item = entry.item;
+      return `<article class="notification-mini-item"><span class="notification-mini-icon birthday"><i class="bi bi-balloon-heart"></i></span><div><strong>${esc(item.client.name)}</strong><small>${item.days === 0 ? "Cumple hoy" : `Cumple en ${item.days} día(s)`}</small></div><button class="icon-btn" title="Preparar saludo" onclick="window.openBirthdayWhatsApp(${Number(item.client.id)})"><i class="bi bi-whatsapp"></i></button></article>`;
+    }).join("") : `<div class="search-empty"><i class="bi bi-check2-circle"></i><strong>Todo al día</strong><span>No hay solicitudes ni cumpleaños próximos.</span></div>`;
 
     $("#timeline").innerHTML = shown.length ? shown.map(appointment => {
       const service = serviceById(appointment.serviceId);
       const end = toTime(minutes(appointment.time) + totalDuration(service));
       const formStatus = formStatusForAppointment(appointment);
       const insight = clientInsights(appointment.clientId);
-      return `<div class="timeline-item" id="appointment-${appointment.id}" data-search="${esc(normalize(`${appointment.client} ${service.name} ${appointment.source} ${appointment.notes}`))}">
-        <div class="timeline-time">${esc(appointment.time)}</div>
-        <div class="timeline-axis"><span class="timeline-dot"></span></div>
-        <article class="appointment-card" style="--appt-color:${esc(service.color)}">
-          <div class="appointment-main">
-            <div class="client-avatar">${initials(appointment.client)}</div>
-            <div>
-              <h3>${esc(appointment.client)}</h3>
-              <p>${esc(service.name)} · ${esc(appointment.time)} a ${end} · bloque total ${totalDuration(service)} min</p>
-              <div class="meta-row">
-                <span class="badge status-${appointmentStatusClass(appointment.status)}">${appointmentStatusLabel(appointment.status)}</span>
-                <span class="badge"><i class="bi bi-${appointment.source === "WhatsApp" ? "whatsapp" : "globe2"}"></i> ${esc(appointment.source)}</span>
-                <span class="badge">Seña: ${money(appointment.deposit)}</span>
-                <span class="badge ${formStatus === "complete" ? "status-complete" : "status-incomplete"}"><i class="bi bi-clipboard2-${formStatus === "complete" ? "check" : "pulse"}"></i> ${formStatus === "complete" ? "Ficha lista" : "Falta ficha"}</span>
-                ${appointment.confirmationMessageOpenedAt ? '<span class="badge status-complete message-status"><i class="bi bi-whatsapp"></i> Mensaje preparado</span>' : ""}
-                ${insight.record?.design?.effect ? `<span class="badge"><i class="bi bi-eye"></i> Habitual: ${esc(insight.record.design.effect)}</span>` : ""}
-                ${appointment.notes ? `<span class="badge"><i class="bi bi-sticky"></i> ${esc(appointment.notes)}</span>` : ""}
-              </div>
-            </div>
-          </div>
-          <div class="appointment-actions">
-            <button class="icon-btn" title="Editar cita" onclick="window.editAppointment(${Number(appointment.id)})"><i class="bi bi-pencil"></i></button>
-            <button class="icon-btn" title="Abrir ficha" onclick="window.openClientRecord(${Number(appointment.clientId)})"><i class="bi bi-clipboard2-heart"></i></button>
-            <button class="icon-btn" title="WhatsApp" onclick="window.openWhatsApp(${Number(appointment.clientId)})"><i class="bi bi-whatsapp"></i></button>
-            ${appointment.status !== "confirmed" ? `<button class="icon-btn" title="Confirmar" onclick="window.confirmAppointment(${Number(appointment.id)})"><i class="bi bi-check2"></i></button>` : `<button class="icon-btn" title="Enviar confirmación por WhatsApp" onclick="window.openConfirmationWhatsApp(${Number(appointment.id)})"><i class="bi bi-send-check"></i></button>`}
-            <button class="icon-btn" title="Eliminar" onclick="window.deleteAppointment(${Number(appointment.id)})"><i class="bi bi-trash3"></i></button>
-          </div>
-        </article>
-      </div>`;
+      return `<div class="timeline-item" id="appointment-${appointment.id}"><div class="timeline-time">${esc(appointment.time)}</div><div class="timeline-axis"><span class="timeline-dot"></span></div><article class="appointment-card" style="--appt-color:${esc(service.color)}"><div class="appointment-main"><div class="client-avatar">${initials(appointment.client)}</div><div><h3>${esc(appointment.client)}</h3><p>${esc(service.name)} · ${esc(appointment.time)} a ${end} · bloque total ${totalDuration(service)} min</p><div class="meta-row"><span class="badge status-${appointmentStatusClass(appointment.status)}">${appointmentStatusLabel(appointment.status)}</span><span class="badge"><i class="bi bi-${appointment.source === "WhatsApp" ? "whatsapp" : "globe2"}"></i> ${esc(appointment.source)}</span><span class="badge">Seña: ${money(appointment.deposit)}</span><span class="badge ${formStatus === "complete" ? "status-complete" : "status-incomplete"}">${formStatus === "complete" ? "Ficha lista" : "Falta ficha"}</span>${insight.record?.design?.effect ? `<span class="badge"><i class="bi bi-eye"></i> Habitual: ${esc(insight.record.design.effect)}</span>` : ""}${appointment.notes ? `<span class="badge"><i class="bi bi-sticky"></i> ${esc(appointment.notes)}</span>` : ""}</div></div></div><div class="appointment-actions"><button class="icon-btn" title="Editar" onclick="window.editAppointment(${Number(appointment.id)})"><i class="bi bi-pencil"></i></button><button class="icon-btn" title="Ficha" onclick="window.openClientRecord(${Number(appointment.clientId)})"><i class="bi bi-clipboard2-heart"></i></button><button class="icon-btn" title="WhatsApp" onclick="window.openWhatsApp(${Number(appointment.clientId)})"><i class="bi bi-whatsapp"></i></button><button class="icon-btn" title="Reagendar" onclick="window.rescheduleAppointment(${Number(appointment.id)})"><i class="bi bi-calendar2-week"></i></button>${appointment.status !== "confirmed" ? `<button class="icon-btn" title="Confirmar" onclick="window.confirmAppointment(${Number(appointment.id)})"><i class="bi bi-check2"></i></button>` : `<button class="icon-btn" title="Preparar confirmación" onclick="window.openConfirmationWhatsApp(${Number(appointment.id)})"><i class="bi bi-send-check"></i></button>`}<button class="icon-btn danger-icon" title="Cancelar cita" onclick="window.cancelAppointment(${Number(appointment.id)})"><i class="bi bi-calendar-x"></i></button></div></article></div>`;
     }).join("") : `<div class="empty-state"><i class="bi bi-calendar2-heart"></i><strong>Agenda libre</strong><p>No hay citas para este filtro.</p></div>`;
 
     const next = all.find(appointment => appointment.status !== "completed") || all[0];
-    $("#nextAppointment").innerHTML = next ? (() => {
-      const service = serviceById(next.serviceId);
-      const complete = formStatusForAppointment(next) === "complete";
-      return `<div class="next-card">
-        <span class="muted">${appointmentStatusLabel(next.status).toUpperCase()}</span>
-        <div class="next-time">${esc(next.time)}</div>
-        <h3>${esc(next.client)}</h3>
-        <div class="muted">${esc(service.name)} · ${service.duration} min · ${complete ? "ficha completa" : "ficha pendiente"}</div>
-        <div class="next-actions">
-          <button class="light" onclick="window.openClientRecord(${Number(next.clientId)})">Ver ficha</button>
-          <button class="soft" onclick="window.openWhatsApp(${Number(next.clientId)})">WhatsApp</button>
-        </div>
-      </div>`;
-    })() : `<div class="empty-state"><i class="bi bi-check2-circle"></i>Sin citas</div>`;
+    $("#nextAppointment").innerHTML = next ? (() => { const service = serviceById(next.serviceId); return `<div class="next-card"><span class="muted">${appointmentStatusLabel(next.status).toUpperCase()}</span><div class="next-time">${esc(next.time)}</div><h3>${esc(next.client)}</h3><div class="muted">${esc(service.name)} · ${service.duration} min</div><div class="next-actions"><button class="light" onclick="window.openClientRecord(${Number(next.clientId)})">Ver ficha</button><button class="soft" onclick="window.rescheduleAppointment(${Number(next.id)})">Reagendar</button></div></div>`; })() : `<div class="empty-state"><i class="bi bi-check2-circle"></i>Sin citas</div>`;
 
-    const lowStock = DATA.inventory.filter(item => item.stock <= item.min);
-    $("#stockAlerts").innerHTML = lowStock.map(item => `<div class="mini-item">
-      <div class="mini-icon"><i class="bi bi-exclamation-triangle"></i></div>
-      <div><strong>${esc(item.name)}</strong><span>${item.stock} ${esc(item.unit)} · mínimo ${item.min}</span></div>
-    </div>`).join("") || `<span class="muted">Sin alertas</span>`;
-
-    const sources = {};
-    all.forEach(appointment => sources[appointment.source] = (sources[appointment.source] || 0) + 1);
-    $("#sourceSummary").innerHTML = Object.entries(sources).map(([name, count]) => {
-      const percentage = Math.round(count / all.length * 100);
-      return `<div class="source-row"><span>${esc(name)}</span><div class="source-bar"><span style="width:${percentage}%"></span></div><strong>${percentage}%</strong></div>`;
-    }).join("") || `<span class="muted">Sin datos</span>`;
+    const lowStock = DATA.inventory.filter(item => item.priority === "professional" && item.stock <= item.min);
+    $("#stockAlerts").innerHTML = lowStock.map(item => `<div class="mini-item"><div class="mini-icon"><i class="bi bi-exclamation-triangle"></i></div><div><strong>${esc(item.name)}</strong><span>${item.stock} ${esc(item.unit)} · mínimo ${item.min}</span></div></div>`).join("") || `<span class="muted">Sin alertas de productos de trabajo</span>`;
+    const sources = {}; all.forEach(appointment => sources[appointment.source] = (sources[appointment.source] || 0) + 1);
+    $("#sourceSummary").innerHTML = Object.entries(sources).map(([name, count]) => { const percentage = Math.round(count / all.length * 100); return `<div class="source-row"><span>${esc(name)}</span><div class="source-bar"><span style="width:${percentage}%"></span></div><strong>${percentage}%</strong></div>`; }).join("") || `<span class="muted">Sin datos</span>`;
   }
 
   function renderAgenda() {
@@ -433,44 +472,20 @@
       .filter(appointment => !agendaDateFilter || appointment.date === agendaDateFilter)
       .filter(appointment => agendaStatusFilter === "all" || appointment.status === agendaStatusFilter)
       .sort((a, b) => a.date.localeCompare(b.date) || minutes(a.time) - minutes(b.time));
-
     const rows = visibleAppointments.map(appointment => {
       const service = serviceById(appointment.serviceId);
       const formStatus = formStatusForAppointment(appointment);
       const statusActions = appointment.status === "requested"
         ? `<button class="icon-btn" title="Confirmar solicitud" onclick="window.confirmAppointment(${Number(appointment.id)})"><i class="bi bi-check2"></i></button><button class="icon-btn" title="Rechazar solicitud" onclick="window.rejectAppointment(${Number(appointment.id)})"><i class="bi bi-x-lg"></i></button>`
-        : appointment.status === "confirmed"
-          ? `<button class="icon-btn" title="Enviar confirmación por WhatsApp" onclick="window.openConfirmationWhatsApp(${Number(appointment.id)})"><i class="bi bi-send-check"></i></button>`
-          : appointment.status !== "rejected"
-            ? `<button class="icon-btn" title="Confirmar cita" onclick="window.confirmAppointment(${Number(appointment.id)})"><i class="bi bi-check2"></i></button>`
-            : "";
-      const proofAction = appointment.depositProofId
-        ? `<button class="deposit-proof-link" onclick="window.openDepositProof(${Number(appointment.id)})"><i class="bi bi-image"></i>Ver comprobante</button>`
-        : "";
-      return `<tr data-search="${esc(normalize(`${appointment.client} ${service.name} ${appointment.source} ${appointment.date} ${appointmentStatusLabel(appointment.status)}`))}">
-        <td>${dateLabel(appointment.date, {day:"2-digit", month:"2-digit", year:"numeric"})}</td>
-        <td>${esc(appointment.time)}</td>
-        <td><button class="text-btn" onclick="window.openClientRecord(${Number(appointment.clientId)})">${esc(appointment.client)}</button></td>
-        <td>${esc(service.name)}</td><td>${totalDuration(service)} min</td><td>${esc(appointment.source)}</td>
-        <td><span class="badge status-${appointmentStatusClass(appointment.status)}">${appointmentStatusLabel(appointment.status)}</span>${appointment.confirmationMessageOpenedAt ? '<div class="muted message-status">WhatsApp preparado</div>' : ""}</td>
-        <td><span class="badge ${formStatus === "complete" ? "status-complete" : "status-incomplete"}">${formStatus === "complete" ? "Completa" : "Pendiente"}</span></td>
-        <td><span class="badge ${appointment.depositStatus === "proof_uploaded" || appointment.depositStatus === "confirmed_whatsapp" ? "status-complete" : "status-incomplete"}">${esc(depositStatusLabel(appointment))}</span>${proofAction}</td>
-        <td class="table-actions">${statusActions}<button class="icon-btn" title="Editar" onclick="window.editAppointment(${Number(appointment.id)})"><i class="bi bi-pencil"></i></button><button class="icon-btn" title="Eliminar" onclick="window.deleteAppointment(${Number(appointment.id)})"><i class="bi bi-trash3"></i></button></td>
-      </tr>`;
+        : appointment.status === "canceled" || appointment.status === "rejected"
+          ? `<button class="icon-btn" title="Reagendar" onclick="window.rescheduleAppointment(${Number(appointment.id)})"><i class="bi bi-calendar2-week"></i></button>`
+          : `<button class="icon-btn" title="Reagendar" onclick="window.rescheduleAppointment(${Number(appointment.id)})"><i class="bi bi-calendar2-week"></i></button><button class="icon-btn" title="Cancelar cita" onclick="window.cancelAppointment(${Number(appointment.id)})"><i class="bi bi-calendar-x"></i></button>${appointment.status === "confirmed" ? `<button class="icon-btn" title="Preparar WhatsApp" onclick="window.openConfirmationWhatsApp(${Number(appointment.id)})"><i class="bi bi-send-check"></i></button>` : `<button class="icon-btn" title="Confirmar" onclick="window.confirmAppointment(${Number(appointment.id)})"><i class="bi bi-check2"></i></button>`}`;
+      const proofAction = appointment.depositProofId ? `<button class="deposit-proof-link" onclick="window.openDepositProof(${Number(appointment.id)})"><i class="bi bi-image"></i>Ver comprobante</button>` : "";
+      const reason = appointment.cancellationReason || appointment.rejectionReason || "";
+      return `<tr><td>${dateLabel(appointment.date, {day:"2-digit", month:"2-digit", year:"numeric"})}</td><td>${esc(appointment.time)}</td><td><button class="text-btn" onclick="window.openClientRecord(${Number(appointment.clientId)})">${esc(appointment.client)}</button></td><td><span class="badge">${esc(service.category || "Servicio")}</span><br>${esc(service.name)}</td><td>${totalDuration(service)} min</td><td>${esc(appointment.source)}</td><td><span class="badge status-${appointmentStatusClass(appointment.status)}">${appointmentStatusLabel(appointment.status)}</span>${reason ? `<div class="appointment-reason">${esc(reason)}</div>` : ""}</td><td><span class="badge ${formStatus === "complete" ? "status-complete" : "status-incomplete"}">${formStatus === "complete" ? "Completa" : "Pendiente"}</span></td><td><span class="badge ${appointment.depositStatus === "proof_uploaded" || appointment.depositStatus === "confirmed_whatsapp" ? "status-complete" : "status-incomplete"}">${esc(depositStatusLabel(appointment))}</span>${proofAction}</td><td class="table-actions">${statusActions}<button class="icon-btn" title="Editar" onclick="window.editAppointment(${Number(appointment.id)})"><i class="bi bi-pencil"></i></button><button class="icon-btn" title="Eliminar definitivamente" onclick="window.deleteAppointment(${Number(appointment.id)})"><i class="bi bi-trash3"></i></button></td></tr>`;
     }).join("");
-
-    const statusOptions = [["all","Todos los estados"],["requested","Solicitudes online"],["confirmed","Confirmadas"],["pending","Pendientes"],["completed","Finalizadas"],["rejected","Rechazadas"]];
-    $("#agendaView").innerHTML = `<div class="grid-page">
-      <div class="page-heading"><div><span class="eyebrow">AGENDA</span><h1>Todos los agendamientos</h1><p>Filtra por una fecha específica y revisa solicitudes, citas confirmadas o pendientes.</p></div></div>
-      <div class="agenda-filter-bar">
-        <label class="field"><span>Filtrar por fecha</span><input type="date" id="agendaDateFilter" value="${esc(agendaDateFilter)}"></label>
-        <label class="field"><span>Estado de la cita</span><select id="agendaStatusFilter">${statusOptions.map(([value,label]) => `<option value="${value}" ${agendaStatusFilter === value ? "selected" : ""}>${label}</option>`).join("")}</select></label>
-        <div class="agenda-filter-actions"><button class="btn ghost-btn" id="agendaTodayFilter"><i class="bi bi-calendar-day"></i>Hoy</button><button class="btn ghost-btn" id="agendaClearFilter"><i class="bi bi-x-circle"></i>Limpiar</button></div>
-        <div class="agenda-filter-summary">Mostrando ${visibleAppointments.length} de ${DATA.appointments.length} citas</div>
-      </div>
-      <div class="panel table-wrap"><table class="data-table"><thead><tr><th>Fecha</th><th>Hora</th><th>Clienta</th><th>Servicio</th><th>Bloque</th><th>Origen</th><th>Cita</th><th>Ficha</th><th>Seña</th><th>Acciones</th></tr></thead><tbody>${rows || '<tr class="agenda-empty-row"><td colspan="10">No hay citas que coincidan con este filtro.</td></tr>'}</tbody></table></div>
-    </div>`;
-
+    const statusOptions = [["all","Todos los estados"],["requested","Solicitudes online"],["confirmed","Confirmadas"],["pending","Pendientes"],["completed","Finalizadas"],["canceled","Canceladas"],["rejected","Rechazadas"]];
+    $("#agendaView").innerHTML = `<div class="grid-page"><div class="page-heading"><div><span class="eyebrow">AGENDA</span><h1>Todos los agendamientos</h1><p>Filtra por fecha y estado. Las cancelaciones conservan el motivo y liberan el horario.</p></div></div><div class="agenda-filter-bar"><label class="field"><span>Filtrar por fecha</span><input type="date" id="agendaDateFilter" value="${esc(agendaDateFilter)}"></label><label class="field"><span>Estado</span><select id="agendaStatusFilter">${statusOptions.map(([value,label]) => `<option value="${value}" ${agendaStatusFilter === value ? "selected" : ""}>${label}</option>`).join("")}</select></label><div class="agenda-filter-actions"><button class="btn ghost-btn" id="agendaTodayFilter"><i class="bi bi-calendar-day"></i>Hoy</button><button class="btn ghost-btn" id="agendaClearFilter"><i class="bi bi-x-circle"></i>Limpiar</button></div><div class="agenda-filter-summary">Mostrando ${visibleAppointments.length} de ${DATA.appointments.length} citas</div></div><div class="panel table-wrap"><table class="data-table"><thead><tr><th>Fecha</th><th>Hora</th><th>Clienta</th><th>Servicio</th><th>Bloque</th><th>Origen</th><th>Estado</th><th>Ficha</th><th>Seña</th><th>Acciones</th></tr></thead><tbody>${rows || '<tr class="agenda-empty-row"><td colspan="10">No hay citas que coincidan con este filtro.</td></tr>'}</tbody></table></div></div>`;
     $("#agendaDateFilter").onchange = event => { agendaDateFilter = event.target.value; renderAgenda(); };
     $("#agendaStatusFilter").onchange = event => { agendaStatusFilter = event.target.value; renderAgenda(); };
     $("#agendaTodayFilter").onclick = () => { agendaDateFilter = todayISO; renderAgenda(); };
@@ -478,32 +493,11 @@
   }
 
   function renderClients() {
-    $("#clientsView").innerHTML = `<div class="grid-page">
-      <div class="page-heading"><div><span class="eyebrow">CLIENTAS</span><h1>Perfiles e historial</h1><p>Busca una clienta y abre toda su ficha: trabajo habitual, alertas, visitas, diseños y fotografías.</p></div><button class="btn primary-btn" id="newClientBtn"><i class="bi bi-person-plus"></i>Nueva clienta</button></div>
-      <div class="cards-grid">${DATA.clients.map(client => {
-        const insight = clientInsights(client.id);
-        const design = insight.record?.design || {};
-        return `<article class="client-card" data-client-card="${client.id}" data-search="${esc(normalize(`${client.name} ${client.phone} ${client.instagram} ${insight.usualService?.name} ${design.effect} ${design.design}`))}">
-          <div class="client-head"><div class="client-avatar client-card-photo" data-client-photo="${client.id}">${initials(client.name)}</div><div><h3>${esc(client.name)}</h3><span class="badge">${esc(client.phone || "Sin teléfono")}</span></div></div>
-          <p><strong>Servicio habitual:</strong> ${esc(insight.usualService?.name || client.favorite || "Sin definir")}</p>
-          <p><strong>Diseño habitual:</strong> ${esc(design.effect || design.design || "Sin registrar")}${design.curvature ? ` · ${esc(design.curvature)}` : ""}</p>
-          <p><strong>Última visita:</strong> ${insight.lastVisit ? dateLabel(insight.lastVisit.date, {day:"numeric",month:"short",year:"numeric"}) : esc(client.last || "Primera visita")}</p>
-          <p><strong>Próximo mantenimiento:</strong> ${insight.maintenanceDate ? dateLabel(insight.maintenanceDate, {day:"numeric",month:"short"}) : "Sin calcular"}</p>
-          <div class="meta-row">
-            <span class="badge">${Number(client.visits || insight.visits.length)} visitas</span>
-            <span class="badge">${money(client.spent)}</span>
-            <span class="badge ${client.formStatus === "complete" ? "status-complete" : "status-incomplete"}">${client.formStatus === "complete" ? "Ficha completa" : "Falta completar"}</span>
-            ${insight.risks.length ? `<span class="badge status-incomplete">${insight.risks.length} alerta(s)</span>` : ""}
-          </div>
-          <div class="client-card-actions">
-            <button class="btn ghost-btn" onclick="window.repeatClientService(${Number(client.id)})"><i class="bi bi-arrow-repeat"></i>Repetir</button>
-            <button class="btn primary-btn" onclick="window.openClientRecord(${Number(client.id)})"><i class="bi bi-clipboard2-heart"></i>Abrir ficha</button>
-          </div>
-        </article>`;
-      }).join("")}</div>
-    </div>`;
-    $("#newClientBtn").onclick = createNewClient;
-    hydrateClientCardPhotos();
+    $("#clientsView").innerHTML = `<div class="grid-page"><div class="page-heading"><div><span class="eyebrow">CLIENTAS</span><h1>Perfiles e historial</h1><p>Abre la ficha para ver lo importante, alertas, historial, diseños y fotografías.</p></div><button class="btn primary-btn" id="newClientBtn"><i class="bi bi-person-plus"></i>Nueva clienta</button></div><div class="cards-grid">${DATA.clients.map(client => {
+      const insight = clientInsights(client.id); const design = insight.record?.design || {}; const birthday = upcomingBirthdays().find(item => item.client.id === client.id);
+      return `<article class="client-card" data-client-card="${client.id}"><div class="client-head"><div class="client-avatar client-card-photo" data-client-photo="${client.id}">${initials(client.name)}</div><div><h3>${esc(client.name)}</h3><span class="badge">${esc(client.phone || "Sin teléfono")}</span></div></div><p><strong>Servicio habitual:</strong> ${esc(insight.usualService?.name || client.favorite || "Sin definir")}</p><p><strong>Diseño habitual:</strong> ${esc(design.effect || design.design || "Sin registrar")}${design.curvature ? ` · ${esc(design.curvature)}` : ""}</p><p><strong>Última visita:</strong> ${insight.lastVisit ? dateLabel(insight.lastVisit.date, {day:"numeric",month:"short",year:"numeric"}) : esc(client.last || "Primera visita")}</p><div class="meta-row"><span class="badge">${Number(client.visits || insight.visits.length)} visitas</span><span class="badge ${client.formStatus === "complete" ? "status-complete" : "status-incomplete"}">${client.formStatus === "complete" ? "Ficha completa" : "Falta completar"}</span>${insight.risks.length ? `<span class="badge status-incomplete">${insight.risks.length} alerta(s)</span>` : ""}${birthday ? `<span class="badge birthday-badge"><i class="bi bi-balloon-heart"></i>${birthday.days === 0 ? "Cumple hoy" : `${birthday.days} día(s)`}</span>` : ""}</div><div class="client-card-actions"><button class="btn ghost-btn" onclick="window.rescheduleClientAppointment(${Number(client.id)})"><i class="bi bi-calendar2-week"></i>Agendar / reagendar</button><button class="btn primary-btn" onclick="window.openClientRecord(${Number(client.id)})"><i class="bi bi-clipboard2-heart"></i>Ficha</button></div></article>`;
+    }).join("")}</div></div>`;
+    $("#newClientBtn").onclick = createNewClient; hydrateClientCardPhotos();
   }
 
   function renderRecords() {
@@ -512,7 +506,7 @@
     const warnings = DATA.clients.reduce((sum, client) => sum + (getRiskFlags(recordByClient(client.id)).length ? 1 : 0), 0);
 
     $("#recordsView").innerHTML = `<div class="grid-page">
-      <div class="page-heading"><div><span class="eyebrow">FICHAS DIGITALES</span><h1>Consulta, consentimiento y diseño</h1><p>La información de las hojas impresas organizada en un flujo cómodo para clienta y profesional.</p></div><a class="btn primary-btn" href="reservar.html" target="_blank"><i class="bi bi-box-arrow-up-right"></i>Ver formulario cliente</a></div>
+      <div class="page-heading"><div><span class="eyebrow">FICHAS DIGITALES</span><h1>Consulta, consentimiento y diseño</h1><p>La información de las hojas impresas organizada en un flujo cómodo para clienta y profesional.</p></div><a class="btn primary-btn" href="/reservar" target="_blank"><i class="bi bi-box-arrow-up-right"></i>Ver formulario cliente</a></div>
       <div class="records-summary">
         <article class="info-card"><span>Fichas completas</span><strong>${complete}</strong></article>
         <article class="info-card"><span>Pendientes</span><strong>${pending}</strong></article>
@@ -540,42 +534,31 @@
   }
 
   function renderServices() {
+    const categories = [...new Set(DATA.services.map(service => service.category || "Otros"))].sort();
+    const visible = DATA.services.filter(service => serviceCategoryFilter === "all" || service.category === serviceCategoryFilter);
     const activeCount = DATA.services.filter(service => service.active).length;
-    $("#servicesView").innerHTML = `<div class="grid-page"><div class="page-heading"><div><span class="eyebrow">SERVICIOS</span><h1>Servicios editables</h1><p>Modifica precio, duración, preparación, limpieza y disponibilidad. Los cambios también aparecen en la reserva online.</p></div>${DATA.settings.role === "admin" ? '<button class="btn primary-btn" id="addServiceBtn"><i class="bi bi-plus-lg"></i>Nuevo servicio</button>' : ""}</div>
-      <div class="records-summary">
-        <article class="info-card"><span>Servicios activos</span><strong>${activeCount}</strong></article>
-        <article class="info-card"><span>Servicios pausados</span><strong>${DATA.services.length-activeCount}</strong></article>
-        <article class="info-card"><span>Duración promedio</span><strong>${DATA.services.length ? Math.round(DATA.services.reduce((s,x)=>s+totalDuration(x),0)/DATA.services.length) : 0} min</strong></article>
-      </div>
-      <div class="cards-grid">${DATA.services.map(service => `<article class="service-card ${service.active ? "" : "service-disabled"}" id="service-${service.id}" data-search="${esc(normalize(`${service.name} ${service.description}`))}" style="border-top:4px solid ${esc(service.color)}">
-        <div class="service-card-top"><div><span class="badge ${service.active ? "status-complete" : "status-incomplete"}">${service.active ? "Disponible" : "Pausado"}</span><h3>${esc(service.name)}</h3></div>${DATA.settings.role === "admin" ? `<button class="icon-btn" type="button" title="Modificar servicio" data-edit-service="${service.id}"><i class="bi bi-pencil-square"></i></button>` : ""}</div>
-        <div class="service-price">${money(service.price)}</div>
-        <p>${esc(service.description || "Sin descripción pública.")}</p>
-        <p>Servicio: ${service.duration} min</p><p>Preparación: ${service.prep} min · Limpieza: ${service.cleanup} min</p>
-        <div class="service-actions"><span class="badge">Bloque total: ${totalDuration(service)} min</span>${DATA.settings.role === "admin" ? `<button class="text-btn" type="button" data-edit-service="${service.id}"><i class="bi bi-pencil"></i> Editar servicio</button>` : ""}</div>
-      </article>`).join("")}</div></div>`;
-    const add = $("#addServiceBtn");
-    if (add) add.onclick = () => openServiceModal();
-    $$('[data-edit-service]', $("#servicesView")).forEach(button => {
-      button.onclick = event => {
-        event.preventDefault();
-        openServiceModal(Number(button.dataset.editService));
-      };
-    });
+    $("#servicesView").innerHTML = `<div class="grid-page"><div class="page-heading"><div><span class="eyebrow">SERVICIOS</span><h1>Servicios editables</h1><p>Organiza pestañas, cejas, manos, pies y otros servicios. Cada cambio se refleja en la reserva pública.</p></div>${DATA.settings.role === "admin" ? '<button class="btn primary-btn" id="addServiceBtn"><i class="bi bi-plus-lg"></i>Nuevo servicio</button>' : ""}</div><div class="compact-filter-row"><label class="field"><span>Categoría</span><select id="serviceCategoryFilter"><option value="all">Todas</option>${categories.map(category => `<option ${serviceCategoryFilter === category ? "selected" : ""}>${esc(category)}</option>`).join("")}</select></label><span class="muted">${visible.length} servicio(s)</span></div><div class="records-summary"><article class="info-card"><span>Servicios activos</span><strong>${activeCount}</strong></article><article class="info-card"><span>Servicios pausados</span><strong>${DATA.services.length-activeCount}</strong></article><article class="info-card"><span>Categorías</span><strong>${categories.length}</strong></article></div><div class="cards-grid">${visible.map(service => `<article class="service-card ${service.active ? "" : "service-disabled"}" id="service-${service.id}" style="border-top:4px solid ${esc(service.color)}"><div class="service-card-top"><div><span class="badge">${esc(service.category)}</span><span class="badge ${service.active ? "status-complete" : "status-incomplete"}">${service.active ? "Disponible" : "Pausado"}</span><h3>${esc(service.name)}</h3></div>${DATA.settings.role === "admin" ? `<button class="icon-btn" type="button" title="Modificar servicio" data-edit-service="${service.id}"><i class="bi bi-pencil-square"></i></button>` : ""}</div><div class="service-price">${money(service.price)}</div><p>${esc(service.description || "Sin descripción pública.")}</p><p>Servicio: ${service.duration} min · preparación ${service.prep} min · cierre ${service.cleanup} min</p><div class="service-actions"><span class="badge">Bloque total: ${totalDuration(service)} min</span>${DATA.settings.role === "admin" ? `<button class="text-btn" type="button" data-edit-service="${service.id}"><i class="bi bi-pencil"></i> Editar</button>` : ""}</div></article>`).join("") || '<div class="empty-state"><i class="bi bi-stars"></i><strong>Sin servicios</strong></div>'}</div></div>`;
+    $("#addServiceBtn")?.addEventListener("click", () => openServiceModal());
+    $("#serviceCategoryFilter").onchange = event => { serviceCategoryFilter = event.target.value; renderServices(); };
+    $$('[data-edit-service]', $("#servicesView")).forEach(button => button.onclick = () => openServiceModal(Number(button.dataset.editService)));
   }
 
   function renderInventory() {
-    $("#inventoryView").innerHTML = `<div class="grid-page"><div class="page-heading"><div><span class="eyebrow">INVENTARIO</span><h1>Control de productos</h1><p>Alertas según stock mínimo configurado.</p></div></div>
-      <div class="cards-grid">${DATA.inventory.map(item => {
-        const percentage = Math.min(100, Math.round(item.stock / Math.max(item.min * 2, 1) * 100));
-        const low = item.stock <= item.min;
-        return `<article class="inventory-card"><div class="meta-row"><span class="badge">${esc(item.category)}</span>${low ? '<span class="badge status-pending">Stock bajo</span>' : ""}</div>
-          <h3>${esc(item.name)}</h3><p><strong>${item.stock}</strong> ${esc(item.unit)} disponibles · mínimo ${item.min}</p><div class="progress"><span style="width:${percentage}%"></span></div></article>`;
-      }).join("")}</div></div>`;
+    const categories = [...new Set(DATA.inventory.map(item => item.category))].sort();
+    const visible = DATA.inventory
+      .filter(item => inventoryPriorityFilter === "all" || item.priority === inventoryPriorityFilter)
+      .filter(item => inventoryCategoryFilter === "all" || item.category === inventoryCategoryFilter)
+      .filter(item => !inventorySearch || normalize(`${item.name} ${item.category} ${item.location}`).includes(normalize(inventorySearch)))
+      .sort((a,b) => (a.priority === "professional" ? 0 : 1) - (b.priority === "professional" ? 0 : 1) || Number(a.stock > a.min) - Number(b.stock > b.min) || a.name.localeCompare(b.name));
+    $("#inventoryView").innerHTML = `<div class="grid-page"><div class="page-heading"><div><span class="eyebrow">INVENTARIO</span><h1>Control de productos</h1><p>Los productos de trabajo aparecen primero; también puedes controlar limpieza, higiene y suministros del local.</p></div><button class="btn primary-btn" id="addInventoryBtn"><i class="bi bi-plus-lg"></i>Nuevo producto</button></div><div class="inventory-filter-bar"><label class="field"><span>Buscar</span><input id="inventorySearch" value="${esc(inventorySearch)}" placeholder="Producto, categoría o ubicación"></label><label class="field"><span>Uso</span><select id="inventoryPriorityFilter"><option value="professional" ${inventoryPriorityFilter === "professional" ? "selected" : ""}>Productos de trabajo</option><option value="general" ${inventoryPriorityFilter === "general" ? "selected" : ""}>Limpieza / local</option><option value="all" ${inventoryPriorityFilter === "all" ? "selected" : ""}>Todo</option></select></label><label class="field"><span>Categoría</span><select id="inventoryCategoryFilter"><option value="all">Todas</option>${categories.map(category => `<option ${inventoryCategoryFilter === category ? "selected" : ""}>${esc(category)}</option>`).join("")}</select></label><span class="inventory-filter-count">${visible.length} producto(s)</span></div><div class="cards-grid">${visible.map(item => { const percentage = Math.min(100, Math.round(item.stock / Math.max(item.min * 2, 1) * 100)); const low = item.stock <= item.min; return `<article class="inventory-card ${low ? "inventory-low" : ""}"><div class="inventory-card-head"><div class="meta-row"><span class="badge">${esc(item.category)}</span><span class="badge ${item.priority === "professional" ? "status-complete" : ""}">${item.priority === "professional" ? "Trabajo" : "Local"}</span>${low ? '<span class="badge status-pending">Stock bajo</span>' : ""}</div><button class="icon-btn" onclick="window.editInventory(${Number(item.id)})" title="Modificar"><i class="bi bi-pencil-square"></i></button></div><h3>${esc(item.name)}</h3><p><strong>${item.stock}</strong> ${esc(item.unit)} disponibles · mínimo ${item.min}${item.location ? ` · ${esc(item.location)}` : ""}</p><div class="progress"><span style="width:${percentage}%"></span></div><div class="inventory-actions"><button class="btn ghost-btn" onclick="window.adjustInventoryStock(${Number(item.id)},-1)"><i class="bi bi-dash-lg"></i>Restar</button><button class="btn ghost-btn" onclick="window.adjustInventoryStock(${Number(item.id)},1)"><i class="bi bi-plus-lg"></i>Sumar</button><button class="btn primary-btn" onclick="window.editInventory(${Number(item.id)})"><i class="bi bi-pencil"></i>Editar</button></div></article>`; }).join("") || '<div class="empty-state"><i class="bi bi-box-seam"></i><strong>No hay productos con estos filtros</strong></div>'}</div></div>`;
+    $("#addInventoryBtn").onclick = () => openInventoryModal();
+    $("#inventoryPriorityFilter").onchange = event => { inventoryPriorityFilter = event.target.value; renderInventory(); };
+    $("#inventoryCategoryFilter").onchange = event => { inventoryCategoryFilter = event.target.value; renderInventory(); };
+    $("#inventorySearch").oninput = event => { inventorySearch = event.target.value; clearTimeout(renderInventory.searchTimer); renderInventory.searchTimer = setTimeout(renderInventory, 180); };
   }
 
   function renderFinance() {
-    const activeAppointments = DATA.appointments.filter(appointment => appointment.status !== "rejected");
+    const activeAppointments = DATA.appointments.filter(appointment => !appointmentFreesSlot(appointment));
     const total = activeAppointments.reduce((sum, appointment) => sum + Number(serviceById(appointment.serviceId).price || 0), 0);
     const deposits = activeAppointments.reduce((sum, appointment) => sum + Number(appointment.deposit || 0), 0);
     const average = activeAppointments.length ? Math.round(total / activeAppointments.length) : 0;
@@ -589,76 +572,27 @@
   }
 
   function renderSettings() {
-    if (DATA.settings.role !== "admin") {
-      $("#settingsView").innerHTML = `<div class="empty-state"><i class="bi bi-lock"></i><strong>Acceso restringido</strong><p>Solo el usuario administrador puede modificar estas preferencias.</p></div>`;
-      return;
-    }
+    if (DATA.settings.role !== "admin") { $("#settingsView").innerHTML = `<div class="empty-state"><i class="bi bi-lock"></i><strong>Acceso restringido</strong></div>`; return; }
     const workDayLabels = [[1,"Lunes"],[2,"Martes"],[3,"Miércoles"],[4,"Jueves"],[5,"Viernes"],[6,"Sábado"],[0,"Domingo"]];
-    $("#settingsView").innerHTML = `<div class="grid-page">
-      <div class="page-heading"><div><span class="eyebrow">ADMINISTRACIÓN</span><h1>Configuración y preferencias</h1><p>Estos cambios controlan el panel, los horarios disponibles y la reserva pública.</p></div><span class="badge status-complete"><i class="bi bi-shield-check"></i> Administrador</span></div>
-      <form id="settingsForm" class="settings-layout">
-        <section class="panel settings-section"><div class="panel-header compact"><div><span class="eyebrow">USUARIO</span><h2>Perfil administrador</h2></div></div>
-          <div class="form-grid">
-            ${field("Nombre", "userName", DATA.settings.userName, "text", "required")}
-            ${field("Correo", "userEmail", DATA.settings.userEmail, "email")}
-            <label class="field"><span>Rol</span><input value="Administrador" disabled><input type="hidden" name="role" value="admin"></label>
-            ${field("Teléfono del estudio", "studioPhone", DATA.settings.studioPhone)}
-          </div>
-        </section>
-        <section class="panel settings-section"><div class="panel-header compact"><div><span class="eyebrow">NEGOCIO</span><h2>Datos del estudio</h2></div></div>
-          <div class="form-grid">
-            ${field("Nombre del estudio", "studioName", DATA.settings.studioName, "text", "required")}
-            ${field("Ciudad o zona", "city", DATA.settings.city)}
-            <label class="field"><span>Moneda</span><select name="currency"><option value="Gs." ${DATA.settings.currency === "Gs." ? "selected" : ""}>Guaraníes (Gs.)</option><option value="$" ${DATA.settings.currency === "$" ? "selected" : ""}>Dólares ($)</option></select></label>
-            ${field("Seña predeterminada", "defaultDeposit", DATA.settings.defaultDeposit, "number", 'min="0" step="5000"')}
-          </div>
-        </section>
-        <section class="panel settings-section"><div class="panel-header compact"><div><span class="eyebrow">AGENDA</span><h2>Horarios y automatización</h2></div></div>
-          <div class="form-grid three">
-            ${field("Apertura", "openingTime", DATA.settings.openingTime, "time")}
-            ${field("Cierre", "closingTime", DATA.settings.closingTime, "time")}
-            <label class="field"><span>Intervalo entre horarios</span><select name="slotInterval">${[15,20,30,45,60].map(value => `<option value="${value}" ${Number(DATA.settings.slotInterval) === value ? "selected" : ""}>${value} minutos</option>`).join("")}</select></label>
-            ${field("Mantenimiento sugerido (días)", "maintenanceDays", DATA.settings.maintenanceDays, "number", 'min="1" max="90"')}
-          </div>
-          <div class="preference-group settings-days"><span>Días de atención</span><div class="preference-options">${workDayLabels.map(([value,label]) => `<label class="check-option"><input type="checkbox" name="workDays" value="${value}" ${DATA.settings.workDays.includes(value) ? "checked" : ""}><span>${label}</span></label>`).join("")}</div></div>
-          <div class="settings-switches">
-            <label class="check-option"><input type="checkbox" name="bookingEnabled" ${DATA.settings.bookingEnabled ? "checked" : ""}><span>Permitir reservas desde el enlace público</span></label>
-            <label class="check-option"><input type="checkbox" name="requireConsent" ${DATA.settings.requireConsent ? "checked" : ""}><span>Solicitar consentimiento antes de confirmar ficha</span></label>
-            <label class="check-option"><input type="checkbox" name="autoOpenConfirmationWhatsApp" ${DATA.settings.autoOpenConfirmationWhatsApp ? "checked" : ""}><span>Abrir WhatsApp automáticamente al confirmar una solicitud</span></label>
-            <label class="check-option"><input type="checkbox" name="allowOptionalBookingDetails" ${DATA.settings.allowOptionalBookingDetails !== false ? "checked" : ""}><span>Permitir que la clienta omita los detalles opcionales</span></label>
-            <label class="check-option"><input type="checkbox" name="allowDepositProof" ${DATA.settings.allowDepositProof !== false ? "checked" : ""}><span>Permitir subir comprobante de seña</span></label>
-            <label class="check-option"><input type="checkbox" name="requireDepositChoice" ${DATA.settings.requireDepositChoice !== false ? "checked" : ""}><span>Exigir elegir cómo se confirmó la seña</span></label>
-          </div>
-          <label class="field full settings-message"><span>Mensaje de confirmación</span><textarea name="confirmationMessageTemplate" rows="4">${esc(DATA.settings.confirmationMessageTemplate || DEFAULT_SETTINGS.confirmationMessageTemplate)}</textarea></label>
-          <p class="settings-note"><strong>Variables disponibles:</strong> {nombre}, {servicio}, {fecha}, {hora}, {estudio} y {ciudad}. En este prototipo se abre WhatsApp con el mensaje listo; el envío totalmente automático requiere WhatsApp Business API y un backend.</p>
-        </section>
-        <section class="panel settings-section"><div class="panel-header compact"><div><span class="eyebrow">APARIENCIA</span><h2>Color y tema</h2></div></div>
-          <div class="form-grid">
-            <label class="field"><span>Color principal</span><input type="color" name="primaryColor" value="${esc(DATA.settings.primaryColor)}"></label>
-            <label class="field"><span>Modo</span><select name="appearance"><option value="light" ${DATA.settings.appearance === "light" ? "selected" : ""}>Claro</option><option value="dark" ${DATA.settings.appearance === "dark" ? "selected" : ""}>Oscuro</option><option value="system" ${DATA.settings.appearance === "system" ? "selected" : ""}>Usar el del sistema</option></select></label>
-          </div>
-          <div class="theme-preview"><span></span><strong>Vista previa de la identidad del estudio</strong><small>Los botones, indicadores y fondos suaves se adaptan al color elegido.</small></div>
-        </section>
-        <section class="panel settings-section"><div class="panel-header compact"><div><span class="eyebrow">DATOS</span><h2>Respaldo del prototipo</h2></div></div>
-          <p class="muted settings-copy">Exporta clientas, citas, servicios, fichas, visitas, preferencias e imágenes. En una versión con backend esto se reemplazará por copias de seguridad automáticas.</p>
-          <div class="settings-data-actions"><button type="button" class="btn ghost-btn" id="exportDataBtn"><i class="bi bi-download"></i>Exportar datos</button><label class="btn ghost-btn file-label"><i class="bi bi-upload"></i>Importar datos<input type="file" id="importDataInput" accept="application/json" hidden></label><button type="button" class="btn danger-btn" id="resetDemoBtn"><i class="bi bi-arrow-counterclockwise"></i>Restablecer demo</button></div>
-        </section>
-        <div class="settings-savebar"><span>Los cambios quedan guardados en este navegador.</span><button type="submit" class="btn primary-btn"><i class="bi bi-check2"></i>Guardar configuración</button></div>
-      </form>
-    </div>`;
+    const blockRows = (DATA.availabilityBlocks || []).sort((a,b) => a.date.localeCompare(b.date) || a.startTime.localeCompare(b.startTime)).map(block => `<article class="availability-block-row"><div><strong>${dateLabel(block.date,{weekday:"short",day:"numeric",month:"short",year:"numeric"})}</strong><span>${block.allDay ? "Todo el día" : `${esc(block.startTime)} a ${esc(block.endTime)}`} · ${esc(block.reason)}${block.source === "google" ? " · Google Calendar" : ""}</span></div><button type="button" class="icon-btn" onclick="window.removeAvailabilityBlock(${Number(block.id)})"><i class="bi bi-trash3"></i></button></article>`).join("");
+    $("#settingsView").innerHTML = `<div class="grid-page"><div class="page-heading"><div><span class="eyebrow">ADMINISTRACIÓN</span><h1>Configuración y preferencias</h1><p>Controla ByAlee, la agenda pública, las políticas y los recordatorios.</p></div><span class="badge status-complete"><i class="bi bi-shield-check"></i> Administrador</span></div><form id="settingsForm" class="settings-layout">
+      <section class="panel settings-section"><div class="panel-header compact"><div><span class="eyebrow">USUARIO</span><h2>Perfil administrador</h2></div></div><div class="form-grid">${field("Nombre profesional", "userName", DATA.settings.userName, "text", "required")}${field("Correo", "userEmail", DATA.settings.userEmail, "email")}${field("Teléfono", "studioPhone", DATA.settings.studioPhone)}<label class="field"><span>Rol</span><input value="Administrador" disabled></label></div></section>
+      <section class="panel settings-section"><div class="panel-header compact"><div><span class="eyebrow">NEGOCIO</span><h2>Datos de ByAlee</h2></div></div><div class="form-grid">${field("Nombre del local", "studioName", DATA.settings.studioName, "text", "required")}${field("Ciudad o zona", "city", DATA.settings.city)}<label class="field"><span>Moneda</span><select name="currency"><option value="Gs." ${DATA.settings.currency === "Gs." ? "selected" : ""}>Guaraníes</option><option value="$" ${DATA.settings.currency === "$" ? "selected" : ""}>Dólares</option></select></label>${field("Seña predeterminada", "defaultDeposit", DATA.settings.defaultDeposit, "number", 'min="0" step="5000"')}</div></section>
+      <section class="panel settings-section full-settings"><div class="panel-header compact"><div><span class="eyebrow">AGENDA</span><h2>Horarios y reserva pública</h2></div></div><div class="form-grid three">${field("Apertura", "openingTime", DATA.settings.openingTime, "time")}${field("Cierre", "closingTime", DATA.settings.closingTime, "time")}<label class="field"><span>Intervalo</span><select name="slotInterval">${[15,20,30,45,60].map(value => `<option value="${value}" ${Number(DATA.settings.slotInterval) === value ? "selected" : ""}>${value} minutos</option>`).join("")}</select></label>${field("Mantenimiento sugerido (días)", "maintenanceDays", DATA.settings.maintenanceDays, "number", 'min="1" max="90"')}</div><div class="preference-group settings-days"><span>Días de atención</span><div class="preference-options">${workDayLabels.map(([value,label]) => `<label class="check-option"><input type="checkbox" name="workDays" value="${value}" ${DATA.settings.workDays.includes(value) ? "checked" : ""}><span>${label}</span></label>`).join("")}</div></div><div class="settings-switches"><label class="check-option"><input type="checkbox" name="bookingEnabled" ${DATA.settings.bookingEnabled ? "checked" : ""}><span>Permitir reservas desde el enlace público</span></label><label class="check-option"><input type="checkbox" name="requireConsent" ${DATA.settings.requireConsent ? "checked" : ""}><span>Exigir consentimiento informado</span></label><label class="check-option"><input type="checkbox" name="requirePoliciesAcceptance" ${DATA.settings.requirePoliciesAcceptance ? "checked" : ""}><span>Exigir aceptación de políticas del local</span></label><label class="check-option"><input type="checkbox" name="autoOpenConfirmationWhatsApp" ${DATA.settings.autoOpenConfirmationWhatsApp ? "checked" : ""}><span>Abrir WhatsApp al confirmar</span></label><label class="check-option"><input type="checkbox" name="allowDepositProof" ${DATA.settings.allowDepositProof !== false ? "checked" : ""}><span>Permitir comprobante de seña</span></label><label class="check-option"><input type="checkbox" name="requireDepositChoice" ${DATA.settings.requireDepositChoice !== false ? "checked" : ""}><span>Exigir forma de confirmación de seña</span></label></div><label class="field full settings-message"><span>Mensaje de confirmación</span><textarea name="confirmationMessageTemplate" rows="4">${esc(DATA.settings.confirmationMessageTemplate)}</textarea></label></section>
+      <section class="panel settings-section"><div class="panel-header compact"><div><span class="eyebrow">CUMPLEAÑOS</span><h2>Recordatorios configurables</h2></div></div><label class="check-option"><input type="checkbox" name="birthdayNotificationsEnabled" ${DATA.settings.birthdayNotificationsEnabled ? "checked" : ""}><span>Mostrar cumpleaños próximos en el dashboard y la campana</span></label><div class="form-grid">${field("Avisar con días de anticipación", "birthdayNoticeDays", DATA.settings.birthdayNoticeDays, "number", 'min="0" max="60"')}</div><label class="field full"><span>Mensaje sugerido</span><textarea name="birthdayMessageTemplate" rows="4">${esc(DATA.settings.birthdayMessageTemplate)}</textarea></label><p class="settings-note">Solo se usan fechas de clientas que marcaron la autorización informativa.</p></section>
+      <section class="panel settings-section"><div class="panel-header compact"><div><span class="eyebrow">POLÍTICAS</span><h2>Condiciones del local</h2></div></div><label class="field full"><span>Texto visible al cliente</span><textarea name="bookingPoliciesText" rows="8">${esc(DATA.settings.bookingPoliciesText)}</textarea></label>${field("Versión", "bookingPoliciesVersion", DATA.settings.bookingPoliciesVersion)}</section>
+      <section class="panel settings-section full-settings"><div class="panel-header compact"><div><span class="eyebrow">DISPONIBILIDAD</span><h2>Bloquear fechas u horarios personales</h2><p class="muted">Los bloques se descuentan automáticamente de reservar.html.</p></div></div><div class="availability-form"><label class="field"><span>Fecha</span><input type="date" id="blockDate" min="${todayISO}"></label><label class="field"><span>Desde</span><input type="time" id="blockStart" value="${esc(DATA.settings.openingTime)}"></label><label class="field"><span>Hasta</span><input type="time" id="blockEnd" value="${esc(DATA.settings.closingTime)}"></label><label class="field"><span>Motivo</span><input id="blockReason" placeholder="Evento personal, descanso..."></label><label class="check-option block-all-day"><input type="checkbox" id="blockAllDay"><span>Bloquear todo el día</span></label><button type="button" class="btn primary-btn" id="addBlockBtn"><i class="bi bi-calendar-x"></i>Agregar bloqueo</button></div><div class="availability-block-list">${blockRows || '<div class="empty-inline">No hay bloqueos manuales.</div>'}</div></section>
+      <section class="panel settings-section full-settings"><div class="panel-header compact"><div><span class="eyebrow">GOOGLE CALENDAR</span><h2>Preparación para sincronización</h2></div><span class="badge ${DATA.settings.googleCalendarConnected ? "status-complete" : "status-incomplete"}">${DATA.settings.googleCalendarConnected ? "Conectado" : "Pendiente de backend"}</span></div><div class="google-calendar-card"><i class="bi bi-google"></i><div><strong>Evitar reservas sobre eventos ocupados</strong><p>La estructura queda preparada para consultar disponibilidad y crear/actualizar citas. La conexión real necesita OAuth y un backend para que reservar.html pueda consultar horarios sin exponer credenciales.</p></div></div><div class="form-grid"><label class="check-option"><input type="checkbox" name="googleCalendarEnabled" ${DATA.settings.googleCalendarEnabled ? "checked" : ""}><span>Dejar habilitada la integración cuando se conecte el backend</span></label>${field("ID del calendario", "googleCalendarId", DATA.settings.googleCalendarId)}</div><button type="button" class="btn ghost-btn" id="googleCalendarInfoBtn"><i class="bi bi-info-circle"></i>Qué falta para conectarlo</button></section>
+      <section class="panel settings-section"><div class="panel-header compact"><div><span class="eyebrow">APARIENCIA</span><h2>Color y tema</h2></div></div><div class="form-grid"><label class="field"><span>Color principal</span><input type="color" name="primaryColor" value="${esc(DATA.settings.primaryColor)}"></label><label class="field"><span>Modo</span><select name="appearance"><option value="light" ${DATA.settings.appearance === "light" ? "selected" : ""}>Claro</option><option value="dark" ${DATA.settings.appearance === "dark" ? "selected" : ""}>Oscuro</option><option value="system" ${DATA.settings.appearance === "system" ? "selected" : ""}>Sistema</option></select></label></div></section>
+      <section class="panel settings-section"><div class="panel-header compact"><div><span class="eyebrow">DATOS</span><h2>Respaldo del prototipo</h2></div></div><div class="settings-data-actions"><button type="button" class="btn ghost-btn" id="exportDataBtn"><i class="bi bi-download"></i>Exportar</button><label class="btn ghost-btn file-label"><i class="bi bi-upload"></i>Importar<input type="file" id="importDataInput" accept="application/json" hidden></label><button type="button" class="btn danger-btn" id="resetDemoBtn"><i class="bi bi-arrow-counterclockwise"></i>Restablecer demo</button></div></section>
+      <div class="settings-savebar"><span>Los cambios quedan guardados en este navegador.</span><button type="submit" class="btn primary-btn"><i class="bi bi-check2"></i>Guardar configuración</button></div></form></div>`;
     $("#settingsForm").addEventListener("submit", saveSettings);
-    $("#settingsForm [name='primaryColor']").addEventListener("input", event => {
-      DATA.settings.primaryColor = event.target.value;
-      applyAppearance();
-    });
-    $("#settingsForm [name='appearance']").addEventListener("change", event => {
-      DATA.settings.appearance = event.target.value;
-      localStorage.setItem("lashflow_theme", event.target.value);
-      applyAppearance();
-    });
-    $("#exportDataBtn").onclick = exportAllData;
-    $("#importDataInput").onchange = importAllData;
-    $("#resetDemoBtn").onclick = resetDemoData;
+    $("#settingsForm [name='primaryColor']").addEventListener("input", event => { DATA.settings.primaryColor = event.target.value; applyAppearance(); });
+    $("#settingsForm [name='appearance']").addEventListener("change", event => { DATA.settings.appearance = event.target.value; localStorage.setItem("lashflow_theme", event.target.value); applyAppearance(); });
+    $("#addBlockBtn").onclick = addAvailabilityBlockFromSettings;
+    $("#blockAllDay").onchange = event => { $("#blockStart").disabled = event.target.checked; $("#blockEnd").disabled = event.target.checked; };
+    $("#googleCalendarInfoBtn").onclick = () => alert("Para la sincronización real se necesita: proyecto en Google Cloud, OAuth 2.0, Calendar API habilitada y un backend que guarde los tokens. El esquema y la guía están incluidos en docs/ARQUITECTURA.md.");
+    $("#exportDataBtn").onclick = exportAllData; $("#importDataInput").onchange = importAllData; $("#resetDemoBtn").onclick = resetDemoData;
   }
 
   function renderStaticViews() {
@@ -682,20 +616,15 @@
   }
 
   function getAvailableTimes(date, serviceId, ignoredAppointmentId = editingAppointmentId) {
-    const service = serviceById(serviceId);
-    const block = totalDuration(service);
-    const dateObj = new Date(`${date}T12:00:00`);
+    const service = serviceById(serviceId); const block = totalDuration(service); const dateObj = new Date(`${date}T12:00:00`);
     if (!DATA.settings.workDays.includes(dateObj.getDay())) return [];
-    const start = minutes(DATA.settings.openingTime);
-    const end = minutes(DATA.settings.closingTime);
-    const interval = Number(DATA.settings.slotInterval || 30);
-    const existing = DATA.appointments.filter(appointment => appointment.date === date && appointment.status !== "rejected" && Number(appointment.id) !== Number(ignoredAppointmentId)).map(appointment => {
-      const bookedService = serviceById(appointment.serviceId);
-      return [minutes(appointment.time), minutes(appointment.time) + totalDuration(bookedService)];
-    });
+    const start = minutes(DATA.settings.openingTime); const end = minutes(DATA.settings.closingTime); const interval = Number(DATA.settings.slotInterval || 30);
+    const existing = DATA.appointments.filter(appointment => appointment.date === date && !appointmentFreesSlot(appointment) && Number(appointment.id) !== Number(ignoredAppointmentId)).map(appointment => { const bookedService = serviceById(appointment.serviceId); return [minutes(appointment.time), minutes(appointment.time) + totalDuration(bookedService)]; });
+    const blocks = availabilityBlocksForDate(date);
     const slots = [];
     for (let time = start; time + block <= end; time += interval) {
-      if (!existing.some(([from, to]) => time < to && time + block > from)) slots.push(toTime(time));
+      const finish = time + block;
+      if (!existing.some(([from,to]) => time < to && finish > from) && !blocks.some(item => blockOverlaps(item,time,finish))) slots.push(toTime(time));
     }
     return slots;
   }
@@ -739,45 +668,21 @@
 
   function openAppointmentModal(options = {}) {
     editingAppointmentId = options.appointmentId || null;
-    const form = $("#appointmentForm");
-    form.reset();
-    populateServices();
-    $("#appointmentModal h2").textContent = editingAppointmentId ? "Editar cita" : "Agendar cita";
-    $("#appointmentDate").value = options.date || selectedDate || todayISO;
-    form.elements.deposit.value = DATA.settings.defaultDeposit;
-    showAppointmentClientHint(null);
-
+    pendingReschedule = options.reschedule ? {appointmentId:Number(options.appointmentId), reason:options.reason || "Cambio solicitado por la clienta"} : null;
+    const form = $("#appointmentForm"); form.reset(); populateServices();
+    $("#appointmentModal h2").textContent = pendingReschedule ? "Reagendar cita" : editingAppointmentId ? "Editar cita" : "Agendar cita";
+    $("#appointmentDate").value = options.date || selectedDate || todayISO; form.elements.deposit.value = DATA.settings.defaultDeposit; form.elements.rescheduleReason.value = pendingReschedule?.reason || ""; showAppointmentClientHint(null);
     if (editingAppointmentId) {
-      const appointment = DATA.appointments.find(item => item.id === Number(editingAppointmentId));
-      if (!appointment) return;
-      form.elements.client.value = appointment.client;
-      form.elements.phone.value = appointment.phone || clientById(appointment.clientId)?.phone || "";
-      if (!$(`#serviceSelect option[value="${appointment.serviceId}"]`)) {
-        const service = serviceById(appointment.serviceId);
-        $("#serviceSelect").insertAdjacentHTML("beforeend", `<option value="${service.id}">${esc(service.name)} (pausado)</option>`);
-      }
-      form.elements.service.value = String(appointment.serviceId);
-      form.elements.source.value = appointment.source;
-      form.elements.date.value = appointment.date;
-      form.elements.status.value = appointment.status;
-      form.elements.deposit.value = appointment.deposit || 0;
-      form.elements.notes.value = appointment.notes || "";
-      showAppointmentClientHint(clientById(appointment.clientId));
-      updateAvailableTimes(appointment.time);
-    } else {
-      if (options.clientId) fillAppointmentForClient(options.clientId, options.serviceId);
-      else updateAvailableTimes();
-    }
-
-    $("#appointmentModal").classList.add("open");
-    $("#appointmentModal").setAttribute("aria-hidden", "false");
-    setTimeout(() => $("#appointmentClientInput").focus(), 50);
+      const appointment = DATA.appointments.find(item => item.id === Number(editingAppointmentId)); if (!appointment) return;
+      form.elements.client.value = appointment.client; form.elements.phone.value = appointment.phone || clientById(appointment.clientId)?.phone || "";
+      if (!$(`#serviceSelect option[value="${appointment.serviceId}"]`)) { const service = serviceById(appointment.serviceId); $("#serviceSelect").insertAdjacentHTML("beforeend", `<option value="${service.id}">${esc(service.name)} (pausado)</option>`); }
+      form.elements.service.value = String(appointment.serviceId); form.elements.source.value = appointment.source; form.elements.date.value = appointment.date; form.elements.status.value = pendingReschedule && ["canceled","rejected"].includes(appointment.status) ? "pending" : appointment.status; form.elements.deposit.value = appointment.deposit || 0; form.elements.notes.value = appointment.notes || ""; showAppointmentClientHint(clientById(appointment.clientId)); updateAvailableTimes(appointment.time);
+    } else { if (options.clientId) fillAppointmentForClient(options.clientId, options.serviceId); else updateAvailableTimes(); }
+    $("#appointmentModal").classList.add("open"); $("#appointmentModal").setAttribute("aria-hidden", "false"); setTimeout(() => pendingReschedule ? $("#appointmentDate").focus() : $("#appointmentClientInput").focus(), 50);
   }
 
   function closeAppointmentModal() {
-    $("#appointmentModal").classList.remove("open");
-    $("#appointmentModal").setAttribute("aria-hidden", "true");
-    editingAppointmentId = null;
+    $("#appointmentModal").classList.remove("open"); $("#appointmentModal").setAttribute("aria-hidden", "true"); editingAppointmentId = null; pendingReschedule = null;
   }
 
   function showToast(message) {
@@ -796,7 +701,7 @@
       || DATA.clients.find(item => normalize(item.name) === normalize(cleanName));
     if (!client) {
       client = {
-        id: Math.max(0, ...DATA.clients.map(item => Number(item.id) || 0)) + 1,
+        id: uid(),
         name: cleanName, phone: cleanPhone, birthDate:"", address:"", email:"", instagram:"", firstTime:true,
         last:"Primera cita", favorite:"Sin definir", visits:0, spent:0, note:"Ficha pendiente", formStatus:"pending"
       };
@@ -810,7 +715,7 @@
 
   function createNewClient() {
     const client = {
-      id: Math.max(0, ...DATA.clients.map(item => Number(item.id) || 0)) + 1,
+      id: uid(),
       name:"Nueva clienta", phone:"", birthDate:"", address:"", email:"", instagram:"", firstTime:true,
       last:"Primera cita", favorite:"Sin definir", visits:0, spent:0, note:"", formStatus:"pending"
     };
@@ -911,7 +816,7 @@
         </div>
         <div class="quick-actions-grid">
           <button type="button" class="quick-action" onclick="window.openWhatsApp(${client.id})"><i class="bi bi-whatsapp"></i><strong>Escribir por WhatsApp</strong><span>Confirmación, recordatorio o cuidados.</span></button>
-          <button type="button" class="quick-action" id="copyFormLinkInline"><i class="bi bi-link-45deg"></i><strong>Enviar formulario</strong><span>La clienta completa datos y consentimiento.</span></button>
+          <button type="button" class="quick-action" id="copyFormLinkInline"><i class="bi bi-link-45deg"></i><strong>Compartir reserva</strong><span>Envía el enlace público para solicitar una cita.</span></button>
           <button type="button" class="quick-action" data-record-go="history"><i class="bi bi-clock-history"></i><strong>Ver historial</strong><span>Diseños y notas de visitas anteriores.</span></button>
         </div>
       </section>
@@ -1253,6 +1158,7 @@
     const visit = DATA.visits.find(item => item.id === Number(visitId));
     if (!visit) return;
     DATA.visits = DATA.visits.filter(item => item.id !== Number(visitId));
+    window.ByAleeDB?.deleteItem?.("visits", visitId).catch(error => console.error("No se pudo eliminar la visita remota", error));
     recalculateClientStats(visit.clientId);
     persist("visits", "clients");
     renderRecordForm(clientById(visit.clientId), recordByClient(visit.clientId) || emptyRecord(visit.clientId));
@@ -1276,13 +1182,9 @@
   }
 
   function copyCurrentFormLink() {
-    if (!currentRecordClientId) return;
-    const url = new URL("reservar.html", window.location.href);
-    url.searchParams.set("client", currentRecordClientId);
-    url.searchParams.set("mode", "form");
-    const text = url.href;
+    const text = new URL("/reservar", window.location.origin).href;
     if (navigator.clipboard?.writeText) {
-      navigator.clipboard.writeText(text).then(() => showToast("Enlace copiado")).catch(() => window.prompt("Copia este enlace:", text));
+      navigator.clipboard.writeText(text).then(() => showToast("Enlace público de reserva copiado")).catch(() => window.prompt("Copia este enlace:", text));
     } else {
       window.prompt("Copia este enlace:", text);
     }
@@ -1295,7 +1197,7 @@
       return;
     }
     const digits = phoneDigits(client.phone);
-    const nextAppointment = DATA.appointments.filter(appointment => appointment.clientId === client.id && appointment.date >= todayISO && appointment.status !== "rejected").sort((a, b) => a.date.localeCompare(b.date) || minutes(a.time) - minutes(b.time))[0];
+    const nextAppointment = DATA.appointments.filter(appointment => appointment.clientId === client.id && appointment.date >= todayISO && !appointmentFreesSlot(appointment)).sort((a, b) => a.date.localeCompare(b.date) || minutes(a.time) - minutes(b.time))[0];
     const insight = clientInsights(client.id);
     const message = nextAppointment
       ? nextAppointment.status === "requested"
@@ -1352,6 +1254,7 @@
       const service = DATA.services.find(item => Number(item.id) === Number(serviceId));
       if (!service) return showToast("No se encontró el servicio");
       control("name").value = service.name || "";
+      control("category").value = service.category || "Pestañas";
       control("duration").value = Number(service.duration || 0);
       control("price").value = Number(service.price || 0);
       control("prep").value = Number(service.prep || 0);
@@ -1360,6 +1263,7 @@
       control("active").checked = service.active !== false;
       control("description").value = service.description || "";
     } else {
+      control("category").value = "Pestañas";
       control("duration").value = 120;
       control("price").value = 150000;
       control("prep").value = 10;
@@ -1392,6 +1296,7 @@
     const id = Number(get("serviceId").value || 0);
     const payload = {
       name: get("name").value.trim(),
+      category: get("category").value,
       duration: Number(get("duration").value),
       price: Number(get("price").value),
       prep: Number(get("prep").value),
@@ -1433,12 +1338,25 @@
     }
     if (!confirm("¿Eliminar definitivamente este servicio?")) return;
     DATA.services = DATA.services.filter(item => item.id !== id);
+    window.ByAleeDB?.deleteItem?.("services", id).catch(error => console.error("No se pudo eliminar el servicio remoto", error));
     persist("services");
     closeServiceModal();
     renderStaticViews();
     populateServices();
     showToast("Servicio eliminado");
   }
+
+
+  function openInventoryModal(itemId = null) {
+    const form = $("#inventoryForm"); form.reset(); $("#editingInventoryId").value = itemId || ""; $("#inventoryModalTitle").textContent = itemId ? "Modificar producto" : "Nuevo producto"; $("#deleteInventoryBtn").hidden = !itemId;
+    if (itemId) { const item = DATA.inventory.find(entry => entry.id === Number(itemId)); if (!item) return; ["name","category","priority","stock","min","unit","location"].forEach(key => { form.elements[key].value = item[key] ?? ""; }); }
+    else { form.elements.priority.value = "professional"; form.elements.stock.value = 0; form.elements.min.value = 1; form.elements.unit.value = "unidades"; }
+    $("#inventoryModal").classList.add("open"); $("#inventoryModal").setAttribute("aria-hidden","false"); setTimeout(() => form.elements.name.focus(), 50);
+  }
+  function closeInventoryModal() { $("#inventoryModal").classList.remove("open"); $("#inventoryModal").setAttribute("aria-hidden","true"); }
+  function saveInventory(event) { event.preventDefault(); const form = event.currentTarget; const id = Number(form.elements.inventoryId.value || 0); const payload = {name:form.elements.name.value.trim(),category:form.elements.category.value.trim(),priority:form.elements.priority.value,stock:Number(form.elements.stock.value||0),min:Number(form.elements.min.value||0),unit:form.elements.unit.value.trim(),location:form.elements.location.value.trim()}; if (!payload.name || !payload.category || !payload.unit) return alert("Completa producto, categoría y unidad."); if (id) Object.assign(DATA.inventory.find(item=>item.id===id), payload); else DATA.inventory.push({id:Math.max(0,...DATA.inventory.map(item=>item.id))+1,...payload}); persist("inventory"); closeInventoryModal(); renderInventory(); renderDashboard(); showToast(id ? "Producto modificado" : "Producto agregado"); }
+  function deleteInventory() { const id = Number($("#editingInventoryId").value); if (!id || !confirm("¿Eliminar este producto del inventario?")) return; DATA.inventory = DATA.inventory.filter(item => item.id !== id); window.ByAleeDB?.deleteItem?.("inventory", id).catch(error => console.error("No se pudo eliminar el producto remoto", error)); persist("inventory"); closeInventoryModal(); renderInventory(); renderDashboard(); showToast("Producto eliminado"); }
+  function addAvailabilityBlockFromSettings() { const date = $("#blockDate").value; const allDay = $("#blockAllDay").checked; const startTime = $("#blockStart").value; const endTime = $("#blockEnd").value; const reason = $("#blockReason").value.trim() || "Horario no disponible"; if (!date) return alert("Selecciona la fecha a bloquear."); if (!allDay && (!startTime || !endTime || minutes(endTime) <= minutes(startTime))) return alert("Revisa el horario de inicio y fin."); DATA.availabilityBlocks.push({id:uid(),date,allDay,startTime:allDay?DATA.settings.openingTime:startTime,endTime:allDay?DATA.settings.closingTime:endTime,reason,source:"manual"}); persist("availabilityBlocks"); renderSettings(); renderDashboard(); showToast("Horario bloqueado"); }
 
   // Búsqueda global
   function buildSearchResults(query) {
@@ -1453,6 +1371,9 @@
     });
     DATA.services.forEach(service => {
       if (normalize(`${service.name} ${service.description} ${service.price}`).includes(q)) results.push({type:"service",id:service.id,title:service.name,subtitle:`${money(service.price)} · bloque ${totalDuration(service)} min · ${service.active ? "disponible" : "pausado"}`,icon:"stars"});
+    });
+    DATA.inventory.forEach(item => {
+      if (normalize(`${item.name} ${item.category} ${item.location} ${item.priority}`).includes(q)) results.push({type:"inventory",id:item.id,title:item.name,subtitle:`${item.stock} ${item.unit} · ${item.category}`,icon:"box-seam"});
     });
     DATA.appointments.forEach(appointment => {
       const service = serviceById(appointment.serviceId);
@@ -1484,6 +1405,7 @@
         if (card) { card.classList.add("flash-highlight"); card.scrollIntoView({behavior:"smooth",block:"center"}); setTimeout(()=>card.classList.remove("flash-highlight"),1800); }
       });
     }
+    if (type === "inventory") { navigate("inventory"); requestAnimationFrame(() => window.editInventory(id)); }
     if (type === "appointment") {
       const appointment = DATA.appointments.find(item => item.id === id);
       if (!appointment) return;
@@ -1500,47 +1422,16 @@
 
   // Configuración
   function saveSettings(event) {
-    event.preventDefault();
-    const form = event.currentTarget;
-    const selectedDays = $$('[name="workDays"]:checked', form).map(input => Number(input.value));
-    Object.assign(DATA.settings, {
-      userName: form.elements.userName.value.trim(),
-      userEmail: form.elements.userEmail.value.trim(),
-      role: "admin",
-      studioPhone: form.elements.studioPhone.value.trim(),
-      studioName: form.elements.studioName.value.trim(),
-      city: form.elements.city.value.trim(),
-      currency: form.elements.currency.value,
-      defaultDeposit: Number(form.elements.defaultDeposit.value || 0),
-      openingTime: form.elements.openingTime.value,
-      closingTime: form.elements.closingTime.value,
-      slotInterval: Number(form.elements.slotInterval.value),
-      maintenanceDays: Number(form.elements.maintenanceDays.value),
-      workDays: selectedDays,
-      bookingEnabled: form.elements.bookingEnabled.checked,
-      requireConsent: form.elements.requireConsent.checked,
-      autoOpenConfirmationWhatsApp: form.elements.autoOpenConfirmationWhatsApp.checked,
-      allowOptionalBookingDetails: form.elements.allowOptionalBookingDetails.checked,
-      allowDepositProof: form.elements.allowDepositProof.checked,
-      requireDepositChoice: form.elements.requireDepositChoice.checked,
-      confirmationMessageTemplate: form.elements.confirmationMessageTemplate.value.trim() || DEFAULT_SETTINGS.confirmationMessageTemplate,
-      primaryColor: form.elements.primaryColor.value,
-      appearance: form.elements.appearance.value
-    });
-    localStorage.setItem("lashflow_theme", DATA.settings.appearance);
-    persist("settings");
-    applyAppearance();
-    applyUserProfile();
-    renderDashboard();
-    renderStaticViews();
-    showToast("Configuración guardada");
+    event.preventDefault(); const form = event.currentTarget; const selectedDays = $$('[name="workDays"]:checked', form).map(input => Number(input.value));
+    Object.assign(DATA.settings, {userName:form.elements.userName.value.trim() || "ByAlee",userEmail:form.elements.userEmail.value.trim(),role:"admin",studioPhone:form.elements.studioPhone.value.trim(),studioName:form.elements.studioName.value.trim() || "ByAlee",city:form.elements.city.value.trim(),currency:form.elements.currency.value,defaultDeposit:Number(form.elements.defaultDeposit.value||0),openingTime:form.elements.openingTime.value,closingTime:form.elements.closingTime.value,slotInterval:Number(form.elements.slotInterval.value),maintenanceDays:Number(form.elements.maintenanceDays.value),workDays:selectedDays,bookingEnabled:form.elements.bookingEnabled.checked,requireConsent:form.elements.requireConsent.checked,requirePoliciesAcceptance:form.elements.requirePoliciesAcceptance.checked,autoOpenConfirmationWhatsApp:form.elements.autoOpenConfirmationWhatsApp.checked,allowDepositProof:form.elements.allowDepositProof.checked,requireDepositChoice:form.elements.requireDepositChoice.checked,birthdayNotificationsEnabled:form.elements.birthdayNotificationsEnabled.checked,birthdayNoticeDays:Number(form.elements.birthdayNoticeDays.value||0),birthdayMessageTemplate:form.elements.birthdayMessageTemplate.value.trim()||DEFAULT_SETTINGS.birthdayMessageTemplate,bookingPoliciesText:form.elements.bookingPoliciesText.value.trim()||DEFAULT_SETTINGS.bookingPoliciesText,bookingPoliciesVersion:form.elements.bookingPoliciesVersion.value.trim()||"1.0",googleCalendarEnabled:form.elements.googleCalendarEnabled.checked,googleCalendarId:form.elements.googleCalendarId.value.trim()||"primary",confirmationMessageTemplate:form.elements.confirmationMessageTemplate.value.trim()||DEFAULT_SETTINGS.confirmationMessageTemplate,primaryColor:form.elements.primaryColor.value,appearance:form.elements.appearance.value});
+    localStorage.setItem("lashflow_theme", DATA.settings.appearance); persist("settings"); applyAppearance(); applyUserProfile(); renderDashboard(); renderStaticViews(); showToast("Configuración guardada");
   }
 
   async function exportAllData() {
     const images = await imageDBGetAll();
     const bookingProofs = await bookingProofGetAll();
     const payload = {
-      version: "4.0",
+      version: "5.0",
       exportedAt: new Date().toISOString(),
       settings: DATA.settings,
       services: DATA.services,
@@ -1548,6 +1439,8 @@
       records: DATA.records,
       visits: DATA.visits,
       appointments: DATA.appointments,
+      inventory: DATA.inventory,
+      availabilityBlocks: DATA.availabilityBlocks,
       images,
       bookingProofs
     };
@@ -1555,7 +1448,7 @@
     const url = URL.createObjectURL(blob);
     const anchor = document.createElement("a");
     anchor.href = url;
-    anchor.download = `lashflow-respaldo-${todayISO}.json`;
+    anchor.download = `byalee-respaldo-${todayISO}.json`;
     anchor.click();
     URL.revokeObjectURL(url);
     showToast("Respaldo exportado");
@@ -1568,7 +1461,7 @@
       const payload = JSON.parse(await file.text());
       if (!Array.isArray(payload.clients) || !Array.isArray(payload.services)) throw new Error("Formato inválido");
       DATA.settings = {...DEFAULT_SETTINGS, ...(payload.settings || {})};
-      ["services","clients","records","visits","appointments"].forEach(key => { if (Array.isArray(payload[key])) DATA[key] = payload[key]; });
+      ["services","clients","records","visits","appointments","inventory","availabilityBlocks"].forEach(key => { if (Array.isArray(payload[key])) DATA[key] = payload[key]; });
       persist();
       if (Array.isArray(payload.images)) {
         await imageDBClear();
@@ -1628,6 +1521,7 @@
   }
 
   async function imageDBPut(record) {
+    if (window.ByAleeDB?.isRemote?.()) return window.ByAleeDB.mediaPut(record, "client_photo");
     const db = await openImageDB();
     return new Promise((resolve, reject) => {
       const tx = db.transaction(IMAGE_STORE, "readwrite");
@@ -1638,6 +1532,7 @@
   }
 
   async function imageDBGet(id) {
+    if (window.ByAleeDB?.isRemote?.()) return window.ByAleeDB.mediaGet(id);
     const db = await openImageDB();
     return new Promise((resolve, reject) => {
       const tx = db.transaction(IMAGE_STORE, "readonly");
@@ -1649,6 +1544,7 @@
 
   async function imageDBGetAll(clientId = null) {
     try {
+      if (window.ByAleeDB?.isRemote?.()) return await window.ByAleeDB.mediaGetAll(clientId, "client_photo");
       const db = await openImageDB();
       return await new Promise((resolve, reject) => {
         const tx = db.transaction(IMAGE_STORE, "readonly");
@@ -1663,6 +1559,7 @@
   }
 
   async function imageDBDelete(id) {
+    if (window.ByAleeDB?.isRemote?.()) return window.ByAleeDB.mediaDelete(id);
     const db = await openImageDB();
     return new Promise((resolve, reject) => {
       const tx = db.transaction(IMAGE_STORE, "readwrite");
@@ -1674,6 +1571,7 @@
 
   async function imageDBClear() {
     try {
+      if (window.ByAleeDB?.isRemote?.()) return await window.ByAleeDB.clearMedia("client_photo");
       const db = await openImageDB();
       return await new Promise((resolve, reject) => {
         const tx = db.transaction(IMAGE_STORE, "readwrite");
@@ -1686,6 +1584,7 @@
 
   async function bookingProofGetByAppointment(appointmentId) {
     try {
+      if (window.ByAleeDB?.isRemote?.()) return await window.ByAleeDB.bookingProofGetByAppointment(appointmentId);
       const db = await openImageDB();
       return await new Promise((resolve, reject) => {
         const tx = db.transaction(BOOKING_PROOF_STORE, "readonly");
@@ -1698,6 +1597,7 @@
 
   async function bookingProofGetAll() {
     try {
+      if (window.ByAleeDB?.isRemote?.()) return await window.ByAleeDB.bookingProofGetAll();
       const db = await openImageDB();
       return await new Promise((resolve, reject) => {
         const tx = db.transaction(BOOKING_PROOF_STORE, "readonly");
@@ -1709,6 +1609,7 @@
   }
 
   async function bookingProofPut(record) {
+    if (window.ByAleeDB?.isRemote?.()) return window.ByAleeDB.bookingProofPut(record);
     const db = await openImageDB();
     return new Promise((resolve, reject) => {
       const tx = db.transaction(BOOKING_PROOF_STORE, "readwrite");
@@ -1719,6 +1620,7 @@
   }
 
   async function bookingProofDeleteByAppointment(appointmentId) {
+    if (window.ByAleeDB?.isRemote?.()) return window.ByAleeDB.bookingProofDeleteByAppointment(appointmentId);
     const proof = await bookingProofGetByAppointment(appointmentId);
     if (!proof) return;
     const db = await openImageDB();
@@ -1732,6 +1634,7 @@
 
   async function bookingProofClear() {
     try {
+      if (window.ByAleeDB?.isRemote?.()) return await window.ByAleeDB.clearMedia("booking_proof");
       const db = await openImageDB();
       return await new Promise((resolve, reject) => {
         const tx = db.transaction(BOOKING_PROOF_STORE, "readwrite");
@@ -1886,9 +1789,14 @@
   window.openClientRecord = openClientRecord;
   window.openWhatsApp = openWhatsApp;
   window.repeatClientService = repeatClientService;
+  window.rescheduleClientAppointment = clientId => { const next = DATA.appointments.filter(item => item.clientId === Number(clientId) && item.date >= todayISO && !appointmentFreesSlot(item)).sort((a,b)=>a.date.localeCompare(b.date)||minutes(a.time)-minutes(b.time))[0]; if (next) window.rescheduleAppointment(next.id); else repeatClientService(clientId); };
   window.newAppointmentForClient = clientId => { closeRecordModal(); openAppointmentModal({clientId}); };
   window.editAppointment = id => openAppointmentModal({appointmentId:id});
   window.editService = openServiceModal;
+  window.editInventory = openInventoryModal;
+  window.adjustInventoryStock = (id,delta) => { const item = DATA.inventory.find(entry=>entry.id===Number(id)); if (!item) return; item.stock=Math.max(0,Number(item.stock||0)+Number(delta||0)); persist("inventory"); renderInventory(); renderDashboard(); };
+  window.removeAvailabilityBlock = id => { DATA.availabilityBlocks = DATA.availabilityBlocks.filter(item=>item.id!==Number(id)); window.ByAleeDB?.deleteItem?.("availabilityBlocks", id).catch(error => console.error("No se pudo eliminar el bloqueo remoto", error)); persist("availabilityBlocks"); renderSettings(); showToast("Bloqueo eliminado"); };
+  window.openBirthdayWhatsApp = clientId => { const client=clientById(clientId); if (!client?.phone) return showToast("La clienta no tiene WhatsApp cargado"); window.open(`https://wa.me/${phoneDigits(client.phone)}?text=${encodeURIComponent(birthdayMessage(client))}`,"_blank","noopener"); };
   window.editVisit = editVisit;
   window.deleteVisit = deleteVisit;
   window.repeatVisit = repeatVisit;
@@ -1927,6 +1835,17 @@
       showToast("Cita confirmada");
     }
   };
+
+  window.rescheduleAppointment = id => {
+    const appointment = DATA.appointments.find(item => item.id === Number(id)); if (!appointment) return showToast("No se encontró la cita");
+    const reason = window.prompt("Motivo del cambio (opcional):", appointment.cancellationReason || "La clienta no puede asistir en el horario original") || "Cambio solicitado";
+    openAppointmentModal({appointmentId:appointment.id,reschedule:true,reason});
+  };
+  window.cancelAppointment = id => {
+    const appointment = DATA.appointments.find(item => item.id === Number(id)); if (!appointment) return;
+    const reason = window.prompt("Motivo de la cancelación:", "La clienta no puede asistir"); if (!reason?.trim()) return showToast("La cancelación necesita un motivo");
+    appointment.status="canceled"; appointment.cancellationReason=reason.trim(); appointment.canceledAt=new Date().toISOString(); appointment.canceledBy=DATA.settings.userName; persist("appointments"); renderDashboard(); renderStaticViews(); showToast("Cita cancelada; el horario quedó libre");
+  };
   window.rejectAppointment = id => {
     const appointment = DATA.appointments.find(item => item.id === Number(id));
     if (!appointment || !confirm(`¿Rechazar la solicitud de ${appointment.client}? El horario volverá a quedar disponible.`)) return;
@@ -1941,6 +1860,7 @@
   window.deleteAppointment = async id => {
     if (confirm("¿Eliminar esta cita?")) {
       DATA.appointments = DATA.appointments.filter(item => item.id !== Number(id));
+      await window.ByAleeDB?.deleteItem?.("appointments", id).catch(error => console.error("No se pudo eliminar la cita remota", error));
       persist("appointments");
       await bookingProofDeleteByAppointment(id);
       renderDashboard();
@@ -1951,50 +1871,18 @@
 
   // Eventos fijos
   $("#appointmentForm").addEventListener("submit", event => {
-    event.preventDefault();
-    const formData = new FormData(event.currentTarget);
-    const client = upsertClient(String(formData.get("client") || "").trim(), String(formData.get("phone") || "").trim());
-    const payload = {
-      clientId:client.id, client:client.name, phone:client.phone,
-      serviceId:Number(formData.get("service")), source:formData.get("source"), date:formData.get("date"),
-      time:formData.get("time"), status:formData.get("status"), deposit:Number(formData.get("deposit") || 0),
-      notes:formData.get("notes"), formStatus:client.formStatus
-    };
-    const edited = Boolean(editingAppointmentId);
-    let savedAppointment = null;
-    let confirmedFromRequest = false;
-    if (editingAppointmentId) {
-      const appointment = DATA.appointments.find(item => item.id === Number(editingAppointmentId));
-      if (appointment) {
-        confirmedFromRequest = appointment.status === "requested" && payload.status === "confirmed";
-        Object.assign(appointment, payload);
-        if (confirmedFromRequest) {
-          appointment.confirmedAt = new Date().toISOString();
-          appointment.confirmedBy = DATA.settings.userName;
-        }
-        savedAppointment = appointment;
-      }
-    } else {
-      savedAppointment = {id:uid(), ...payload};
-      DATA.appointments.push(savedAppointment);
-    }
-    persist("appointments", "clients");
-    selectedDate = String(formData.get("date"));
-    closeAppointmentModal();
-    event.currentTarget.reset();
-    populateServices();
-    if (confirmedFromRequest && DATA.settings.autoOpenConfirmationWhatsApp && savedAppointment) {
-      openConfirmationWhatsApp(savedAppointment.id, true);
-      renderStaticViews();
-    } else {
-      renderDashboard();
-      renderStaticViews();
-      showToast(edited ? "Cita modificada" : "Cita guardada y vinculada a la ficha");
-    }
+    event.preventDefault(); const formData = new FormData(event.currentTarget); const client = upsertClient(String(formData.get("client")||"").trim(),String(formData.get("phone")||"").trim());
+    const payload={clientId:client.id,client:client.name,phone:client.phone,serviceId:Number(formData.get("service")),source:formData.get("source"),date:formData.get("date"),time:formData.get("time"),status:formData.get("status"),deposit:Number(formData.get("deposit")||0),notes:formData.get("notes"),formStatus:client.formStatus};
+    const edited=Boolean(editingAppointmentId); let savedAppointment=null; let confirmedFromRequest=false;
+    if (editingAppointmentId) { const appointment=DATA.appointments.find(item=>item.id===Number(editingAppointmentId)); if (appointment) { const before={date:appointment.date,time:appointment.time,status:appointment.status,serviceId:appointment.serviceId}; confirmedFromRequest=appointment.status==="requested"&&payload.status==="confirmed"; Object.assign(appointment,payload); if ((before.date!==payload.date||before.time!==payload.time||before.serviceId!==payload.serviceId)) { appointment.rescheduleHistory ||= []; appointment.rescheduleHistory.push({...before,changedAt:new Date().toISOString(),changedBy:DATA.settings.userName,reason:String(formData.get("rescheduleReason")||pendingReschedule?.reason||"Cambio de agenda")}); appointment.lastRescheduleReason=String(formData.get("rescheduleReason")||pendingReschedule?.reason||""); appointment.rescheduledAt=new Date().toISOString(); delete appointment.cancellationReason; delete appointment.canceledAt; if (["canceled","rejected"].includes(before.status)&&["canceled","rejected"].includes(appointment.status)) appointment.status="pending"; } if (confirmedFromRequest) { appointment.confirmedAt=new Date().toISOString(); appointment.confirmedBy=DATA.settings.userName; } savedAppointment=appointment; } }
+    else { savedAppointment={id:uid(),...payload,rescheduleHistory:[]}; DATA.appointments.push(savedAppointment); }
+    persist("appointments","clients"); selectedDate=String(formData.get("date")); closeAppointmentModal(); event.currentTarget.reset(); populateServices();
+    if (confirmedFromRequest&&DATA.settings.autoOpenConfirmationWhatsApp&&savedAppointment) { openConfirmationWhatsApp(savedAppointment.id,true); renderStaticViews(); } else { renderDashboard(); renderStaticViews(); showToast(edited?(savedAppointment?.rescheduledAt?"Cita reagendada":"Cita modificada"):"Cita guardada"); }
   });
 
   $("#recordForm").addEventListener("submit", saveRecord);
   $("#serviceForm").addEventListener("submit", saveService);
+  $("#inventoryForm").addEventListener("submit", saveInventory);
   $("#recordTabs").addEventListener("click", event => {
     const button = event.target.closest("[data-record-tab]");
     if (button) activateRecordTab(button.dataset.recordTab);
@@ -2006,6 +1894,9 @@
   $$('[data-close-service]').forEach(button => button.onclick = closeServiceModal);
   $("#serviceModal").onclick = event => { if (event.target === event.currentTarget) closeServiceModal(); };
   $("#deleteServiceBtn").onclick = deleteService;
+  $$('[data-close-inventory]').forEach(button => button.onclick = closeInventoryModal);
+  $("#inventoryModal").onclick = event => { if (event.target === event.currentTarget) closeInventoryModal(); };
+  $("#deleteInventoryBtn").onclick = deleteInventory;
   $$('[name="duration"],[name="prep"],[name="cleanup"]', $("#serviceForm")).forEach(input => input.addEventListener("input", updateServicePreview));
 
   $$(".nav-link[data-view]").forEach(button => button.onclick = () => {
@@ -2048,6 +1939,7 @@
     renderSettings();
   };
   $("#adminSettingsBtn").onclick = () => navigate("settings");
+  $("#logoutBtn").onclick = () => window.lashflowLogout?.();
   $("#menuToggle").onclick = () => $("#sidebar").classList.toggle("open");
   $("#newAppointmentBtn").onclick = () => openAppointmentModal();
   $$('[data-close-modal]').forEach(button => button.onclick = closeAppointmentModal);
@@ -2098,6 +1990,10 @@
 
   let syncTimer = null;
   function reloadSharedData(notify = false) {
+    if (window.ByAleeDB?.isRemote?.()) {
+      refreshRemoteData(notify).catch(error => console.error("No se pudieron actualizar los datos remotos", error));
+      return;
+    }
     const previousRequests = DATA.appointments.filter(item => item.status === "requested").length;
     DATA.appointments = loadArray(KEYS.appointments, DATA.appointments);
     sharedAppointmentsSnapshot = localStorage.getItem(KEYS.appointments) || JSON.stringify(DATA.appointments);
@@ -2105,6 +2001,8 @@
     DATA.records = loadArray(KEYS.records, DATA.records);
     DATA.visits = loadArray(KEYS.visits, DATA.visits);
     DATA.services = loadArray(KEYS.services, DATA.services);
+    DATA.inventory = loadArray(KEYS.inventory, DATA.inventory);
+    DATA.availabilityBlocks = loadArray(KEYS.availabilityBlocks, DATA.availabilityBlocks);
     DATA.settings = loadObject(KEYS.settings, DEFAULT_SETTINGS);
     normalizeData();
     applyAppearance();
@@ -2139,9 +2037,68 @@
     if (currentSnapshot !== sharedAppointmentsSnapshot) reloadSharedData(true);
   }, 2500);
 
+  let remoteSubscriptionReady = false;
+  let remoteRefreshInProgress = false;
+
+  async function refreshRemoteData(notify = false) {
+    if (remoteRefreshInProgress || !window.ByAleeDB) return;
+    remoteRefreshInProgress = true;
+    const previousRequests = DATA.appointments.filter(item => item.status === "requested").length;
+    try {
+      await window.byAleeAuthReady;
+      const remote = await window.ByAleeDB.loadAdminData(DEFAULT_SETTINGS);
+      if (!remote) return;
+      DATA.settings = remote.settings;
+      DATA.services = remote.services;
+      DATA.clients = remote.clients;
+      DATA.records = remote.records;
+      DATA.appointments = remote.appointments;
+      DATA.visits = remote.visits;
+      DATA.inventory = remote.inventory;
+      DATA.availabilityBlocks = remote.availabilityBlocks;
+      normalizeData();
+
+      // Copia local de emergencia; Supabase sigue siendo la fuente principal.
+      Object.entries(KEYS).forEach(([type, key]) => {
+        const value = type === "settings" ? DATA.settings : DATA[type];
+        localStorage.setItem(key, JSON.stringify(value));
+      });
+      sharedAppointmentsSnapshot = JSON.stringify(DATA.appointments);
+
+      applyAppearance();
+      applyUserProfile();
+      populateServices();
+      renderDashboard();
+      renderStaticViews();
+
+      const currentRequests = DATA.appointments.filter(item => item.status === "requested").length;
+      if (notify && currentRequests > previousRequests) showToast("Nueva solicitud de cita recibida");
+
+      if (!remoteSubscriptionReady) {
+        remoteSubscriptionReady = true;
+        window.ByAleeDB.subscribeAppointments(() => {
+          setTimeout(() => refreshRemoteData(true).catch(console.error), 180);
+        });
+      }
+      document.body.dataset.dataSource = "supabase";
+    } catch (error) {
+      console.error("No se pudo cargar Supabase:", error);
+      showToast("No se pudo sincronizar con la base de datos");
+    } finally {
+      remoteRefreshInProgress = false;
+    }
+  }
+
+  window.addEventListener("byalee:sync", event => {
+    if (event.detail?.ok !== false) return;
+    showToast("No se pudo guardar un cambio. Se recargarán los datos reales.");
+    setTimeout(() => refreshRemoteData(false).catch(console.error), 500);
+  });
+
   applyAppearance();
   applyUserProfile();
   populateServices();
   renderDashboard();
   renderStaticViews();
+  refreshRemoteData(false);
 })();
