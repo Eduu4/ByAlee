@@ -281,215 +281,193 @@
     padding: 34px 18px;
   }
 
-  /* =========================================================
-     AGENDA
+    /* =========================================================
+     AGENDA — ESCRITORIO
   ========================================================= */
 
-  #agendaView .agenda-mobile-list {
-    display: none !important;
-  }
+  @media (min-width: 1101px) {
+    #agendaView .page-heading {
+      margin-bottom: 20px;
+    }
 
-  #agendaView .agenda-desktop-table {
-    display: block !important;
-  }
+    #agendaView .page-heading h1 {
+      font-size: 32px;
+    }
 
-  #agendaView .page-heading {
-    margin-bottom: 20px;
-  }
+    #agendaView .table-wrap {
+      width: 100%;
+      max-width: 100%;
+      padding: 12px 14px;
+      overflow: hidden;
+      border-radius: 16px;
+    }
 
-  #agendaView .page-heading h1 {
-    font-size: 34px;
-  }
+    #agendaView .data-table {
+      width: 100%;
+      min-width: 0 !important;
+      table-layout: fixed;
+      border-collapse: collapse;
+    }
 
-  .agenda-filter-bar {
-    display: grid;
-    grid-template-columns:
-      minmax(190px, 230px)
-      minmax(210px, 270px)
-      auto
-      minmax(100px, 1fr);
-    align-items: end;
-    gap: 10px;
-    padding: 12px;
-    margin-bottom: 14px;
-    border: 1px solid var(--line);
-    border-radius: 16px;
-    background: var(--surface);
-    box-shadow: var(--shadow);
-  }
+    #agendaView .data-table thead {
+      display: table-header-group;
+    }
 
-  .agenda-filter-bar .field {
-    margin: 0;
-  }
+    #agendaView .data-table tbody {
+      display: table-row-group;
+    }
 
-  .agenda-filter-bar input,
-  .agenda-filter-bar select {
-    min-height: 42px;
-  }
+    #agendaView .data-table tr {
+      display: table-row;
+      height: auto !important;
+    }
 
-  .agenda-filter-actions {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
+    #agendaView .data-table th,
+    #agendaView .data-table td {
+      display: table-cell;
+      height: auto !important;
+      padding: 12px 8px;
+      vertical-align: middle;
+      border-bottom: 1px solid var(--line);
+      font-size: 10px;
+      line-height: 1.35;
+    }
 
-  .agenda-filter-actions .btn {
-    min-height: 42px;
-    padding: 8px 13px;
-  }
+    #agendaView .data-table th {
+      color: var(--muted);
+      font-size: 9px;
+      font-weight: 800;
+      white-space: nowrap;
+    }
 
-  .agenda-filter-summary {
-    align-self: center;
-    justify-self: end;
-    color: var(--muted);
-    font-size: 10px;
-    font-weight: 700;
-    white-space: nowrap;
-  }
+    /* Fecha */
+    #agendaView .data-table th:nth-child(1),
+    #agendaView .data-table td:nth-child(1) {
+      width: 7%;
+      white-space: nowrap;
+    }
 
-  .agenda-desktop-table {
-    width: 100%;
-    max-width: 100%;
-    overflow: hidden;
-    padding: 10px 12px;
-    border: 1px solid var(--line);
-    border-radius: 16px;
-    background: var(--surface);
-    box-shadow: var(--shadow);
-  }
+    /* Hora */
+    #agendaView .data-table th:nth-child(2),
+    #agendaView .data-table td:nth-child(2) {
+      width: 5%;
+      white-space: nowrap;
+    }
 
-  .agenda-desktop-table .data-table {
-    width: 100%;
-    min-width: 0 !important;
-    table-layout: fixed;
-    border-collapse: collapse;
-  }
+    /* Clienta */
+    #agendaView .data-table th:nth-child(3),
+    #agendaView .data-table td:nth-child(3) {
+      width: 10%;
+    }
 
-  .agenda-desktop-table .data-table th {
-    padding: 10px 8px;
-    color: var(--muted);
-    font-size: 9px;
-    font-weight: 800;
-    text-align: left;
-    white-space: nowrap;
-  }
+    /* Servicio */
+    #agendaView .data-table th:nth-child(4),
+    #agendaView .data-table td:nth-child(4) {
+      width: 14%;
+    }
 
-  .agenda-desktop-table .data-table td {
-    min-width: 0;
-    padding: 11px 8px;
-    border-top: 1px solid var(--line);
-    font-size: 10px;
-    line-height: 1.35;
-    vertical-align: middle;
-    overflow-wrap: anywhere;
-  }
+    /* Bloque */
+    #agendaView .data-table th:nth-child(5),
+    #agendaView .data-table td:nth-child(5) {
+      width: 7%;
+      white-space: nowrap;
+    }
 
-  .agenda-desktop-table .data-table th:nth-child(1),
-  .agenda-desktop-table .data-table td:nth-child(1) {
-    width: 7%;
-  }
+    /* Origen */
+    #agendaView .data-table th:nth-child(6),
+    #agendaView .data-table td:nth-child(6) {
+      width: 8%;
+    }
 
-  .agenda-desktop-table .data-table th:nth-child(2),
-  .agenda-desktop-table .data-table td:nth-child(2) {
-    width: 5%;
-  }
+    /* Estado */
+    #agendaView .data-table th:nth-child(7),
+    #agendaView .data-table td:nth-child(7) {
+      width: 9%;
+    }
 
-  .agenda-desktop-table .data-table th:nth-child(3),
-  .agenda-desktop-table .data-table td:nth-child(3) {
-    width: 10%;
-  }
+    /* Ficha */
+    #agendaView .data-table th:nth-child(8),
+    #agendaView .data-table td:nth-child(8) {
+      width: 8%;
+    }
 
-  .agenda-desktop-table .data-table th:nth-child(4),
-  .agenda-desktop-table .data-table td:nth-child(4) {
-    width: 14%;
-  }
+    /* Seña */
+    #agendaView .data-table th:nth-child(9),
+    #agendaView .data-table td:nth-child(9) {
+      width: 16%;
+    }
 
-  .agenda-desktop-table .data-table th:nth-child(5),
-  .agenda-desktop-table .data-table td:nth-child(5) {
-    width: 7%;
-  }
+    /* Acciones */
+    #agendaView .data-table th:nth-child(10),
+    #agendaView .data-table td:nth-child(10) {
+      width: 16%;
+    }
 
-  .agenda-desktop-table .data-table th:nth-child(6),
-  .agenda-desktop-table .data-table td:nth-child(6) {
-    width: 8%;
-  }
+    #agendaView .data-table td:nth-child(4) .badge {
+      display: inline-flex;
+      width: fit-content;
+      margin-bottom: 5px;
+    }
 
-  .agenda-desktop-table .data-table th:nth-child(7),
-  .agenda-desktop-table .data-table td:nth-child(7) {
-    width: 9%;
-  }
+    #agendaView .data-table td:nth-child(9) .badge {
+      display: inline-flex;
+      max-width: 100%;
+      white-space: normal;
+      line-height: 1.25;
+    }
 
-  .agenda-desktop-table .data-table th:nth-child(8),
-  .agenda-desktop-table .data-table td:nth-child(8) {
-    width: 8%;
-  }
+    #agendaView .deposit-proof-link {
+      display: block;
+      margin-top: 5px;
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--primary);
+      font-size: 9px;
+      font-weight: 700;
+      text-align: left;
+    }
 
-  .agenda-desktop-table .data-table th:nth-child(9),
-  .agenda-desktop-table .data-table td:nth-child(9) {
-    width: 15%;
-  }
+    /*
+     * IMPORTANTE:
+     * table-actions es una celda <td>.
+     * Debe seguir siendo table-cell y no flex.
+     */
+    #agendaView td.table-actions {
+      display: table-cell !important;
+      padding-right: 6px;
+      text-align: right;
+      white-space: normal;
+    }
 
-  .agenda-desktop-table .data-table th:nth-child(10),
-  .agenda-desktop-table .data-table td:nth-child(10) {
-    width: 17%;
-  }
+    #agendaView td.table-actions .icon-btn {
+      position: static !important;
+      width: 31px;
+      min-width: 31px;
+      height: 31px;
+      min-height: 31px;
+      margin: 2px;
+      padding: 0;
+      display: inline-flex !important;
+      vertical-align: middle;
+      transform: none !important;
+      border-radius: 9px;
+    }
 
-  .agenda-desktop-table td:nth-child(1),
-  .agenda-desktop-table td:nth-child(2),
-  .agenda-desktop-table td:nth-child(5) {
-    white-space: nowrap;
-  }
+    #agendaView td.table-actions .icon-btn:hover {
+      transform: translateY(-1px) !important;
+    }
 
-  .agenda-desktop-table td:nth-child(4) .badge {
-    display: inline-flex;
-    width: fit-content;
-    margin-bottom: 4px;
-  }
+    #agendaView td.table-actions .icon-btn i {
+      margin: 0;
+      font-size: 12px;
+    }
 
-  .agenda-desktop-table td:nth-child(4) strong,
-  .agenda-desktop-table td:nth-child(4) span:not(.badge) {
-    display: block;
-  }
-
-  .agenda-desktop-table td:nth-child(9) .badge {
-    display: inline-flex;
-    max-width: 100%;
-    white-space: normal;
-    line-height: 1.25;
-  }
-
-  .agenda-desktop-table .table-actions {
-    display: flex !important;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 5px;
-    min-width: 0;
-    white-space: normal;
-  }
-
-  .agenda-desktop-table .table-actions > * {
-    position: static !important;
-    flex: 0 0 auto;
-    margin: 0 !important;
-    transform: none !important;
-  }
-
-  .agenda-desktop-table .table-actions .icon-btn,
-  .agenda-desktop-table .table-actions .btn {
-    width: 32px;
-    min-width: 32px;
-    height: 32px;
-    min-height: 32px;
-    padding: 0;
-    font-size: 0;
-    border-radius: 10px;
-  }
-
-  .agenda-desktop-table .table-actions .icon-btn i,
-  .agenda-desktop-table .table-actions .btn i {
-    margin: 0;
-    font-size: 12px;
+    #agendaView .appointment-reason {
+      margin-top: 5px;
+      font-size: 9px;
+      line-height: 1.3;
+    }
   }
 
   /* =========================================================
