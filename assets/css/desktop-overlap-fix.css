@@ -1,0 +1,305 @@
+/*
+  ByAlee — corrección de elementos encimados en tablet/escritorio
+  Cargar DESPUÉS de styles.css, mobile.css y desktop.css.
+  No modifica celulares de 760 px o menos.
+*/
+
+@media (min-width: 761px) {
+  /* =========================================================
+     BARRA LATERAL: PERFIL Y BOTONES DEL PIE
+  ========================================================= */
+
+  .sidebar {
+    overflow: hidden;
+  }
+
+  .sidebar-profile {
+    display: grid !important;
+    grid-template-columns: 42px minmax(0, 1fr) 38px 38px 38px;
+    align-items: center;
+    gap: 7px;
+    padding: 14px 10px !important;
+  }
+
+  .sidebar-profile .avatar {
+    width: 42px;
+    height: 42px;
+    min-width: 42px;
+    margin: 0;
+  }
+
+  .sidebar-profile .profile-copy {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .sidebar-profile .profile-copy strong,
+  .sidebar-profile .profile-copy span {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sidebar-profile .profile-copy strong {
+    font-size: 12px;
+  }
+
+  .sidebar-profile .profile-copy span {
+    margin-top: 2px;
+    font-size: 9px;
+  }
+
+  .sidebar-profile .icon-btn {
+    width: 38px;
+    min-width: 38px;
+    height: 38px;
+    min-height: 38px;
+    padding: 0;
+    margin: 0;
+    border-radius: 12px;
+  }
+
+  /*
+   * En barras laterales angostas, mueve los botones a una
+   * segunda fila para evitar que el nombre quede aplastado.
+   */
+  @media (max-width: 1250px) {
+    .sidebar-profile {
+      grid-template-columns: 42px minmax(0, 1fr) 38px 38px 38px;
+    }
+
+    .sidebar-profile .profile-copy {
+      max-width: 100%;
+    }
+  }
+
+  /* =========================================================
+     AGENDA: CONTENEDOR Y TABLA
+  ========================================================= */
+
+  #agendaView .agenda-desktop-table {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: visible;
+    scrollbar-gutter: stable;
+  }
+
+  #agendaView .agenda-desktop-table .data-table {
+    width: 100%;
+    min-width: 1160px;
+    table-layout: auto;
+    border-collapse: collapse;
+  }
+
+  #agendaView .agenda-desktop-table .data-table th,
+  #agendaView .agenda-desktop-table .data-table td {
+    box-sizing: border-box;
+    vertical-align: middle;
+  }
+
+  #agendaView .agenda-desktop-table .data-table th {
+    white-space: nowrap;
+  }
+
+  /* Fecha */
+  #agendaView .agenda-desktop-table th:nth-child(1),
+  #agendaView .agenda-desktop-table td:nth-child(1) {
+    width: 92px;
+    min-width: 92px;
+    white-space: nowrap;
+  }
+
+  /* Hora */
+  #agendaView .agenda-desktop-table th:nth-child(2),
+  #agendaView .agenda-desktop-table td:nth-child(2) {
+    width: 66px;
+    min-width: 66px;
+    white-space: nowrap;
+  }
+
+  /* Clienta */
+  #agendaView .agenda-desktop-table th:nth-child(3),
+  #agendaView .agenda-desktop-table td:nth-child(3) {
+    width: 130px;
+    min-width: 130px;
+  }
+
+  /* Servicio */
+  #agendaView .agenda-desktop-table th:nth-child(4),
+  #agendaView .agenda-desktop-table td:nth-child(4) {
+    width: 175px;
+    min-width: 175px;
+    max-width: 210px;
+    white-space: normal;
+  }
+
+  #agendaView .agenda-desktop-table td:nth-child(4) {
+    line-height: 1.3;
+  }
+
+  #agendaView .agenda-desktop-table td:nth-child(4) .badge {
+    display: inline-flex;
+    width: fit-content;
+    margin: 0 0 5px;
+  }
+
+  #agendaView .agenda-desktop-table td:nth-child(4) strong,
+  #agendaView .agenda-desktop-table td:nth-child(4) span:not(.badge) {
+    display: block;
+    overflow-wrap: anywhere;
+  }
+
+  /* Bloque */
+  #agendaView .agenda-desktop-table th:nth-child(5),
+  #agendaView .agenda-desktop-table td:nth-child(5) {
+    width: 78px;
+    min-width: 78px;
+    white-space: nowrap;
+  }
+
+  /* Origen */
+  #agendaView .agenda-desktop-table th:nth-child(6),
+  #agendaView .agenda-desktop-table td:nth-child(6) {
+    width: 98px;
+    min-width: 98px;
+    white-space: normal;
+  }
+
+  /* Estado */
+  #agendaView .agenda-desktop-table th:nth-child(7),
+  #agendaView .agenda-desktop-table td:nth-child(7) {
+    width: 116px;
+    min-width: 116px;
+    white-space: nowrap;
+  }
+
+  /* Ficha */
+  #agendaView .agenda-desktop-table th:nth-child(8),
+  #agendaView .agenda-desktop-table td:nth-child(8) {
+    width: 100px;
+    min-width: 100px;
+    white-space: nowrap;
+  }
+
+  /* Seña */
+  #agendaView .agenda-desktop-table th:nth-child(9),
+  #agendaView .agenda-desktop-table td:nth-child(9) {
+    width: 190px;
+    min-width: 190px;
+    white-space: normal;
+  }
+
+  #agendaView .agenda-desktop-table td:nth-child(9) {
+    line-height: 1.35;
+  }
+
+  #agendaView .agenda-desktop-table td:nth-child(9) .badge {
+    display: inline-flex;
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  /* Acciones */
+  #agendaView .agenda-desktop-table th:nth-child(10),
+  #agendaView .agenda-desktop-table td:nth-child(10) {
+    width: 230px;
+    min-width: 230px;
+  }
+
+  #agendaView .agenda-desktop-table .table-actions {
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    min-width: 220px;
+    white-space: normal;
+  }
+
+  #agendaView .agenda-desktop-table .table-actions > * {
+    position: static !important;
+    flex: 0 0 auto;
+    margin: 0 !important;
+    transform: none !important;
+  }
+
+  #agendaView .agenda-desktop-table .table-actions .icon-btn {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    min-height: 36px;
+    padding: 0;
+  }
+
+  #agendaView .agenda-desktop-table .table-actions .btn:not(.icon-btn) {
+    min-width: auto;
+    min-height: 36px;
+    padding: 7px 10px;
+    font-size: 10px;
+  }
+
+  #agendaView .agenda-desktop-table .table-actions button,
+  #agendaView .agenda-desktop-table .table-actions a {
+    line-height: 1;
+  }
+
+  /* Evita que badges y textos invadan columnas vecinas */
+  #agendaView .agenda-desktop-table td {
+    overflow: visible;
+  }
+
+  #agendaView .agenda-desktop-table td > * {
+    max-width: 100%;
+  }
+
+  /* =========================================================
+     TABLETS Y PANTALLAS MEDIANAS
+  ========================================================= */
+
+  @media (min-width: 761px) and (max-width: 1180px) {
+    /*
+     * En este rango la tabla puede desplazarse horizontalmente.
+     * Es preferible al encimado.
+     */
+    #agendaView .agenda-desktop-table .data-table {
+      min-width: 1180px;
+    }
+
+    .sidebar-profile {
+      grid-template-columns: 40px minmax(0, 1fr);
+      grid-template-rows: auto auto;
+      gap: 8px 10px;
+    }
+
+    .sidebar-profile .avatar {
+      grid-column: 1;
+      grid-row: 1;
+    }
+
+    .sidebar-profile .profile-copy {
+      grid-column: 2;
+      grid-row: 1;
+    }
+
+    #adminSettingsBtn {
+      grid-column: 1;
+      grid-row: 2;
+      justify-self: start;
+    }
+
+    #themeToggle {
+      grid-column: 2;
+      grid-row: 2;
+      justify-self: start;
+    }
+
+    #logoutBtn {
+      grid-column: 2;
+      grid-row: 2;
+      justify-self: end;
+    }
+  }
+}
