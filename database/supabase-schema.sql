@@ -429,3 +429,26 @@ select
   'admin'
 from auth.users
 on conflict (id) do nothing;
+
+update public.studio_settings
+set data = data || jsonb_build_object(
+  'sessionTimeoutEnabled', true,
+  'sessionTimeoutMinutes', 30
+)
+where studio_id = '00000000-0000-0000-0000-00000000ba1e';
+
+alter table public.profiles
+add column if not exists username text;
+
+create unique index if not exists profiles_username_unique
+on public.profiles (lower(username))
+where username is not null;
+
+update public.profiles p
+set
+  username = 'byalee',
+  full_name = 'ByAlee',
+  updated_at = now()
+from auth.users u
+where p.id = u.id
+  and lower(u.email) = lower('ecoronelcont@gmail.com');

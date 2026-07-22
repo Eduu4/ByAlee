@@ -1131,7 +1131,7 @@
   }
 
   /*
-   * Restaurar el comportamiento real de una tabla.
+   * Restaurar el comportamiento real de la tabla.
    */
   #agendaView .data-table {
     display: table !important;
@@ -1161,7 +1161,7 @@
     height: auto !important;
     min-height: 0 !important;
     padding: 12px 9px;
-    vertical-align: middle;
+    vertical-align: middle !important;
     line-height: 1.35;
   }
 
@@ -1175,9 +1175,9 @@
   }
 
   /*
-   * Columnas que pueden usar más de una línea.
+   * Columnas que pueden ocupar más de una línea:
+   * Servicio, Origen y Seña.
    */
-  #agendaView .data-table td:nth-child(3),
   #agendaView .data-table td:nth-child(4),
   #agendaView .data-table td:nth-child(6),
   #agendaView .data-table td:nth-child(9) {
@@ -1186,7 +1186,7 @@
   }
 
   /*
-   * Fecha, hora, duración y estados más compactos.
+   * Fecha, hora, duración y estados compactos.
    */
   #agendaView .data-table td:nth-child(1),
   #agendaView .data-table td:nth-child(2),
@@ -1197,58 +1197,182 @@
   }
 
   /*
-   * table-actions es un TD.
-   * Nunca debe convertirse en flex.
+   * Columna Clienta.
+   * Evita que nombre y apellido queden en líneas separadas.
+   */
+  #agendaView .data-table th:nth-child(3),
+  #agendaView .data-table td:nth-child(3) {
+    width: 145px;
+    min-width: 145px;
+    white-space: nowrap !important;
+    vertical-align: middle !important;
+  }
+
+  /*
+   * Botón con el nombre de la clienta.
+   */
+  #agendaView .data-table td:nth-child(3) .text-btn {
+    display: inline-block !important;
+    width: auto !important;
+    max-width: 140px;
+    min-width: 0 !important;
+    min-height: 0 !important;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
+    border: 0;
+    background: transparent;
+    box-shadow: none !important;
+    filter: none !important;
+    text-shadow: none !important;
+
+    color: var(--primary);
+    font-size: 11px;
+    font-weight: 750;
+    line-height: 1.3;
+    text-align: left;
+    vertical-align: middle;
+
+    white-space: nowrap !important;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  #agendaView .data-table td:nth-child(3) .text-btn:hover {
+    opacity: 0.82;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  /*
+   * Servicio.
+   */
+  #agendaView .data-table td:nth-child(4) .badge {
+    display: inline-flex;
+    width: fit-content;
+    margin-bottom: 5px;
+  }
+
+  /*
+   * Seña o comprobante.
+   */
+  #agendaView .data-table td:nth-child(9) .badge,
+  #agendaView .deposit-proof-badge {
+    display: inline-flex;
+    max-width: 100%;
+    white-space: normal;
+    line-height: 1.25;
+  }
+
+  /*
+   * table-actions es una celda TD.
+   * Nunca debe convertirse directamente en flex.
    */
   #agendaView td.table-actions {
     display: table-cell !important;
-    width: 190px;
-    min-width: 190px;
-    padding: 10px 6px;
+    width: 188px;
+    min-width: 188px;
+    padding: 9px 6px !important;
     text-align: right;
-    white-space: normal;
+    white-space: nowrap !important;
+    vertical-align: middle !important;
   }
 
   /*
-   * Los botones sí pueden ser inline-flex dentro del TD.
+   * Contenedor interior de las acciones.
    */
-  #agendaView td.table-actions > button,
-  #agendaView td.table-actions > a,
-  #agendaView td.table-actions > .btn,
-  #agendaView td.table-actions > .icon-btn {
+  #agendaView .agenda-actions-inline {
+    width: 100%;
+    display: flex;
+    flex-flow: row nowrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+  }
+
+  /*
+   * Botones de acciones horizontales.
+   */
+  #agendaView .agenda-actions-inline > button,
+  #agendaView .agenda-actions-inline > a,
+  #agendaView .agenda-actions-inline > .btn,
+  #agendaView .agenda-actions-inline > .icon-btn {
     position: static !important;
+    flex: 0 0 30px;
+
+    width: 30px;
+    min-width: 30px;
+    height: 30px;
+    min-height: 30px;
+
+    margin: 0 !important;
+    padding: 0 !important;
+
     display: inline-flex !important;
-    width: 34px;
-    min-width: 34px;
-    height: 34px;
-    min-height: 34px;
-    margin: 2px !important;
-    padding: 0;
     align-items: center;
     justify-content: center;
-    vertical-align: middle;
+
+    border-radius: 9px;
     transform: none !important;
-    border-radius: 10px;
+    box-shadow: none !important;
+    filter: none !important;
+    text-shadow: none !important;
+
     font-size: 0;
   }
 
-  #agendaView td.table-actions i {
+  #agendaView .agenda-actions-inline > button:hover,
+  #agendaView .agenda-actions-inline > a:hover,
+  #agendaView .agenda-actions-inline > .btn:hover,
+  #agendaView .agenda-actions-inline > .icon-btn:hover {
+    transform: none !important;
+    box-shadow: none !important;
+    filter: none !important;
+  }
+
+  #agendaView .agenda-actions-inline i {
     margin: 0;
-    font-size: 13px;
+    font-size: 12px;
   }
 
   /*
-   * El comprobante no debe invadir otras columnas.
+   * La etiqueta del comprobante funciona como botón
+   * únicamente cuando existe una imagen.
+   */
+  #agendaView .deposit-proof-badge {
+    min-height: 34px;
+    padding: 7px 10px;
+
+    align-items: center;
+    justify-content: flex-start;
+    gap: 6px;
+
+    border: 0;
+    text-align: left;
+    cursor: pointer;
+
+    box-shadow: none !important;
+    filter: none !important;
+    text-shadow: none !important;
+  }
+
+  #agendaView .deposit-proof-badge:hover {
+    opacity: 0.82;
+    transform: none !important;
+    box-shadow: none !important;
+  }
+
+  #agendaView .deposit-proof-badge:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+
+  /*
+   * Ocultar el enlace anterior "Ver comprobante".
    */
   #agendaView .deposit-proof-link {
-    display: block;
-    width: fit-content;
-    margin-top: 5px;
-    padding: 0;
-    border: 0;
-    background: transparent;
-    font-size: 9px;
-    text-align: left;
+    display: none !important;
   }
 }
 
