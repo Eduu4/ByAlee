@@ -385,13 +385,14 @@
 
       <form id="loginForm">
         <label class="field">
-          <span>Correo</span>
-
+          <span>Usuario o correo</span>
           <input
-            id="loginEmail"
-            type="email"
+            id="loginIdentifier"
+            type="text"
             autocomplete="username"
-            placeholder="correo@ejemplo.com"
+            placeholder="byalee o correo@ejemplo.com"
+            autocapitalize="none"
+            spellcheck="false"
             required
           >
         </label>
@@ -504,23 +505,45 @@
             );
           }
 
-          const email = document
-            .getElementById("loginEmail")
+          const identifier = document
+            .getElementById("loginIdentifier")
             .value
             .trim()
             .toLowerCase();
 
-          const password =
-            document.getElementById("loginPassword").value;
+          const password = document
+            .getElementById("loginPassword")
+            .value;
 
-          const { error } =
-            await platform.client.auth.signInWithPassword({
-              email,
+          const response = await fetch("/api/login", {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+              identifier,
               password
-            });
+            })
+          });
 
-          if (error) {
-            throw error;
+          const result = await response.json();
+
+          if (!response.ok) {
+            throw new Error(
+              result.error ||
+              "No se pudo iniciar sesión."
+            );
+          }
+
+          const {
+            error: sessionError
+          } = await platform.client.auth.setSession({
+            access_token: result.session.access_token,
+            refresh_token: result.session.refresh_token
+          });
+
+          if (sessionError) {
+            throw sessionError;
           }
 
           setMessage(
@@ -534,9 +557,14 @@
           console.error(error);
 
           const text =
-            /invalid login credentials/i.test(error.message || "")
-              ? "Correo o contraseña incorrectos."
-              : error.message || "No se pudo iniciar sesión.";
+            /incorrectos|invalid login credentials/i.test(
+              error.message || ""
+            )
+              ? "Usuario, correo o contraseña incorrectos."
+              : (
+                  error.message ||
+                  "No se pudo iniciar sesión."
+                );
 
           setMessage(text, "error");
 
