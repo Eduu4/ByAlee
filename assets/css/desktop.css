@@ -1,0 +1,933 @@
+/*
+  ByAlee — corrección exclusiva para tablet y escritorio
+  Cargar DESPUÉS de styles.css y mobile.css.
+
+  No afecta celulares de 760 px o menos.
+*/
+
+@media (min-width: 761px) {
+  /* =========================================================
+     BASE PARA COMPONENTES DINÁMICOS NUEVOS
+  ========================================================= */
+
+  .page-heading,
+  .compact-page-heading {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 22px;
+    margin-bottom: 24px;
+  }
+
+  .page-heading > div:first-child,
+  .compact-page-heading > div:first-child {
+    min-width: 0;
+  }
+
+  .page-heading h1,
+  .compact-page-heading h1 {
+    margin-bottom: 7px;
+  }
+
+  .page-heading p,
+  .compact-page-heading p {
+    max-width: 760px;
+    margin-bottom: 0;
+    color: var(--muted);
+    line-height: 1.55;
+  }
+
+  .page-icon-action {
+    flex: 0 0 auto;
+  }
+
+  .compact-summary-strip,
+  .service-summary-strip {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 12px;
+    margin: 18px 0 22px;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+
+  .compact-summary-strip article,
+  .service-summary-strip article {
+    min-width: 0;
+    padding: 15px 18px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--surface-2);
+  }
+
+  .compact-summary-strip span,
+  .service-summary-strip span {
+    display: block;
+    margin-bottom: 6px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 600;
+  }
+
+  .compact-summary-strip strong,
+  .service-summary-strip strong {
+    display: block;
+    font-family: Fraunces, serif;
+    font-size: 27px;
+    line-height: 1;
+  }
+
+  /* =========================================================
+     MI JORNADA
+  ========================================================= */
+
+  #dashboardView {
+    display: none;
+  }
+
+  #dashboardView.active {
+    display: block;
+  }
+
+  #dashboardView > .booking-requests-panel,
+  #dashboardView > .birthday-panel,
+  #dashboardView > .dashboard-grid {
+    margin-top: 18px;
+  }
+
+  .booking-requests-panel,
+  .birthday-panel {
+    overflow: hidden;
+  }
+
+  .request-card-pro {
+    display: grid;
+    grid-template-columns:
+      minmax(230px, 1.05fr)
+      minmax(250px, .9fr)
+      minmax(270px, auto);
+    grid-template-areas:
+      "request-head request-info request-actions"
+      "request-status request-info request-actions";
+    align-items: center;
+    gap: 14px 24px;
+    padding: 18px;
+    border: 1px solid var(--line);
+    border-radius: 17px;
+    background: var(--surface-2);
+  }
+
+  .request-card-header {
+    grid-area: request-head;
+    display: grid;
+    grid-template-columns: 48px minmax(0, 1fr);
+    align-items: start;
+    gap: 12px;
+    min-width: 0;
+  }
+
+  .request-card-avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 15px;
+    display: grid;
+    place-items: center;
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+    font-weight: 800;
+  }
+
+  .request-card-heading {
+    min-width: 0;
+  }
+
+  .request-card-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-bottom: 7px;
+  }
+
+  .request-card-heading h3 {
+    margin: 0 0 4px;
+    font-size: 17px;
+  }
+
+  .request-card-service {
+    margin: 0;
+    color: var(--muted);
+    font-size: 12px;
+    line-height: 1.4;
+  }
+
+  .request-info-list {
+    grid-area: request-info;
+    display: grid;
+    gap: 9px;
+  }
+
+  .request-info-item {
+    min-width: 0;
+    min-height: 52px;
+    padding: 9px 11px;
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr) auto;
+    align-items: center;
+    gap: 10px;
+    border: 1px solid var(--line);
+    border-radius: 13px;
+    background: var(--surface);
+    color: var(--text);
+    text-decoration: none;
+  }
+
+  .request-info-icon {
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border-radius: 11px;
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+  }
+
+  .request-info-copy {
+    min-width: 0;
+    display: grid;
+    gap: 2px;
+  }
+
+  .request-info-copy small {
+    color: var(--muted);
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: .05em;
+    text-transform: uppercase;
+  }
+
+  .request-info-copy strong {
+    font-size: 11px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .request-info-arrow {
+    color: var(--muted);
+  }
+
+  .request-status-list {
+    grid-area: request-status;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 7px;
+    padding-left: 60px;
+  }
+
+  .request-status-item {
+    min-height: 34px;
+    padding: 7px 10px;
+    display: inline-flex;
+    align-items: center;
+    gap: 7px;
+    border-radius: 999px;
+    font-size: 9px;
+    font-weight: 750;
+  }
+
+  .request-status-item.is-ready {
+    background: var(--mint-soft);
+    color: var(--mint);
+  }
+
+  .request-status-item.is-pending {
+    background: var(--gold-soft);
+    color: var(--gold);
+  }
+
+  .request-card-actions {
+    grid-area: request-actions;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(110px, 1fr));
+    gap: 8px;
+    align-content: center;
+  }
+
+  .request-card-actions .btn {
+    width: 100%;
+    min-height: 40px;
+    padding: 8px 11px;
+    justify-content: center;
+    font-size: 10px;
+  }
+
+  .request-proof-btn {
+    grid-column: 1 / -1;
+  }
+
+  .request-reject-btn {
+    border: 1px solid color-mix(in srgb, var(--danger) 35%, var(--line));
+    background: color-mix(in srgb, var(--danger) 8%, var(--surface));
+    color: var(--danger);
+  }
+
+  #birthdayList .empty-state,
+  #timeline .empty-state,
+  #nextAppointment .empty-state {
+    min-height: 175px;
+    padding: 34px 18px;
+  }
+
+  /* =========================================================
+     AGENDA
+  ========================================================= */
+
+  #agendaView .agenda-mobile-list {
+    display: none !important;
+  }
+
+  #agendaView .agenda-desktop-table {
+    display: block !important;
+  }
+
+  .agenda-filter-bar {
+    display: grid;
+    grid-template-columns:
+      minmax(180px, 230px)
+      minmax(210px, 260px)
+      auto
+      minmax(120px, 1fr);
+    align-items: end;
+    gap: 10px;
+    padding: 13px;
+    margin-bottom: 16px;
+    border: 1px solid var(--line);
+    border-radius: 17px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+
+  .agenda-filter-bar .field {
+    margin: 0;
+  }
+
+  .agenda-filter-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .agenda-filter-actions .btn {
+    min-height: 42px;
+  }
+
+  .agenda-filter-summary {
+    align-self: center;
+    justify-self: end;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .agenda-desktop-table {
+    overflow-x: auto;
+    padding: 14px 16px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+
+  .agenda-desktop-table .data-table {
+    width: 100%;
+    min-width: 960px;
+    border-collapse: collapse;
+  }
+
+  .agenda-desktop-table .data-table th {
+    padding: 12px 10px;
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 800;
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  .agenda-desktop-table .data-table td {
+    padding: 13px 10px;
+    border-top: 1px solid var(--line);
+    font-size: 11px;
+    vertical-align: middle;
+  }
+
+  .agenda-desktop-table .table-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 6px;
+    white-space: nowrap;
+  }
+
+  .agenda-desktop-table .table-actions .icon-btn {
+    width: 34px;
+    height: 34px;
+  }
+
+  /* =========================================================
+     FICHAS Y DISEÑOS
+  ========================================================= */
+
+  #recordsView .record-card-list {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  #recordsView .record-card {
+    min-width: 0;
+    padding: 16px;
+    border: 1px solid var(--line);
+    border-radius: 17px;
+    background: var(--surface-2);
+  }
+
+  .record-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 12px;
+  }
+
+  .record-client {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 11px;
+  }
+
+  .record-client > div:last-child {
+    min-width: 0;
+  }
+
+  .record-client h3 {
+    margin: 0 0 3px;
+    font-size: 16px;
+  }
+
+  .record-client p {
+    margin: 0;
+    color: var(--muted);
+    font-size: 10px;
+    overflow-wrap: anywhere;
+  }
+
+  .record-card-facts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+    margin-top: 13px;
+  }
+
+  .record-card-facts > div {
+    min-width: 0;
+    padding: 11px;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    background: var(--surface);
+  }
+
+  .record-card-facts span {
+    display: block;
+    margin-bottom: 4px;
+    color: var(--muted);
+    font-size: 9px;
+    font-weight: 700;
+  }
+
+  .record-card-facts strong {
+    display: block;
+    font-size: 12px;
+    line-height: 1.4;
+    overflow-wrap: anywhere;
+  }
+
+  .record-alert {
+    margin-top: 9px;
+    padding: 9px 10px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    border-radius: 11px;
+    background: color-mix(in srgb, var(--danger) 10%, var(--surface));
+    color: var(--danger);
+    font-size: 10px;
+  }
+
+  .record-card-actions {
+    display: grid;
+    grid-template-columns: minmax(130px, 1fr) 40px 40px;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .record-card-actions .btn,
+  .record-card-actions .icon-btn {
+    min-height: 40px;
+  }
+
+  /* =========================================================
+     SERVICIOS
+  ========================================================= */
+
+  .service-toolbar {
+    display: grid;
+    grid-template-columns: minmax(240px, 1fr) auto;
+    align-items: end;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  .service-toolbar .field {
+    margin: 0;
+  }
+
+  .service-result-count {
+    padding-bottom: 12px;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    white-space: nowrap;
+  }
+
+  .service-list {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 14px;
+  }
+
+  .service-card-compact {
+    min-width: 0;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    border: 1px solid var(--line);
+    border-radius: 17px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+
+  .service-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 12px;
+  }
+
+  .service-card-top > div:first-child {
+    min-width: 0;
+  }
+
+  .service-card-top h3 {
+    margin: 8px 0 0;
+    font-size: 18px;
+    line-height: 1.2;
+  }
+
+  .service-main-data {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 8px 12px;
+    align-items: center;
+    padding: 12px;
+    border-radius: 13px;
+    background: var(--surface-2);
+  }
+
+  .service-price {
+    grid-column: 1 / -1;
+    font-family: Fraunces, serif;
+    font-size: 22px;
+    line-height: 1;
+  }
+
+  .service-main-data span {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    color: var(--muted);
+    font-size: 10px;
+    white-space: nowrap;
+  }
+
+  .service-details {
+    margin-top: 10px;
+    border-top: 1px solid var(--line);
+  }
+
+  .service-details summary {
+    min-height: 43px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    list-style: none;
+    cursor: pointer;
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .service-details summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .service-details p {
+    margin: 0 0 10px;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.5;
+  }
+
+  .service-time-breakdown {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 7px;
+  }
+
+  .service-time-breakdown span {
+    padding: 8px 6px;
+    display: grid;
+    gap: 3px;
+    border-radius: 9px;
+    background: var(--surface-2);
+    color: var(--muted);
+    font-size: 9px;
+    text-align: center;
+  }
+
+  .service-time-breakdown strong {
+    color: var(--text);
+    font-size: 10px;
+  }
+
+  .service-edit-btn {
+    width: 100%;
+    min-height: 40px;
+    margin-top: auto;
+    padding-top: 9px;
+    font-size: 11px;
+  }
+
+  /* =========================================================
+     CONFIGURACIÓN
+  ========================================================= */
+
+  #settingsView .page-heading {
+    margin-bottom: 20px;
+  }
+
+  .settings-form {
+    max-width: 1180px;
+    display: grid;
+    gap: 12px;
+  }
+
+  .settings-accordion {
+    overflow: hidden;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+
+  .settings-accordion > summary {
+    min-height: 66px;
+    padding: 13px 16px;
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 11px;
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .settings-accordion > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .settings-summary-icon {
+    width: 40px;
+    height: 40px;
+    display: grid;
+    place-items: center;
+    border-radius: 13px;
+    background: var(--primary-soft);
+    color: var(--primary-dark);
+    font-size: 17px;
+  }
+
+  .settings-summary-copy {
+    min-width: 0;
+    display: grid;
+    gap: 3px;
+  }
+
+  .settings-summary-copy strong {
+    font-size: 14px;
+  }
+
+  .settings-summary-copy small {
+    color: var(--muted);
+    font-size: 10px;
+  }
+
+  .settings-chevron {
+    transition: transform .2s ease;
+  }
+
+  .settings-accordion[open] .settings-chevron {
+    transform: rotate(180deg);
+  }
+
+  .settings-accordion[open] {
+    border-color: color-mix(in srgb, var(--primary) 45%, var(--line));
+  }
+
+  .settings-accordion-body {
+    padding: 0 16px 17px;
+    border-top: 1px solid var(--line);
+  }
+
+  .settings-subsection {
+    padding-top: 17px;
+  }
+
+  .settings-subsection + .settings-subsection {
+    margin-top: 17px;
+    padding-top: 17px;
+    border-top: 1px solid var(--line);
+  }
+
+  .settings-subsection h3 {
+    margin-bottom: 12px;
+    font-size: 17px;
+  }
+
+  .settings-accordion .form-grid,
+  .settings-accordion .record-grid,
+  .availability-form {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .settings-accordion .field.full,
+  .settings-accordion .check-option.full {
+    grid-column: 1 / -1;
+  }
+
+  .settings-accordion .field {
+    margin: 0;
+  }
+
+  .settings-accordion textarea {
+    min-height: 118px;
+  }
+
+  .settings-savebar-compact {
+    position: sticky;
+    z-index: 20;
+    bottom: 14px;
+    padding: 11px 13px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 14px;
+    border: 1px solid var(--line);
+    border-radius: 17px;
+    background: color-mix(in srgb, var(--surface) 94%, transparent);
+    backdrop-filter: blur(15px);
+    box-shadow: var(--shadow);
+  }
+
+  .settings-savebar-compact > span {
+    color: var(--muted);
+    font-size: 10px;
+  }
+
+  /* =========================================================
+     EVITAR QUE EL MENÚ MÓVIL ALTERE ESCRITORIO
+  ========================================================= */
+
+  .sidebar-overlay,
+  .sidebar-drag-handle {
+    display: none !important;
+  }
+
+  body.sidebar-is-open {
+    overflow: auto !important;
+    touch-action: auto !important;
+  }
+}
+
+/* =========================================================
+   TABLETS: 761–1100 PX
+========================================================= */
+
+@media (min-width: 761px) and (max-width: 1100px) {
+  .content {
+    padding: 24px;
+  }
+
+  .stats-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .request-card-pro {
+    grid-template-columns: minmax(0, 1fr) minmax(250px, .8fr);
+    grid-template-areas:
+      "request-head request-info"
+      "request-status request-info"
+      "request-actions request-actions";
+  }
+
+  .request-card-actions {
+    grid-template-columns: repeat(4, minmax(100px, 1fr));
+  }
+
+  .request-proof-btn {
+    grid-column: auto;
+  }
+
+  #recordsView .record-card-list {
+    grid-template-columns: 1fr;
+  }
+
+  .service-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .settings-form {
+    max-width: 100%;
+  }
+
+  .agenda-filter-bar {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .agenda-filter-actions {
+    align-self: end;
+  }
+
+  .agenda-filter-summary {
+    justify-self: start;
+  }
+
+  /*
+    En tablet se usan tarjetas, pero sin tocar el diseño móvil
+    de 760 px o menos.
+  */
+  #agendaView .agenda-desktop-table {
+    display: none !important;
+  }
+
+  #agendaView .agenda-mobile-list {
+    display: grid !important;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 12px;
+  }
+
+  .agenda-card {
+    padding: 15px;
+    border: 1px solid var(--line);
+    border-radius: 17px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+
+  .agenda-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .agenda-when {
+    display: grid;
+    gap: 2px;
+  }
+
+  .agenda-when span {
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .agenda-when strong {
+    font-size: 17px;
+  }
+
+  .agenda-client-link {
+    display: block;
+    width: 100%;
+    min-height: auto;
+    margin: 12px 0 5px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    text-align: left;
+    font-family: Fraunces, serif;
+    font-size: 19px;
+    font-weight: 700;
+  }
+
+  .agenda-service-line {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-bottom: 11px;
+  }
+
+  .agenda-facts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .agenda-facts span {
+    min-height: 38px;
+    padding: 8px 9px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 11px;
+    background: var(--surface-2);
+    font-size: 10px;
+  }
+
+  .agenda-card-actions {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr auto;
+    gap: 8px;
+    margin-top: 12px;
+  }
+}
+
+/* =========================================================
+   ESCRITORIO AMPLIO
+========================================================= */
+
+@media (min-width: 1280px) {
+  #recordsView .record-card-list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .service-list {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
