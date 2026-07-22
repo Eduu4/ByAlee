@@ -1,17 +1,334 @@
-/* ===== Solicitudes online — versión profesional ===== */
+/*
+  ByAlee — mobile.css limpio
+  Compatible con el app.js actual.
+  Reemplaza completamente assets/css/mobile.css.
+*/
 
-  #bookingRequestsPanel,
-  .booking-requests-panel {
+@media (max-width: 760px) {
+  :root {
+    --mobile-page: 14px;
+    --mobile-gap: 14px;
+    --mobile-radius: 18px;
+    --mobile-radius-small: 13px;
+    --mobile-control: 44px;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    scroll-behavior: smooth;
+  }
+
+  body {
+    overflow-x: hidden;
+    font-size: 14px;
+  }
+
+  button,
+  input,
+  select,
+  textarea {
+    font: inherit;
+  }
+
+  button,
+  .btn,
+  .icon-btn,
+  input,
+  select {
+    min-height: var(--mobile-control);
+  }
+
+  /* =========================================================
+     BARRA SUPERIOR
+  ========================================================= */
+
+  .topbar {
+    height: 64px;
+    padding: 0 10px;
+    gap: 7px;
+  }
+
+  .mobile-only.icon-btn,
+  .topbar .icon-btn,
+  .topbar-actions .btn,
+  .topbar-actions .primary-btn {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+    border-radius: 14px;
+  }
+
+  .topbar-actions {
+    flex: 0 0 auto;
+    gap: 6px;
+  }
+
+  .topbar-actions > a {
+    display: none;
+  }
+
+  .topbar-actions .primary-btn {
+    font-size: 0;
+  }
+
+  .topbar-actions .primary-btn i {
+    margin: 0;
+    font-size: 17px;
+  }
+
+  .search-wrap {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .search-box {
+    height: 44px;
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: 14px;
+  }
+
+  .search-box input {
+    min-width: 0;
+    font-size: 13px;
+  }
+
+  .search-box input::placeholder {
+    font-size: 12px;
+  }
+
+  .search-box kbd {
+    display: none;
+  }
+
+  /* =========================================================
+     ESTRUCTURA GENERAL Y TIPOGRAFÍA
+  ========================================================= */
+
+  .content {
+    padding: 20px var(--mobile-page) 92px;
+  }
+
+  .view {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .grid-page {
+    display: grid;
+    gap: var(--mobile-gap);
+  }
+
+  .hero-row,
+  .page-heading,
+  .compact-page-heading {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: start;
+    gap: 10px;
+    margin: 0 0 18px;
+  }
+
+  .hero-row > div:first-child,
+  .page-heading > div:first-child {
+    min-width: 0;
+  }
+
+  .hero-row h1,
+  .page-heading h1,
+  #dashboardView h1 {
+    margin: 4px 0 7px;
+    font-size: clamp(25px, 7.2vw, 31px);
+    line-height: 1.07;
+    letter-spacing: -0.025em;
+    overflow-wrap: anywhere;
+  }
+
+  .hero-row p,
+  .page-heading p,
+  #summaryText {
+    margin: 0;
+    max-width: 38ch;
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .eyebrow {
+    font-size: 9px;
+    line-height: 1.2;
+    letter-spacing: .15em;
+  }
+
+  h2 {
+    font-size: 20px;
+    line-height: 1.15;
+  }
+
+  h3 {
+    font-size: 16px;
+    line-height: 1.2;
+  }
+
+  .panel,
+  .stat-card,
+  .client-card,
+  .record-card,
+  .service-card,
+  .inventory-card,
+  .settings-accordion {
+    border-radius: var(--mobile-radius);
+  }
+
+  .panel {
     padding: 14px;
   }
 
-  #bookingRequestsPanel .panel-header,
-  .booking-requests-panel .panel-header {
-    margin-bottom: 12px;
+  .panel-header {
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 13px;
   }
 
-  #bookingRequestsPanel .panel-header p,
-  .booking-requests-panel .panel-header p {
+  .panel-header h2 {
+    margin: 2px 0 0;
+    font-size: 20px;
+  }
+
+  .panel-header p {
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+  .page-icon-action {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    padding: 0;
+    font-size: 0;
+    border-radius: 14px;
+  }
+
+  .page-icon-action i {
+    margin: 0;
+    font-size: 17px;
+  }
+
+  /* =========================================================
+     DASHBOARD
+  ========================================================= */
+
+  #dashboardView {
+    display: grid;
+    gap: var(--mobile-gap);
+  }
+
+  #dashboardView > .hero-row,
+  #dashboardView > .stats-grid,
+  #dashboardView > #bookingRequestsPanel,
+  #dashboardView > #birthdayPanel,
+  #dashboardView > .dashboard-grid {
+    margin: 0;
+  }
+
+  .day-actions {
+    display: none;
+  }
+
+  .stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+  }
+
+  .stat-card {
+    min-height: 98px;
+    padding: 12px;
+    gap: 7px;
+  }
+
+  .stat-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 11px;
+    font-size: 15px;
+  }
+
+  .stat-card span,
+  .stat-card small {
+    font-size: 10px;
+    line-height: 1.3;
+  }
+
+  .stat-card strong {
+    margin: 0;
+    font-size: 21px;
+    line-height: 1;
+  }
+
+  .booking-requests-panel,
+  .birthday-panel,
+  .schedule-panel,
+  .quick-panel,
+  .side-column > .panel {
+    min-height: 0;
+  }
+
+  #birthdayPanel {
+    margin-top: 2px !important;
+  }
+
+  #birthdayPanel .panel-header p {
+    display: none;
+  }
+
+  #birthdayList .empty-state,
+  #timeline .empty-state,
+  #nextAppointment .empty-state {
+    min-height: 145px;
+    padding: 26px 14px;
+  }
+
+  .dashboard-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--mobile-gap);
+    margin-top: 2px !important;
+  }
+
+  .side-column {
+    display: grid;
+    gap: var(--mobile-gap);
+  }
+
+  .schedule-panel .panel-header {
+    display: block;
+  }
+
+  .schedule-panel .segmented {
+    display: flex;
+    margin-top: 10px;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .schedule-panel .segmented::-webkit-scrollbar {
+    display: none;
+  }
+
+  .schedule-panel .segmented button {
+    flex: 0 0 auto;
+    min-height: 36px;
+    padding: 8px 11px;
+    font-size: 10px;
+  }
+
+  /* =========================================================
+     SOLICITUDES ONLINE
+  ========================================================= */
+
+  #bookingRequestsPanel .panel-header p {
     display: none;
   }
 
@@ -24,12 +341,6 @@
     display: block !important;
     padding: 14px !important;
     border-radius: 18px !important;
-    background:
-      linear-gradient(
-        180deg,
-        color-mix(in srgb, var(--surface) 96%, var(--primary) 4%),
-        var(--surface)
-      ) !important;
   }
 
   .request-card-header {
@@ -60,21 +371,18 @@
   .request-card-badges .badge {
     padding: 5px 7px;
     font-size: 9px;
-    line-height: 1;
   }
 
   .request-card-heading h3 {
     margin: 0;
     font-size: 16px !important;
     line-height: 1.2;
-    overflow-wrap: anywhere;
   }
 
   .request-card-service {
     margin: 3px 0 0 !important;
     color: var(--muted);
     font-size: 12px !important;
-    line-height: 1.35;
   }
 
   .request-info-list {
@@ -98,13 +406,6 @@
     text-decoration: none;
   }
 
-  .request-info-phone {
-    border-color:
-      color-mix(in srgb, #25d366 32%, var(--line));
-    background:
-      color-mix(in srgb, #25d366 8%, var(--surface-2));
-  }
-
   .request-info-icon {
     width: 30px;
     height: 30px;
@@ -112,13 +413,7 @@
     place-items: center;
     border-radius: 10px;
     background: var(--primary-soft);
-    color: var(--primary-dark);
-    font-size: 14px;
-  }
-
-  .request-info-phone .request-info-icon {
-    background: color-mix(in srgb, #25d366 18%, transparent);
-    color: #25a957;
+    color: var(--primary);
   }
 
   .request-info-copy {
@@ -131,21 +426,13 @@
     color: var(--muted);
     font-size: 9px;
     font-weight: 700;
-    line-height: 1.2;
     text-transform: uppercase;
     letter-spacing: .05em;
   }
 
   .request-info-copy strong {
-    min-width: 0;
     font-size: 11px;
-    line-height: 1.35;
     overflow-wrap: anywhere;
-  }
-
-  .request-info-arrow {
-    color: var(--muted);
-    font-size: 12px;
   }
 
   .request-status-list {
@@ -165,18 +452,15 @@
     border-radius: 12px;
     font-size: 9px;
     font-weight: 750;
-    line-height: 1.25;
   }
 
   .request-status-item.is-ready {
-    background:
-      color-mix(in srgb, var(--mint) 15%, var(--surface));
+    background: color-mix(in srgb, var(--mint) 15%, var(--surface));
     color: var(--mint);
   }
 
   .request-status-item.is-pending {
-    background:
-      color-mix(in srgb, #d8a636 16%, var(--surface));
+    background: color-mix(in srgb, #d8a636 16%, var(--surface));
     color: #c69222;
   }
 
@@ -195,7 +479,6 @@
     justify-content: center;
     border-radius: 12px !important;
     font-size: 11px !important;
-    font-weight: 750;
   }
 
   .request-proof-btn {
@@ -203,28 +486,861 @@
   }
 
   .request-reject-btn {
-    border: 1px solid
-      color-mix(in srgb, var(--danger) 42%, var(--line));
-    background:
-      color-mix(in srgb, var(--danger) 10%, var(--surface));
+    border: 1px solid color-mix(in srgb, var(--danger) 42%, var(--line));
+    background: color-mix(in srgb, var(--danger) 10%, var(--surface));
     color: var(--danger);
   }
 
-  .request-reject-btn:hover {
-    background:
-      color-mix(in srgb, var(--danger) 16%, var(--surface));
+  /* =========================================================
+     AGENDA
+  ========================================================= */
+
+  #agendaView .page-heading p {
+    display: none;
   }
 
-  @media (max-width: 360px) {
-    .request-status-list {
-      grid-template-columns: 1fr;
-    }
-
-    .request-card-actions {
-      grid-template-columns: 1fr;
-    }
-
-    .request-proof-btn {
-      grid-column: auto;
-    }
+  .agenda-filter-bar {
+    display: grid;
+    gap: 10px;
+    padding: 12px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--surface);
   }
+
+  .agenda-filter-bar .field {
+    margin: 0;
+  }
+
+  .agenda-filter-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .agenda-filter-actions .btn {
+    width: 100%;
+    min-height: 40px;
+  }
+
+  .agenda-filter-summary {
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .agenda-desktop-table {
+    display: none !important;
+  }
+
+  .agenda-mobile-list {
+    display: grid !important;
+    gap: 12px;
+  }
+
+  .agenda-card {
+    padding: 14px;
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    background: var(--surface);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .08);
+  }
+
+  .agenda-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+  }
+
+  .agenda-when {
+    display: grid;
+    gap: 2px;
+  }
+
+  .agenda-when span {
+    color: var(--muted);
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+  }
+
+  .agenda-when strong {
+    font-size: 18px;
+  }
+
+  .agenda-client-link {
+    display: block;
+    width: 100%;
+    min-height: auto;
+    margin: 12px 0 5px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--text);
+    text-align: left;
+    font-family: Fraunces, serif;
+    font-size: 20px;
+    font-weight: 700;
+  }
+
+  .agenda-service-line {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 7px;
+    margin-bottom: 11px;
+  }
+
+  .agenda-service-line strong {
+    font-size: 13px;
+  }
+
+  .agenda-facts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .agenda-facts span {
+    min-width: 0;
+    min-height: 38px;
+    padding: 8px 9px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    border-radius: 11px;
+    background: var(--surface-2);
+    font-size: 10px;
+    line-height: 1.3;
+    overflow-wrap: anywhere;
+  }
+
+  .agenda-facts .good {
+    background: color-mix(in srgb, var(--mint) 13%, var(--surface));
+    color: var(--mint);
+  }
+
+  .agenda-facts .warn {
+    background: color-mix(in srgb, #d8a636 14%, var(--surface));
+    color: #c69222;
+  }
+
+  .agenda-reason {
+    margin-top: 9px;
+    padding: 9px 10px;
+    display: flex;
+    gap: 7px;
+    border-radius: 11px;
+    background: color-mix(in srgb, var(--danger) 9%, var(--surface));
+    color: var(--danger);
+    font-size: 10px;
+  }
+
+  .agenda-card-actions {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr auto;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .agenda-card-actions > .btn,
+  .agenda-card-actions > button {
+    min-height: 40px;
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+
+  .agenda-more {
+    position: relative;
+  }
+
+  .agenda-more > summary {
+    min-width: 44px;
+    height: 40px;
+    min-height: 40px;
+    padding: 0 10px;
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .agenda-more > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .agenda-more-menu {
+    position: absolute;
+    right: 0;
+    bottom: calc(100% + 7px);
+    z-index: 30;
+    width: min(220px, 75vw);
+    padding: 7px;
+    display: grid;
+    gap: 4px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--surface);
+    box-shadow: var(--shadow);
+  }
+
+  .action-menu-btn {
+    width: 100%;
+    min-height: 40px;
+    padding: 8px 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    border: 0;
+    border-radius: 10px;
+    background: transparent;
+    color: var(--text);
+    font-size: 11px;
+    text-align: left;
+  }
+
+  .action-menu-btn:hover {
+    background: var(--surface-2);
+  }
+
+  .danger-text {
+    color: var(--danger);
+  }
+
+  /* =========================================================
+     FICHAS DIGITALES
+  ========================================================= */
+
+  #recordsView .page-heading p {
+    display: none;
+  }
+
+  .compact-summary-strip {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 8px;
+    padding: 9px;
+    border: 1px solid var(--line);
+    border-radius: 16px;
+    background: var(--surface);
+  }
+
+  .compact-summary-strip article {
+    min-width: 0;
+    padding: 9px 6px;
+    display: grid;
+    place-items: center;
+    gap: 3px;
+    border-radius: 11px;
+    background: var(--surface-2);
+    text-align: center;
+  }
+
+  .compact-summary-strip article + article {
+    border-left: 0;
+  }
+
+  .compact-summary-strip span {
+    font-size: 9px;
+    color: var(--muted);
+  }
+
+  .compact-summary-strip strong {
+    font-size: 19px;
+    line-height: 1;
+  }
+
+  .records-panel {
+    padding: 14px;
+  }
+
+  .record-card-list {
+    display: grid;
+    gap: 11px;
+  }
+
+  .record-card {
+    padding: 13px;
+    border: 1px solid var(--line);
+    background: var(--surface-2);
+  }
+
+  .record-card-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 9px;
+  }
+
+  .record-client {
+    min-width: 0;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .record-client > div:last-child {
+    min-width: 0;
+  }
+
+  .record-client h3 {
+    margin: 0;
+    font-size: 15px;
+  }
+
+  .record-client p {
+    margin: 2px 0 0;
+    color: var(--muted);
+    font-size: 10px;
+    overflow-wrap: anywhere;
+  }
+
+  .record-card-facts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 11px;
+  }
+
+  .record-card-facts > div {
+    min-width: 0;
+    padding: 9px;
+    border-radius: 11px;
+    background: var(--surface);
+  }
+
+  .record-card-facts span {
+    display: block;
+    margin-bottom: 3px;
+    color: var(--muted);
+    font-size: 9px;
+  }
+
+  .record-card-facts strong {
+    display: block;
+    font-size: 11px;
+    line-height: 1.35;
+    overflow-wrap: anywhere;
+  }
+
+  .record-alert {
+    margin-top: 8px;
+    padding: 8px 9px;
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    border-radius: 10px;
+    background: color-mix(in srgb, var(--danger) 10%, var(--surface));
+    color: var(--danger);
+    font-size: 10px;
+  }
+
+  .record-card-actions {
+    display: grid;
+    grid-template-columns: 1fr 42px 42px;
+    gap: 8px;
+    margin-top: 11px;
+  }
+
+  .record-card-actions .btn,
+  .record-card-actions .icon-btn {
+    min-height: 42px;
+  }
+
+  /* =========================================================
+     SERVICIOS
+  ========================================================= */
+
+  #servicesView .page-heading p {
+    display: none;
+  }
+
+  .service-toolbar {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: end;
+    gap: 10px;
+  }
+
+  .service-toolbar .field {
+    margin: 0;
+  }
+
+  .service-result-count {
+    padding-bottom: 12px;
+    color: var(--muted);
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  .service-summary-strip {
+    margin: 0;
+  }
+
+  .service-list {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .service-card-compact {
+    padding: 14px;
+    border: 1px solid var(--line);
+  }
+
+  .service-card-top {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .service-card-top > div:first-child {
+    min-width: 0;
+  }
+
+  .service-card-top h3 {
+    margin: 7px 0 0;
+    font-size: 18px;
+    line-height: 1.2;
+  }
+
+  .service-main-data {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    align-items: center;
+    gap: 8px;
+    padding: 10px;
+    border-radius: 12px;
+    background: var(--surface-2);
+  }
+
+  .service-price {
+    font-size: 18px;
+    white-space: nowrap;
+  }
+
+  .service-main-data span {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--muted);
+    font-size: 10px;
+    white-space: nowrap;
+  }
+
+  .service-details {
+    margin-top: 9px;
+    border-top: 1px solid var(--line);
+  }
+
+  .service-details summary {
+    min-height: 42px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    list-style: none;
+    cursor: pointer;
+    color: var(--text);
+    font-size: 11px;
+    font-weight: 700;
+  }
+
+  .service-details summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .service-details p {
+    margin: 0 0 9px;
+    color: var(--muted);
+    font-size: 11px;
+    line-height: 1.45;
+  }
+
+  .service-time-breakdown {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 7px;
+  }
+
+  .service-time-breakdown span {
+    padding: 8px 6px;
+    display: grid;
+    gap: 3px;
+    border-radius: 9px;
+    background: var(--surface-2);
+    color: var(--muted);
+    font-size: 9px;
+    text-align: center;
+  }
+
+  .service-time-breakdown strong {
+    color: var(--text);
+    font-size: 10px;
+  }
+
+  .service-edit-btn {
+    width: 100%;
+    margin-top: 9px;
+    min-height: 40px;
+    font-size: 11px;
+  }
+
+  /* =========================================================
+     CONFIGURACIÓN
+  ========================================================= */
+
+  #settingsView .page-heading {
+    grid-template-columns: minmax(0, 1fr) auto;
+    margin-bottom: 14px;
+  }
+
+  #settingsView .page-heading p {
+    display: none;
+  }
+
+  .settings-form {
+    display: grid;
+    gap: 10px;
+  }
+
+  .settings-accordion {
+    overflow: hidden;
+    border: 1px solid var(--line);
+    background: var(--surface);
+  }
+
+  .settings-accordion > summary {
+    min-height: 58px;
+    padding: 11px 12px;
+    display: grid;
+    grid-template-columns: 34px minmax(0, 1fr) auto auto;
+    align-items: center;
+    gap: 9px;
+    list-style: none;
+    cursor: pointer;
+  }
+
+  .settings-accordion > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .settings-summary-icon {
+    width: 34px;
+    height: 34px;
+    display: grid;
+    place-items: center;
+    border-radius: 11px;
+    background: var(--primary-soft);
+    color: var(--primary);
+  }
+
+  .settings-summary-copy {
+    min-width: 0;
+    display: grid;
+    gap: 2px;
+  }
+
+  .settings-summary-copy strong {
+    font-size: 13px;
+  }
+
+  .settings-summary-copy small {
+    display: none;
+  }
+
+  .settings-chevron {
+    transition: transform .2s ease;
+  }
+
+  .settings-accordion[open] .settings-chevron {
+    transform: rotate(180deg);
+  }
+
+  .settings-accordion-body {
+    padding: 0 12px 13px;
+    border-top: 1px solid var(--line);
+  }
+
+  .settings-subsection {
+    padding-top: 13px;
+  }
+
+  .settings-subsection + .settings-subsection {
+    margin-top: 13px;
+    padding-top: 13px;
+    border-top: 1px solid var(--line);
+  }
+
+  .settings-subsection h3 {
+    margin: 0 0 10px;
+    font-size: 15px;
+  }
+
+  .settings-accordion .form-grid,
+  .settings-accordion .record-grid,
+  .availability-form {
+    grid-template-columns: 1fr !important;
+    gap: 10px;
+  }
+
+  .settings-accordion .field {
+    margin: 0;
+  }
+
+  .settings-accordion .field > span {
+    font-size: 10px;
+  }
+
+  .settings-accordion input,
+  .settings-accordion select,
+  .settings-accordion textarea {
+    width: 100%;
+    font-size: 13px;
+  }
+
+  .settings-accordion textarea {
+    min-height: 110px;
+  }
+
+  .check-option {
+    min-height: 52px;
+    padding: 10px;
+    align-items: flex-start;
+    gap: 9px;
+  }
+
+  .check-option input[type="checkbox"] {
+    width: 20px;
+    min-width: 20px;
+    height: 20px;
+    min-height: 20px;
+  }
+
+  .check-option strong {
+    font-size: 11px;
+  }
+
+  .check-option small {
+    font-size: 9px;
+  }
+
+  .availability-block-row {
+    padding: 10px;
+    gap: 8px;
+  }
+
+  .availability-block-row strong {
+    font-size: 11px;
+  }
+
+  .availability-block-row span {
+    font-size: 9px;
+  }
+
+  .settings-savebar-compact {
+    position: sticky;
+    z-index: 20;
+    bottom: 8px;
+    padding: 8px;
+    border: 1px solid var(--line);
+    border-radius: 15px;
+    background: color-mix(in srgb, var(--surface) 94%, transparent);
+    backdrop-filter: blur(14px);
+  }
+
+  .settings-savebar-compact > span {
+    display: none;
+  }
+
+  .settings-savebar-compact .btn {
+    width: 100%;
+    min-height: 44px;
+    font-size: 12px;
+  }
+
+  /* =========================================================
+     MODALES Y FICHA DE CLIENTA
+  ========================================================= */
+
+  .modal-backdrop {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .modal-card {
+    width: 100%;
+    max-height: 92dvh;
+    padding: 16px 14px calc(16px + env(safe-area-inset-bottom));
+    border-radius: 24px 24px 0 0;
+  }
+
+  .record-modal-card {
+    padding: 0 !important;
+  }
+
+  .record-modal-card > .modal-header {
+    padding: 14px;
+    margin: 0;
+  }
+
+  .record-modal-card > .modal-header h2 {
+    font-size: 18px;
+  }
+
+  .record-tabs {
+    padding: 0 10px 7px;
+    gap: 2px;
+    overflow-x: auto;
+    background: var(--surface);
+  }
+
+  .record-tabs button {
+    min-height: 36px;
+    padding: 8px 10px;
+    font-size: 11px;
+    white-space: nowrap;
+  }
+
+  #recordFormContent {
+    padding: 12px;
+  }
+
+  .client-summary-grid {
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
+  }
+
+  .summary-metric {
+    min-width: 0 !important;
+    padding: 10px !important;
+  }
+
+  .quick-actions-grid,
+  .quick-actions-grid.four {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .quick-actions-grid .quick-action,
+  .quick-actions-grid .btn {
+    min-height: 42px;
+    padding: 8px;
+    font-size: 11px;
+  }
+
+  .modal-actions {
+    position: sticky;
+    bottom: 0;
+    z-index: 10;
+    margin: 12px -14px -16px;
+    padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+    background: color-mix(in srgb, var(--surface) 96%, transparent);
+    backdrop-filter: blur(14px);
+    border-top: 1px solid var(--line);
+  }
+
+  .modal-actions .btn {
+    min-height: 42px;
+    font-size: 11px;
+  }
+
+  /* =========================================================
+     MENÚ Y NOTIFICACIONES
+  ========================================================= */
+
+  .sidebar {
+    width: min(86vw, 330px);
+    padding: 18px 13px 14px;
+  }
+
+  .brand {
+    padding: 0 8px 15px;
+  }
+
+  .brand-mark {
+    width: 46px;
+    height: 46px;
+  }
+
+  .brand strong {
+    font-size: 21px;
+  }
+
+  .nav-link {
+    min-height: 45px;
+    padding: 9px 11px;
+    gap: 10px;
+    font-size: 14px;
+  }
+
+  .notification-popover {
+    top: auto;
+    right: 10px;
+    bottom: 10px;
+    left: 10px;
+    width: auto;
+    max-height: 68dvh;
+    padding: 14px;
+    border-radius: 20px;
+    overflow: auto;
+  }
+
+  .badge {
+    font-size: 9px;
+  }
+
+  .btn {
+    font-size: 12px;
+  }
+
+  .empty-state {
+    padding: 28px 12px;
+  }
+
+  .empty-state h3,
+  .empty-state strong {
+    font-size: 16px;
+  }
+
+  .empty-state p {
+    font-size: 11px;
+  }
+}
+
+@media (max-width: 380px) {
+  .content {
+    padding-right: 11px;
+    padding-left: 11px;
+  }
+
+  .hero-row h1,
+  .page-heading h1,
+  #dashboardView h1 {
+    font-size: 24px;
+  }
+
+  .request-status-list,
+  .agenda-facts,
+  .record-card-facts {
+    grid-template-columns: 1fr;
+  }
+
+  .request-card-actions,
+  .agenda-card-actions {
+    grid-template-columns: 1fr;
+  }
+
+  .request-proof-btn {
+    grid-column: auto;
+  }
+
+  .service-main-data {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .service-main-data .service-price {
+    grid-column: 1 / -1;
+  }
+}
