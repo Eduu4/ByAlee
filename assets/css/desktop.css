@@ -1369,3 +1369,135 @@
     display: none !important;
   }
 }
+
+/*
+  ByAlee — corrección de Agenda para pantalla intermedia
+  Solo afecta 761px a 1100px.
+*/
+
+@media (min-width: 761px) and (max-width: 1100px) {
+  /* Una sola tarjeta por fila cuando la pantalla está dividida. */
+  #agendaView .agenda-mobile-list {
+    display: grid !important;
+    grid-template-columns: 1fr !important;
+    gap: 14px !important;
+    overflow: visible !important;
+  }
+
+  #agendaView .agenda-card {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    min-width: 0;
+    overflow: visible !important;
+  }
+
+  #agendaView .agenda-card:has(.agenda-more[open]) {
+    z-index: 40;
+  }
+
+  /* Los tres botones mantienen el mismo tamaño. */
+  #agendaView .agenda-card-actions {
+    display: grid !important;
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    align-items: start !important;
+    gap: 8px !important;
+    margin-top: 14px !important;
+  }
+
+  #agendaView .agenda-card-actions > .btn,
+  #agendaView .agenda-card-actions > button,
+  #agendaView .agenda-card-actions > .agenda-more > summary {
+    width: 100% !important;
+    min-width: 0 !important;
+    height: 46px !important;
+    min-height: 46px !important;
+    margin: 0 !important;
+    padding: 0 12px !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    gap: 7px !important;
+    white-space: nowrap !important;
+    box-sizing: border-box !important;
+    font-size: 12px !important;
+    line-height: 1 !important;
+  }
+
+  /* El menú Más deja de estirar los otros botones. */
+  #agendaView .agenda-more {
+    position: relative;
+    z-index: 20;
+    min-width: 0;
+    margin: 0;
+  }
+
+  #agendaView .agenda-more > summary {
+    list-style: none;
+    cursor: pointer;
+  }
+
+  #agendaView .agenda-more > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  /* Menú flotante. */
+  #agendaView .agenda-more-menu {
+    position: absolute !important;
+    top: calc(100% + 8px);
+    right: 0;
+    z-index: 100;
+    width: 210px;
+    max-width: calc(100vw - 32px);
+    padding: 8px;
+    display: grid;
+    gap: 6px;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    background: var(--surface);
+    color: var(--text);
+    box-shadow: 0 16px 38px rgba(0, 0, 0, .28);
+  }
+
+  /* Opciones Ficha, Comprobante, Rechazar y Eliminar. */
+  #agendaView .agenda-more-menu .action-menu-btn {
+    appearance: none;
+    width: 100%;
+    min-height: 42px;
+    margin: 0;
+    padding: 9px 11px;
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+    gap: 9px;
+    border: 1px solid transparent;
+    border-radius: 10px;
+    background: var(--surface-2);
+    color: var(--text);
+    font: inherit;
+    font-size: 11px;
+    font-weight: 700;
+    line-height: 1.2;
+    text-align: left;
+    cursor: pointer;
+  }
+
+  #agendaView .agenda-more-menu .action-menu-btn:hover {
+    border-color: var(--line);
+    background: color-mix(
+      in srgb,
+      var(--primary) 10%,
+      var(--surface-2)
+    );
+  }
+
+  #agendaView .agenda-more-menu .action-menu-btn.danger-text,
+  #agendaView .agenda-more-menu .danger-text {
+    color: var(--danger);
+    background: color-mix(
+      in srgb,
+      var(--danger) 9%,
+      var(--surface-2)
+    );
+  }
+}
