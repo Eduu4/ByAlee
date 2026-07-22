@@ -364,9 +364,89 @@
     return client?.formStatus || appointment.formStatus || "pending";
   }
 
+  function renderSelectedView(viewName) {
+    switch (viewName) {
+      case "dashboard":
+        renderDashboard();
+        break;
+
+      case "agenda":
+        renderAgenda();
+        break;
+
+      case "clients":
+        renderClients();
+        break;
+
+      case "records":
+        renderRecords();
+        break;
+
+      case "services":
+        renderServices();
+        break;
+
+      case "inventory":
+        renderInventory();
+        break;
+
+      case "finance":
+        renderFinance();
+        break;
+
+      case "settings":
+        renderSettings();
+        break;
+
+      default:
+        throw new Error(`Vista desconocida: ${viewName}`);
+    }
+  }
+
   function navigate(viewName) {
-    const target = $(`.nav-link[data-view="${viewName}"]`);
-    if (target) target.click();
+    const targetView = document.getElementById(`${viewName}View`);
+    const targetButton = document.querySelector(
+      `.nav-link[data-view="${viewName}"]`
+    );
+
+    if (!targetView) {
+      console.error(`No existe la vista: ${viewName}View`);
+      showToast?.("No se pudo abrir esta sección");
+      return;
+    }
+
+    try {
+      renderSelectedView(viewName);
+    } catch (error) {
+      console.error(`Error al abrir ${viewName}:`, error);
+      showToast?.(`No se pudo cargar la sección ${viewName}`);
+      return;
+    }
+
+    document.querySelectorAll(".nav-link[data-view]").forEach(button => {
+      button.classList.toggle(
+        "active",
+        button.dataset.view === viewName
+      );
+    });
+
+    document.querySelectorAll(".view").forEach(view => {
+      view.classList.toggle(
+        "active",
+        view.id === `${viewName}View`
+      );
+    });
+
+    document.getElementById("sidebar")?.classList.remove("open");
+
+    window.scrollTo({
+      top: 0,
+      behavior: "instant"
+    });
+
+    targetButton?.focus({
+      preventScroll: true
+    });
   }
 
   function renderDashboard() {
@@ -2442,14 +2522,18 @@ function summaryPane(client, insight) {
   $("#deleteInventoryBtn").onclick = deleteInventory;
   $$('[name="duration"],[name="prep"],[name="cleanup"]', $("#serviceForm")).forEach(input => input.addEventListener("input", updateServicePreview));
 
-  $$(".nav-link[data-view]").forEach(button => button.onclick = () => {
-    if (button.hidden) return;
-    $$(".nav-link").forEach(item => item.classList.remove("active"));
-    button.classList.add("active");
-    $$(".view").forEach(view => view.classList.remove("active"));
-    $(`#${button.dataset.view}View`).classList.add("active");
-    $("#sidebar").classList.remove("open");
-    if (button.dataset.view === "settings") renderSettings();
+  $$(".nav-link[data-view]").forEach(button => {
+    button.type = "button";
+
+    button.onclick = event => {
+      event.preventDefault();
+
+      if (button.hidden) {
+        return;
+      }
+
+      navigate(button.dataset.view);
+    };
   });
 
   $$('[data-jump]').forEach(button => button.onclick = () => navigate(button.dataset.jump));
