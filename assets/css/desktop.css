@@ -1098,3 +1098,156 @@
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 }
+
+/* =========================================================
+   CORRECCIÓN DEFINITIVA DE AGENDA PARA COMPUTADORA
+   No modifica celular ni tablet.
+========================================================= */
+
+@media (min-width: 1101px) {
+
+  /*
+   * Ocultar cualquier versión móvil de la agenda.
+   * Solamente debe quedar visible la tabla.
+   */
+  #agendaView .agenda-mobile-list,
+  #agendaView .mobile-agenda-list,
+  #agendaView .agenda-card-list,
+  #agendaView .mobile-agenda-card,
+  #agendaView .agenda-mobile-card,
+  #agendaView .agenda-card {
+    display: none !important;
+  }
+
+  /*
+   * Mostrar la versión de escritorio.
+   */
+  #agendaView .agenda-desktop-table,
+  #agendaView .table-wrap {
+    display: block !important;
+    width: 100%;
+    max-width: 100%;
+    overflow: visible !important;
+  }
+
+  /*
+   * Restaurar el comportamiento real de una tabla.
+   */
+  #agendaView .data-table {
+    display: table !important;
+    width: 100%;
+    min-width: 0 !important;
+    table-layout: auto;
+    border-collapse: collapse;
+  }
+
+  #agendaView .data-table thead {
+    display: table-header-group !important;
+  }
+
+  #agendaView .data-table tbody {
+    display: table-row-group !important;
+  }
+
+  #agendaView .data-table tr {
+    display: table-row !important;
+    height: auto !important;
+    min-height: 0 !important;
+  }
+
+  #agendaView .data-table th,
+  #agendaView .data-table td {
+    display: table-cell !important;
+    height: auto !important;
+    min-height: 0 !important;
+    padding: 12px 9px;
+    vertical-align: middle;
+    line-height: 1.35;
+  }
+
+  #agendaView .data-table th {
+    font-size: 10px;
+    white-space: nowrap;
+  }
+
+  #agendaView .data-table td {
+    font-size: 11px;
+  }
+
+  /*
+   * Columnas que pueden usar más de una línea.
+   */
+  #agendaView .data-table td:nth-child(3),
+  #agendaView .data-table td:nth-child(4),
+  #agendaView .data-table td:nth-child(6),
+  #agendaView .data-table td:nth-child(9) {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+
+  /*
+   * Fecha, hora, duración y estados más compactos.
+   */
+  #agendaView .data-table td:nth-child(1),
+  #agendaView .data-table td:nth-child(2),
+  #agendaView .data-table td:nth-child(5),
+  #agendaView .data-table td:nth-child(7),
+  #agendaView .data-table td:nth-child(8) {
+    white-space: nowrap;
+  }
+
+  /*
+   * table-actions es un TD.
+   * Nunca debe convertirse en flex.
+   */
+  #agendaView td.table-actions {
+    display: table-cell !important;
+    width: 190px;
+    min-width: 190px;
+    padding: 10px 6px;
+    text-align: right;
+    white-space: normal;
+  }
+
+  /*
+   * Los botones sí pueden ser inline-flex dentro del TD.
+   */
+  #agendaView td.table-actions > button,
+  #agendaView td.table-actions > a,
+  #agendaView td.table-actions > .btn,
+  #agendaView td.table-actions > .icon-btn {
+    position: static !important;
+    display: inline-flex !important;
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+    min-height: 34px;
+    margin: 2px !important;
+    padding: 0;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    transform: none !important;
+    border-radius: 10px;
+    font-size: 0;
+  }
+
+  #agendaView td.table-actions i {
+    margin: 0;
+    font-size: 13px;
+  }
+
+  /*
+   * El comprobante no debe invadir otras columnas.
+   */
+  #agendaView .deposit-proof-link {
+    display: block;
+    width: fit-content;
+    margin-top: 5px;
+    padding: 0;
+    border: 0;
+    background: transparent;
+    font-size: 9px;
+    text-align: left;
+  }
+}
