@@ -865,7 +865,6 @@ function renderRecords() {
         <h1>Fichas de clientas</h1>
         <p>Consulta rápidamente el estado, trabajo habitual y alertas.</p>
       </div>
-      <a class="btn primary-btn page-icon-action" href="/reservar" target="_blank" title="Abrir formulario público"><i class="bi bi-box-arrow-up-right"></i><span>Formulario</span></a>
     </div>
 
     <div class="compact-summary-strip" aria-label="Resumen de fichas">
