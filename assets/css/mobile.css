@@ -1,866 +1,106 @@
 /*
- * ByAlee — interfaz móvil limpia
- * ---------------------------------
- * Este archivo reemplaza por completo cualquier mobile.css anterior.
- * Debe cargarse DESPUÉS de assets/css/styles.css.
- *
- * No modifica autenticación, Supabase, rutas, reservas ni datos.
- * Los cambios estructurales compatibles están en assets/js/app.js.
- */
-
-/* ================================================================
-   COMPONENTES NUEVOS — BASE (ESCRITORIO Y MÓVIL)
-   ================================================================ */
-
-.agenda-mobile-list {
-  display: none;
-}
-
-.compact-page-heading {
-  align-items: flex-start;
-}
-
-.page-icon-action span {
-  display: inline;
-}
-
-.compact-summary-strip {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
-  margin-bottom: 16px;
-}
-
-.compact-summary-strip > article {
-  min-width: 0;
-  padding: 14px 16px;
-  border: 1px solid var(--line);
-  border-radius: 16px;
-  background: var(--surface);
-  box-shadow: var(--shadow);
-}
-
-.compact-summary-strip span,
-.compact-summary-strip strong {
-  display: block;
-}
-
-.compact-summary-strip span {
-  margin-bottom: 5px;
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-}
-
-.compact-summary-strip strong {
-  font-family: Fraunces, serif;
-  font-size: 24px;
-  line-height: 1;
-}
-
-/* Solicitudes online */
-
-.request-title-row {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.request-title-row > div {
-  min-width: 0;
-}
-
-.request-facts {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 7px;
-  margin-top: 9px;
-}
-
-.request-facts > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  min-width: 0;
-  padding: 6px 8px;
-  border-radius: 999px;
-  background: var(--surface);
-  color: var(--muted);
-  font-size: 9px;
-  font-weight: 750;
-  line-height: 1.2;
-}
-
-.request-facts > span.good {
-  background: var(--mint-soft);
-  color: var(--mint);
-}
-
-.request-facts > span.warn {
-  background: var(--gold-soft);
-  color: var(--gold);
-}
-
-.request-extra,
-.record-overview-details,
-.service-details,
-.agenda-more {
-  margin: 0;
-}
-
-.request-extra > summary,
-.record-overview-details > summary,
-.service-details > summary,
-.agenda-more > summary {
-  list-style: none;
-}
-
-.request-extra > summary::-webkit-details-marker,
-.record-overview-details > summary::-webkit-details-marker,
-.service-details > summary::-webkit-details-marker,
-.agenda-more > summary::-webkit-details-marker {
-  display: none;
-}
-
-.request-extra {
-  margin-top: 9px;
-  border-top: 1px solid var(--line);
-}
-
-.request-extra > summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding-top: 9px;
-  color: var(--primary);
-  cursor: pointer;
-  font-size: 10px;
-  font-weight: 800;
-}
-
-.request-extra[open] > summary i,
-.record-overview-details[open] > summary i,
-.service-details[open] > summary i,
-.settings-accordion[open] .settings-chevron,
-.agenda-more[open] > summary i {
-  transform: rotate(180deg);
-}
-
-.request-extra > summary i,
-.record-overview-details > summary i,
-.service-details > summary i,
-.settings-chevron {
-  transition: transform .2s ease;
-}
-
-.request-extra p {
-  margin: 9px 0 0;
-  color: var(--muted);
-  font-size: 10px;
-  line-height: 1.5;
-}
-
-.request-actions-primary,
-.request-actions-secondary {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.request-actions-primary .btn {
-  flex: 1 1 0;
-}
-
-.request-actions-secondary {
-  flex-wrap: wrap;
-  padding-top: 10px;
-  border-top: 1px solid var(--line);
-}
-
-.request-mini-action,
-.action-menu-btn {
-  border: 0;
-  background: transparent;
-  color: var(--muted);
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  min-height: 34px;
-  padding: 0 9px;
-  border-radius: 10px;
-  font-size: 9px;
-  font-weight: 800;
-}
-
-.request-mini-action:hover,
-.action-menu-btn:hover {
-  background: var(--surface-2);
-  color: var(--text);
-}
-
-.danger-text {
-  color: var(--danger) !important;
-}
-
-/* Agenda móvil nativa */
-
-.agenda-mobile-list {
-  gap: 11px;
-}
-
-.agenda-card {
-  min-width: 0;
-  padding: 14px;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background: var(--surface);
-  box-shadow: var(--shadow);
-}
-
-.agenda-card-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-  margin-bottom: 10px;
-}
-
-.agenda-when span,
-.agenda-when strong {
-  display: block;
-}
-
-.agenda-when span {
-  color: var(--muted);
-  font-size: 9px;
-  font-weight: 800;
-  letter-spacing: .05em;
-  text-transform: uppercase;
-}
-
-.agenda-when strong {
-  margin-top: 3px;
-  font-family: Fraunces, serif;
-  font-size: 21px;
-  line-height: 1;
-}
-
-.agenda-client-link {
-  display: block;
-  width: 100%;
-  border: 0;
-  background: transparent;
-  color: var(--text);
-  padding: 0;
-  text-align: left;
-  font-family: Fraunces, serif;
-  font-size: 18px;
-  font-weight: 700;
-  line-height: 1.15;
-}
-
-.agenda-service-line {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 7px;
-  margin-top: 7px;
-}
-
-.agenda-service-line strong {
-  font-size: 11px;
-}
-
-.agenda-facts {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 7px;
-  margin-top: 12px;
-}
-
-.agenda-facts > span {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  min-width: 0;
-  padding: 8px;
-  border-radius: 11px;
-  background: var(--surface-2);
-  color: var(--muted);
-  font-size: 9px;
-  font-weight: 750;
-  line-height: 1.25;
-  overflow-wrap: anywhere;
-}
-
-.agenda-facts > span.good {
-  background: var(--mint-soft);
-  color: var(--mint);
-}
-
-.agenda-facts > span.warn {
-  background: var(--gold-soft);
-  color: var(--gold);
-}
-
-.agenda-reason {
-  display: flex;
-  align-items: flex-start;
-  gap: 7px;
-  margin-top: 10px;
-  padding: 9px;
-  border-radius: 11px;
-  background: var(--danger-soft);
-  color: var(--danger);
-  font-size: 9px;
-  line-height: 1.4;
-}
-
-.agenda-card-actions {
-  display: grid;
-  grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr) auto;
-  gap: 7px;
-  align-items: stretch;
-  margin-top: 12px;
-  padding-top: 11px;
-  border-top: 1px solid var(--line);
-}
-
-.agenda-card-actions > .btn,
-.agenda-more > summary {
-  width: 100%;
-  min-height: 40px;
-  padding: 0 10px;
-  font-size: 10px;
-}
-
-.agenda-more {
-  position: relative;
-}
-
-.agenda-more > summary {
-  min-width: 44px;
-  cursor: pointer;
-}
-
-.agenda-more-menu {
-  position: absolute;
-  right: 0;
-  bottom: calc(100% + 7px);
-  z-index: 20;
-  width: 190px;
-  padding: 7px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: var(--surface);
-  box-shadow: 0 18px 45px rgba(30, 18, 24, .22);
-}
-
-.agenda-more-menu .action-menu-btn {
-  width: 100%;
-  justify-content: flex-start;
-  min-height: 38px;
-  font-size: 10px;
-}
-
-/* Fichas digitales */
-
-.record-card-list {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.record-card {
-  min-width: 0;
-  padding: 15px;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background: var(--surface);
-  box-shadow: var(--shadow);
-}
-
-.record-card-head {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 10px;
-}
-
-.record-card-person {
-  display: flex;
-  align-items: center;
-  min-width: 0;
-  gap: 10px;
-}
-
-.record-card-person > div:last-child {
-  min-width: 0;
-}
-
-.record-card-person strong,
-.record-card-person small {
-  display: block;
-}
-
-.record-card-person strong {
-  overflow: hidden;
-  font-family: Fraunces, serif;
-  font-size: 17px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.record-card-person small {
-  margin-top: 3px;
-  color: var(--muted);
-  font-size: 9px;
-}
-
-.record-card-facts {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
-  margin: 12px 0;
-}
-
-.record-card-facts > div {
-  min-width: 0;
-  padding: 9px;
-  border-radius: 12px;
-  background: var(--surface-2);
-}
-
-.record-card-facts span,
-.record-card-facts strong {
-  display: block;
-}
-
-.record-card-facts span {
-  color: var(--muted);
-  font-size: 8px;
-  font-weight: 800;
-  letter-spacing: .04em;
-  text-transform: uppercase;
-}
-
-.record-card-facts strong {
-  margin-top: 4px;
-  overflow: hidden;
-  font-size: 10px;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.record-alert {
-  display: flex;
-  align-items: flex-start;
-  gap: 7px;
-  margin-bottom: 10px;
-  padding: 8px;
-  border-radius: 11px;
-  background: var(--gold-soft);
-  color: var(--gold);
-  font-size: 9px;
-  line-height: 1.35;
-}
-
-.record-card-actions {
-  display: grid;
-  grid-template-columns: 1fr auto auto;
-  gap: 7px;
-}
-
-.record-card-actions .btn {
-  min-height: 40px;
-  font-size: 10px;
-}
-
-.record-card-actions .icon-btn {
-  width: 40px;
-  height: 40px;
-}
-
-/* Ficha individual compacta */
-
-.client-profile-compact {
-  grid-template-columns: 72px minmax(0, 1fr) auto;
-  gap: 13px;
-  padding: 14px;
-}
-
-.client-profile-compact .profile-photo {
-  width: 72px;
-  height: 72px;
-  border-radius: 18px;
-  font-size: 23px;
-}
-
-.client-profile-compact .profile-main h3 {
-  font-size: 22px;
-}
-
-.client-profile-compact .profile-main p {
-  margin-bottom: 7px;
-}
-
-.profile-actions-compact {
-  grid-template-columns: 1fr;
-}
-
-.profile-actions-compact .btn {
-  min-height: 38px;
-  font-size: 10px;
-}
-
-.quick-actions-compact {
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-}
-
-.record-overview-details {
-  border: 1px solid var(--line);
-  border-radius: 15px;
-  background: var(--surface-2);
-}
-
-.record-overview-details > summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 10px;
-  padding: 12px 14px;
-  cursor: pointer;
-  color: var(--text);
-  font-size: 11px;
-  font-weight: 800;
-}
-
-.record-overview-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0 18px;
-  padding: 0 14px 12px;
-}
-
-/* Servicios */
-
-.service-toolbar {
-  display: flex;
-  align-items: flex-end;
-  gap: 10px;
-  margin-bottom: 12px;
-}
-
-.service-toolbar .field {
-  width: min(280px, 100%);
-  margin: 0;
-}
-
-.service-result-count {
-  padding-bottom: 12px;
-  color: var(--muted);
-  font-size: 10px;
-  font-weight: 800;
-}
-
-.service-list {
-  align-items: start;
-}
-
-.service-card-compact {
-  position: relative;
-  overflow: hidden;
-}
-
-.service-card-compact::before {
-  content: "";
-  position: absolute;
-  inset: 0 auto 0 0;
-  width: 4px;
-  background: var(--service-color, var(--primary));
-}
-
-.service-main-data {
-  display: flex;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 8px 12px;
-}
-
-.service-main-data > span {
-  display: inline-flex;
-  align-items: center;
-  gap: 5px;
-  color: var(--muted);
-  font-size: 10px;
-}
-
-.service-details {
-  margin-top: 11px;
-  border-top: 1px solid var(--line);
-}
-
-.service-details > summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 8px;
-  padding-top: 10px;
-  cursor: pointer;
-  color: var(--primary);
-  font-size: 9px;
-  font-weight: 800;
-}
-
-.service-details p {
-  margin: 10px 0;
-  color: var(--muted);
-  font-size: 10px;
-  line-height: 1.45;
-}
-
-.service-time-breakdown {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 7px;
-}
-
-.service-time-breakdown > span {
-  padding: 8px;
-  border-radius: 10px;
-  background: var(--surface-2);
-  color: var(--muted);
-  font-size: 8px;
-}
-
-.service-time-breakdown strong {
-  display: block;
-  margin-top: 3px;
-  color: var(--text);
-  font-size: 9px;
-}
-
-.service-edit-btn {
-  width: 100%;
-  margin-top: 11px;
-}
-
-/* Configuración ordenada en acordeones */
-
-.settings-accordion-list {
-  display: grid;
-  gap: 10px;
-}
-
-.settings-accordion {
-  overflow: hidden;
-  border: 1px solid var(--line);
-  border-radius: 18px;
-  background: var(--surface);
-  box-shadow: var(--shadow);
-}
-
-.settings-accordion > summary {
-  display: grid;
-  grid-template-columns: 42px minmax(0, 1fr) auto auto;
-  align-items: center;
-  gap: 11px;
-  min-height: 72px;
-  padding: 13px 15px;
-  list-style: none;
-  cursor: pointer;
-}
-
-.settings-accordion > summary::-webkit-details-marker {
-  display: none;
-}
-
-.settings-summary-icon {
-  width: 42px;
-  height: 42px;
-  display: grid;
-  place-items: center;
-  border-radius: 13px;
-  background: var(--primary-soft);
-  color: var(--primary-dark);
-  font-size: 17px;
-}
-
-.settings-summary-copy {
-  min-width: 0;
-}
-
-.settings-summary-copy strong,
-.settings-summary-copy small {
-  display: block;
-}
-
-.settings-summary-copy strong {
-  font-family: Fraunces, serif;
-  font-size: 17px;
-}
-
-.settings-summary-copy small {
-  margin-top: 3px;
-  color: var(--muted);
-  font-size: 9px;
-  line-height: 1.4;
-}
-
-.settings-chevron {
-  color: var(--muted);
-}
-
-.settings-accordion-body {
-  padding: 0 15px 16px;
-  border-top: 1px solid var(--line);
-}
-
-.settings-subsection {
-  padding-top: 14px;
-}
-
-.settings-subsection + .settings-subsection {
-  margin-top: 14px;
-  border-top: 1px solid var(--line);
-}
-
-.settings-subsection h3 {
-  margin: 0 0 11px;
-  font-size: 12px;
-}
-
-.settings-note {
-  margin: 13px 0;
-  color: var(--muted);
-  font-size: 10px;
-  line-height: 1.55;
-}
-
-.settings-toggle-list {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-}
-
-.settings-main-toggle {
-  margin: 14px 0;
-}
-
-.settings-message {
-  margin-top: 12px;
-}
-
-/* ================================================================
-   MÓVIL — REEMPLAZO LIMPIO
-   ================================================================ */
+  ByAlee — interfaz móvil profesional v8
+  Reemplaza por completo assets/css/mobile.css
+  No modifica datos, Supabase, login ni rutas.
+*/
 
 @media (max-width: 760px) {
   :root {
-    --mobile-x: 12px;
-    --mobile-radius: 17px;
-    --mobile-gap: 10px;
+    --m-page: 14px;
+    --m-gap: 12px;
+    --m-radius: 18px;
+    --m-radius-sm: 13px;
+    --m-control: 44px;
   }
 
   html {
     -webkit-text-size-adjust: 100%;
-    scroll-padding-top: 72px;
+    scroll-behavior: smooth;
   }
 
   body {
     overflow-x: hidden;
+    font-size: 14px;
   }
 
   button,
   input,
   select,
   textarea {
-    max-width: 100%;
+    font: inherit;
   }
 
-  input,
-  select,
-  textarea,
+  button,
   .btn,
-  .icon-btn {
-    min-height: 42px;
+  .icon-btn,
+  input,
+  select {
+    min-height: var(--m-control);
   }
 
-  /* Estructura */
+  /* ===== Barra superior ===== */
 
-  .main-area {
-    width: 100%;
-    margin-left: 0;
+  .topbar {
+    height: 64px;
+    padding: 0 9px;
+    gap: 7px;
   }
+
+  .topbar .icon-btn,
+  .topbar-actions .btn,
+  .topbar-actions .primary-btn,
+  .mobile-only.icon-btn {
+    width: 44px;
+    min-width: 44px;
+    height: 44px;
+    min-height: 44px;
+    padding: 0;
+    border-radius: 14px;
+  }
+
+  .topbar-actions {
+    gap: 6px;
+    flex: 0 0 auto;
+  }
+
+  .search-wrap {
+    min-width: 0;
+    flex: 1 1 auto;
+  }
+
+  .search-box {
+    height: 44px;
+    min-height: 44px;
+    padding: 0 12px;
+    border-radius: 14px;
+  }
+
+  .search-box input {
+    min-width: 0;
+    font-size: 13px;
+  }
+
+  .search-box input::placeholder {
+    font-size: 12px;
+  }
+
+  /* ===== Página y tipografía ===== */
 
   .content {
-    width: 100%;
-    max-width: none;
-    padding: 18px var(--mobile-x) 92px !important;
+    padding: 20px var(--m-page) 90px;
   }
 
-  .grid-page,
-  .dashboard-grid,
-  .side-column,
-  .cards-grid,
-  .record-list,
-  .settings-layout {
-    gap: var(--mobile-gap) !important;
-  }
-
-  .dashboard-grid,
-  .settings-layout {
-    grid-template-columns: minmax(0, 1fr) !important;
-  }
-
-  .panel,
-  .stat-card,
-  .client-card,
-  .service-card,
-  .inventory-card,
-  .finance-card,
-  .record-card,
-  .settings-section {
-    border-radius: var(--mobile-radius) !important;
-    box-shadow: 0 7px 22px rgba(0, 0, 0, .07) !important;
-  }
-
-  .panel,
-  .client-card,
-  .service-card,
-  .inventory-card,
-  .finance-card,
-  .record-card {
-    padding: 13px !important;
-  }
-
-  h1 {
-    margin-bottom: 5px;
-    font-size: clamp(27px, 8vw, 33px) !important;
-    line-height: 1.06;
-    overflow-wrap: anywhere;
-  }
-
-  h2 {
-    font-size: 20px !important;
-    line-height: 1.12;
-  }
-
-  .eyebrow {
-    font-size: 8px !important;
-    letter-spacing: .15em;
+  .view {
+    max-width: 100%;
   }
 
   .hero-row,
   .page-heading {
-    display: grid !important;
+    display: grid;
     grid-template-columns: minmax(0, 1fr) auto;
-    align-items: start !important;
-    gap: 9px !important;
-    margin-bottom: 15px !important;
+    align-items: start;
+    gap: 10px;
+    margin-bottom: 16px;
   }
 
   .hero-row > div:first-child,
@@ -868,1238 +108,614 @@
     min-width: 0;
   }
 
+  .hero-row h1,
+  .page-heading h1,
+  #dashboardView h1 {
+    margin: 4px 0 6px;
+    font-size: clamp(25px, 7.4vw, 31px);
+    line-height: 1.07;
+    letter-spacing: -0.025em;
+    overflow-wrap: anywhere;
+  }
+
   .hero-row p,
-  .page-heading p {
-    max-width: 34ch;
+  .page-heading p,
+  #summaryText {
     margin: 0;
-    color: var(--muted);
-    font-size: 11px !important;
+    max-width: 38ch;
+    font-size: 12px;
     line-height: 1.45;
   }
 
-  .page-icon-action {
-    width: 44px;
-    min-width: 44px;
-    height: 44px;
-    padding: 0;
-    border-radius: 14px;
+  .eyebrow {
+    font-size: 9px;
+    line-height: 1.2;
+    letter-spacing: .15em;
   }
 
-  .page-icon-action span {
-    display: none;
+  h2 {
+    font-size: 20px;
+    line-height: 1.12;
   }
 
-  /* Barra superior */
-
-  .topbar {
-    height: 64px !important;
-    padding: 0 8px !important;
-    gap: 6px;
+  h3 {
+    font-size: 16px;
+    line-height: 1.2;
   }
 
-  .topbar > .mobile-only,
-  .topbar .icon-btn,
-  .topbar-actions .primary-btn {
-    width: 43px !important;
-    min-width: 43px !important;
-    height: 43px !important;
-    min-height: 43px !important;
-    padding: 0 !important;
-    border-radius: 14px !important;
+  .muted,
+  small {
+    line-height: 1.4;
   }
 
-  .topbar-actions {
-    flex: 0 0 auto;
-    gap: 5px !important;
+  /* ===== Paneles ===== */
+
+  .panel,
+  .stat-card,
+  .client-card,
+  .service-card,
+  .inventory-card,
+  .settings-section,
+  .record-row {
+    border-radius: var(--m-radius);
   }
 
-  .search-wrap {
-    flex: 1 1 auto;
-    min-width: 0;
-    width: auto !important;
-    margin: 0 !important;
+  .panel {
+    padding: 14px;
   }
 
-  .search-box {
-    width: 100% !important;
-    min-width: 0;
-    height: 43px !important;
-    padding: 0 11px !important;
-    gap: 8px;
-    border-radius: 14px !important;
+  .panel-header {
+    align-items: flex-start;
+    gap: 10px;
+    margin-bottom: 12px;
   }
 
-  .search-box input {
-    min-width: 0;
-    font-size: 12px !important;
-    text-overflow: ellipsis;
+  .panel-header h2 {
+    margin: 2px 0 0;
+    font-size: 20px;
   }
 
-  .search-box input::placeholder {
+  .panel-header p {
     font-size: 12px;
+    line-height: 1.4;
   }
 
-  .search-results {
-    position: fixed !important;
-    top: 66px !important;
-    right: 8px !important;
-    left: 8px !important;
-    width: auto !important;
-    max-height: calc(100dvh - 78px) !important;
-    border-radius: 16px !important;
-  }
-
-  /* Resumen dashboard */
+  /* ===== Resumen diario ===== */
 
   .stats-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 8px !important;
-    margin-bottom: 10px !important;
+    grid-template-columns: 1fr 1fr;
+    gap: 9px;
+    margin-bottom: 12px;
   }
 
   .stat-card {
-    min-height: 104px !important;
-    padding: 11px !important;
-    grid-template-columns: 34px minmax(0, 1fr) !important;
-    gap: 8px !important;
+    min-height: 94px;
+    padding: 12px;
+    gap: 7px;
   }
 
   .stat-icon {
-    width: 34px !important;
-    height: 34px !important;
-    border-radius: 11px !important;
-    font-size: 15px !important;
+    width: 34px;
+    height: 34px;
+    border-radius: 11px;
+    font-size: 15px;
   }
 
   .stat-card span,
   .stat-card small {
-    font-size: 9px !important;
-    line-height: 1.3;
+    font-size: 10px;
+    line-height: 1.25;
   }
 
   .stat-card strong {
-    margin-top: 2px !important;
-    font-size: 20px !important;
-    line-height: 1.05;
-    overflow-wrap: anywhere;
+    margin: 0;
+    font-size: 21px;
+    line-height: 1;
   }
 
-  .panel-header {
-    align-items: flex-start !important;
-    gap: 8px !important;
-    margin-bottom: 12px !important;
-  }
+  /* ===== Solicitudes online ===== */
 
-  .panel-header h2 {
-    font-size: 19px !important;
-  }
-
-  .empty-state {
-    padding: 30px 12px !important;
-  }
-
-  .empty-state i {
-    margin-bottom: 7px;
-    font-size: 27px !important;
-  }
-
-  .empty-state strong {
-    display: block;
-    font-size: 14px;
-  }
-
-  .empty-state p {
-    margin: 5px 0 0;
-    font-size: 10px;
-    line-height: 1.45;
-  }
-
-  /* Solicitudes online */
-
+  #bookingRequestsPanel,
   .booking-requests-panel {
-    margin: 10px 0 !important;
+    padding: 14px;
   }
 
-  .booking-request-list {
-    gap: 9px !important;
+  #bookingRequestsPanel .panel-header p,
+  .booking-requests-panel .panel-header p {
+    display: none;
   }
 
-  .booking-request-card {
-    display: grid !important;
-    grid-template-columns: 1fr !important;
-    gap: 10px !important;
-    padding: 12px !important;
-    border-radius: 15px !important;
-  }
-
-  .request-main {
-    display: grid !important;
-    grid-template-columns: 38px minmax(0, 1fr) !important;
-    gap: 9px !important;
-  }
-
-  .request-main .client-avatar {
-    width: 38px !important;
-    height: 38px !important;
-    border-radius: 12px !important;
-  }
-
-  .request-copy h3 {
-    margin: 3px 0 !important;
-    font-size: 13px !important;
-    line-height: 1.2;
-  }
-
-  .request-copy p {
-    margin: 0 !important;
-    color: var(--muted);
-    font-size: 9px !important;
-    line-height: 1.4;
-  }
-
-  .request-title-row {
-    display: block;
-  }
-
-  .request-title-row > .badge {
-    margin-top: 6px;
-  }
-
-  .request-facts {
+  #bookingRequestList {
     display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 6px;
-    margin-top: 8px;
+    gap: 10px;
   }
 
-  .request-facts > span {
-    border-radius: 9px;
-    white-space: normal;
-    overflow-wrap: anywhere;
-  }
-
-  .request-facts > span:last-child:nth-child(odd) {
-    grid-column: 1 / -1;
-  }
-
-  .request-actions-primary {
-    display: grid !important;
-    grid-template-columns: 1.2fr 1fr !important;
-    gap: 7px !important;
-    width: 100%;
-  }
-
-  .request-actions-primary .btn {
+  #bookingRequestList > article,
+  #bookingRequestList > div {
     min-width: 0;
-    min-height: 40px !important;
-    padding: 0 9px;
-    font-size: 10px !important;
+    padding: 13px !important;
+    border-radius: 16px !important;
   }
 
-  .request-actions-secondary {
-    display: flex !important;
-    align-items: center;
-    gap: 4px !important;
-    padding-top: 7px;
+  #bookingRequestList h3 {
+    margin: 4px 0 3px;
+    font-size: 16px !important;
+    line-height: 1.18;
   }
 
-  .request-mini-action {
-    min-height: 32px;
-    padding: 0 7px;
-    font-size: 8px;
+  #bookingRequestList p {
+    margin: 0;
+    font-size: 11px !important;
+    line-height: 1.42;
   }
 
-  .birthday-card {
-    grid-template-columns: 36px minmax(0, 1fr) !important;
-    gap: 8px !important;
-    padding: 10px !important;
+  #bookingRequestList .badge {
+    padding: 5px 7px;
+    font-size: 9px;
   }
 
-  .birthday-icon {
-    width: 36px !important;
-    height: 36px !important;
-    border-radius: 11px !important;
-  }
-
-  .birthday-card .btn {
-    grid-column: 1 / -1;
-    width: 100%;
-    min-height: 38px;
-  }
-
-  /* Agenda del día */
-
-  .timeline-item {
-    grid-template-columns: 45px 10px minmax(0, 1fr) !important;
-    min-height: auto !important;
-  }
-
-  .timeline-time {
-    padding-top: 12px !important;
-    font-size: 10px !important;
-  }
-
-  .timeline-dot {
-    width: 8px !important;
-    height: 8px !important;
-    margin-top: 16px !important;
-  }
-
-  .appointment-card {
-    display: grid !important;
-    grid-template-columns: 1fr !important;
-    gap: 9px !important;
-    margin: 3px 0 9px !important;
-    padding: 11px !important;
-    border-left-width: 3px !important;
-    border-radius: 14px !important;
-  }
-
-  .appointment-main {
-    min-width: 0;
-    gap: 9px !important;
-  }
-
-  .client-avatar {
-    width: 36px !important;
-    height: 36px !important;
-    border-radius: 11px !important;
-    flex: 0 0 auto;
-  }
-
-  .appointment-card h3 {
-    font-size: 13px !important;
-  }
-
-  .appointment-card p {
-    margin-bottom: 6px !important;
-    font-size: 9px !important;
-    line-height: 1.4;
-  }
-
-  .meta-row {
-    gap: 5px !important;
-  }
-
-  .badge {
-    padding: 5px 7px !important;
-    font-size: 8px !important;
-  }
-
-  .appointment-actions {
-    display: flex !important;
-    max-width: none !important;
-    flex-wrap: wrap !important;
-    justify-content: flex-end;
-    gap: 5px !important;
-    padding-top: 7px;
-    border-top: 1px solid var(--line);
-  }
-
-  .appointment-actions .icon-btn {
-    width: 34px !important;
-    height: 34px !important;
-    min-height: 34px !important;
-  }
-
-  /* Agenda completa: tarjetas nativas, no tabla deformada */
-
-  .agenda-desktop-table {
+  #bookingRequestList details,
+  #bookingRequestList .request-details,
+  #bookingRequestList .booking-details {
     display: none !important;
   }
 
-  .agenda-mobile-list {
-    display: grid !important;
+  .professional-request-actions {
+    display: grid;
+    gap: 8px;
+    margin-top: 12px;
   }
 
-  .agenda-filter-bar {
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 8px !important;
-    margin-bottom: 10px !important;
-    padding: 11px !important;
-    border-radius: 15px !important;
+  .professional-request-primary {
+    display: grid;
+    grid-template-columns: 1.25fr 1fr;
+    gap: 8px;
   }
 
-  .agenda-filter-bar .field {
-    min-width: 0;
-    margin: 0;
-  }
-
-  .agenda-filter-bar .field span {
-    font-size: 8px !important;
-  }
-
-  .agenda-filter-bar input,
-  .agenda-filter-bar select {
-    min-width: 0;
-    height: 40px;
-    font-size: 10px;
-  }
-
-  .agenda-filter-actions {
-    grid-column: 1 / -1;
-    display: grid !important;
+  .professional-request-secondary {
+    display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 7px !important;
+    gap: 8px;
   }
 
-  .agenda-filter-actions .btn {
+  .professional-request-actions .btn,
+  .professional-request-actions button,
+  .professional-request-actions a {
     width: 100%;
-    min-height: 38px !important;
-    font-size: 10px !important;
+    min-height: 42px;
+    margin: 0 !important;
+    padding: 9px 10px !important;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+    border-radius: 12px !important;
+    font-size: 11px !important;
+    font-weight: 750;
+    text-decoration: none;
   }
 
-  .agenda-filter-summary {
+  .professional-request-actions .request-secondary-action {
+    border: 1px solid var(--line);
+    background: var(--surface-2);
+    color: var(--text);
+  }
+
+  .professional-request-actions .request-danger-action {
+    border-color: color-mix(in srgb, var(--danger) 40%, var(--line));
+    background: color-mix(in srgb, var(--danger) 11%, var(--surface));
+    color: var(--danger);
+  }
+
+  .professional-request-actions .request-proof-action {
     grid-column: 1 / -1;
-    justify-self: start !important;
-    font-size: 9px !important;
   }
 
-  /* Fichas digitales */
+  /* ===== Cumpleaños ===== */
 
-  .compact-summary-strip {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 7px;
-    margin-bottom: 10px;
+  #birthdayPanel .panel-header p {
+    display: none;
   }
 
-  .compact-summary-strip > article {
-    min-height: 65px;
-    padding: 10px;
-    border-radius: 13px;
-    box-shadow: none;
+  #birthdayPanel {
+    padding: 14px;
   }
 
-  .compact-summary-strip span {
-    font-size: 7px;
-    letter-spacing: .02em;
+  /* ===== Agenda ===== */
+
+  #agendaView .page-heading p {
+    display: none;
   }
 
-  .compact-summary-strip strong {
-    font-size: 19px;
-  }
-
-  .record-card-list {
-    grid-template-columns: 1fr;
+  #agendaView .agenda-filter-bar {
+    padding: 12px;
     gap: 9px;
+    border-radius: 16px;
   }
 
-  .record-card {
-    padding: 12px !important;
+  #agendaView .agenda-filter-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
   }
 
-  .record-card-head {
+  #agendaView .agenda-filter-actions .btn {
+    width: 100%;
+    min-height: 40px;
+  }
+
+  #agendaView .desktop-agenda-table,
+  #agendaView .data-table {
+    display: none !important;
+  }
+
+  #agendaView .mobile-agenda-list,
+  #agendaView .agenda-mobile-list {
+    display: grid !important;
+    gap: 10px;
+  }
+
+  #agendaView .mobile-agenda-card,
+  #agendaView .agenda-mobile-card {
+    padding: 13px !important;
+    border-radius: 16px !important;
+  }
+
+  #agendaView .mobile-agenda-card h3,
+  #agendaView .agenda-mobile-card h3 {
+    font-size: 16px;
+  }
+
+  #agendaView .mobile-agenda-card p,
+  #agendaView .agenda-mobile-card p {
+    font-size: 11px;
+    line-height: 1.4;
+  }
+
+  #agendaView .mobile-agenda-actions,
+  #agendaView .agenda-card-actions {
+    display: grid;
+    grid-template-columns: 1.2fr 1fr auto;
+    gap: 8px;
+    margin-top: 11px;
+  }
+
+  #agendaView .mobile-agenda-actions .btn,
+  #agendaView .agenda-card-actions .btn,
+  #agendaView .mobile-agenda-actions button,
+  #agendaView .agenda-card-actions button {
+    min-height: 40px;
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+
+  /* ===== Fichas digitales ===== */
+
+  #recordsView .page-heading p {
+    display: none;
+  }
+
+  #recordsView .stats-grid,
+  #servicesView .stats-grid {
+    grid-template-columns: repeat(3, 1fr);
     gap: 7px;
   }
 
-  .record-card-person strong {
-    font-size: 15px;
+  #recordsView .stat-card,
+  #servicesView .stat-card {
+    min-height: 72px;
+    padding: 10px;
+    justify-content: center;
   }
 
-  .record-card-facts {
-    gap: 6px;
-    margin: 9px 0;
+  #recordsView .stat-icon,
+  #servicesView .stat-icon {
+    display: none;
   }
 
-  .record-card-facts > div {
-    padding: 8px;
+  #recordsView .stat-card span,
+  #servicesView .stat-card span {
+    font-size: 9px;
+    text-align: center;
   }
 
-  .record-card-actions {
-    grid-template-columns: 1fr 38px 38px;
-    gap: 6px;
+  #recordsView .stat-card strong,
+  #servicesView .stat-card strong {
+    font-size: 19px;
+    text-align: center;
   }
 
-  .record-card-actions .btn,
-  .record-card-actions .icon-btn {
-    min-height: 38px !important;
-    height: 38px !important;
+  #recordsView .client-card,
+  #recordsView .record-row {
+    padding: 13px;
   }
 
-  /* Modal de ficha */
-
-  .modal-backdrop:has(.record-modal-card) {
-    align-items: stretch !important;
-    padding: 0 !important;
+  #recordsView .client-card p,
+  #recordsView .record-row p {
+    font-size: 11px;
   }
+
+  /* ===== Ficha de clienta ===== */
 
   .record-modal-card {
-    width: 100vw !important;
-    height: 100dvh !important;
-    max-height: 100dvh !important;
     padding: 0 !important;
-    border-radius: 0 !important;
-    overflow: auto !important;
   }
 
   .record-modal-card > .modal-header {
-    position: sticky !important;
-    top: 0;
-    z-index: 20;
-    margin: 0 !important;
-    padding: 11px 12px 9px !important;
-    border-bottom: 1px solid var(--line);
-    background: color-mix(in srgb, var(--surface) 96%, transparent);
-    backdrop-filter: blur(14px);
+    padding: 14px;
+    margin: 0;
   }
 
   .record-modal-card > .modal-header h2 {
     font-size: 18px !important;
   }
 
-  .record-modal-card > .modal-header p {
-    display: none !important;
-  }
-
   .record-tabs {
-    position: sticky !important;
-    top: 62px !important;
-    z-index: 19;
-    gap: 3px !important;
-    margin: 0 !important;
-    padding: 6px 9px !important;
-    border-width: 0 0 1px !important;
-    border-radius: 0 !important;
-    background: color-mix(in srgb, var(--surface) 97%, transparent) !important;
+    top: 0;
+    padding: 0 10px 7px;
+    gap: 2px;
+    background: var(--surface);
   }
 
   .record-tabs button {
-    min-height: 34px !important;
-    padding: 7px 9px !important;
-    font-size: 9px !important;
-  }
-
-  .record-tabs button i {
-    font-size: 13px !important;
-  }
-
-  #recordFormContent {
-    padding: 10px !important;
-  }
-
-  .client-profile-hero,
-  .client-profile-compact {
-    display: grid !important;
-    grid-template-columns: 54px minmax(0, 1fr) !important;
-    gap: 9px !important;
-    padding: 11px !important;
-    border-radius: 15px !important;
-  }
-
-  .client-profile-compact .profile-photo,
-  .client-profile-hero .profile-photo {
-    width: 54px !important;
-    height: 54px !important;
-    border-radius: 14px !important;
-    font-size: 18px !important;
-  }
-
-  .client-profile-hero .profile-main,
-  .client-profile-compact .profile-main {
-    min-width: 0;
-  }
-
-  .client-profile-hero .profile-main h3,
-  .client-profile-compact .profile-main h3 {
-    margin: 1px 0 3px !important;
-    font-size: 18px !important;
-    line-height: 1.1;
-  }
-
-  .client-profile-hero .profile-main p,
-  .client-profile-compact .profile-main p {
-    margin-bottom: 6px !important;
-    overflow: hidden;
-    font-size: 9px !important;
-    text-overflow: ellipsis;
+    min-height: 36px;
+    padding: 8px 10px;
+    font-size: 11px;
     white-space: nowrap;
   }
 
-  .profile-actions,
-  .profile-actions-compact {
-    grid-column: 1 / -1;
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
-    gap: 7px !important;
+  .record-body {
+    padding: 12px;
   }
 
-  .profile-actions .btn,
-  .profile-actions-compact .btn {
-    min-height: 38px !important;
-    padding: 0 8px;
-    font-size: 9px !important;
+  .client-record-hero {
+    padding: 13px !important;
+    border-radius: 16px !important;
+  }
+
+  .client-record-hero h2,
+  .client-record-hero h3 {
+    font-size: 20px !important;
+  }
+
+  .client-record-hero p {
+    font-size: 11px !important;
   }
 
   .client-summary-grid {
     display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 7px !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 8px !important;
     overflow: visible !important;
-    padding: 0 !important;
   }
 
   .summary-metric {
     min-width: 0 !important;
-    padding: 9px !important;
-    border-radius: 12px !important;
-  }
-
-  .summary-metric span {
-    font-size: 8px !important;
+    padding: 10px !important;
+    border-radius: 13px !important;
   }
 
   .summary-metric strong {
-    margin: 4px 0 2px !important;
-    font-size: 13px !important;
-    line-height: 1.12;
-    overflow-wrap: anywhere;
-  }
-
-  .summary-metric small {
-    display: none !important;
-  }
-
-  .record-overview-details {
-    border-radius: 13px;
-  }
-
-  .record-overview-details > summary {
-    min-height: 40px;
-    padding: 10px 11px;
-    font-size: 10px;
-  }
-
-  .record-overview-grid {
-    grid-template-columns: 1fr !important;
-    padding: 0 11px 10px;
-  }
-
-  .quick-actions-grid,
-  .quick-actions-grid.four,
-  .quick-actions-compact {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 7px !important;
-  }
-
-  .quick-action {
-    min-height: 48px;
-    padding: 9px !important;
-  }
-
-  .quick-action i {
-    margin: 0 0 4px !important;
-    font-size: 15px !important;
-  }
-
-  .quick-action strong {
-    font-size: 9px !important;
-  }
-
-  .quick-action span {
-    display: none !important;
-  }
-
-  .record-section {
-    padding: 12px !important;
-    border-radius: 15px !important;
-  }
-
-  .record-section-heading {
-    gap: 8px !important;
-  }
-
-  .record-section-heading h3 {
-    font-size: 15px !important;
-  }
-
-  .record-grid,
-  .record-grid.three,
-  .design-layout,
-  .signature-row,
-  .record-form-grid,
-  .record-detail-grid {
-    grid-template-columns: minmax(0, 1fr) !important;
-    gap: 9px !important;
-  }
-
-  .record-actions,
-  .modal-actions {
-    position: sticky !important;
-    bottom: 0 !important;
-    z-index: 20;
-    margin: 10px -10px -10px !important;
-    padding: 8px 10px calc(8px + env(safe-area-inset-bottom)) !important;
-    gap: 7px !important;
-    background: color-mix(in srgb, var(--surface) 97%, transparent) !important;
-    backdrop-filter: blur(14px);
-    border-top: 1px solid var(--line);
-  }
-
-  .record-actions .btn,
-  .modal-actions .btn {
-    min-height: 40px !important;
-    padding: 0 9px !important;
-    font-size: 10px !important;
-  }
-
-  .record-actions #printRecordBtn,
-  .record-actions #copyFormLinkBtn {
-    display: none !important;
-  }
-
-  .history-item {
-    grid-template-columns: 1fr !important;
-    padding: 10px !important;
-  }
-
-  .history-actions,
-  .record-row-actions {
-    display: flex !important;
-    justify-content: flex-end !important;
-    flex-wrap: wrap;
-    gap: 5px !important;
-  }
-
-  .record-row-actions .btn {
-    width: auto !important;
-    min-width: 36px !important;
-    height: 36px !important;
-    padding: 0 9px !important;
-    font-size: 9px !important;
-  }
-
-  .record-row-actions .btn i {
-    margin: 0 !important;
-    font-size: 13px !important;
-  }
-
-  /* Servicios */
-
-  .service-toolbar {
-    display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: end;
-    gap: 8px;
-    margin-bottom: 10px;
-  }
-
-  .service-toolbar .field {
-    min-width: 0;
-    width: 100%;
-  }
-
-  .service-result-count {
-    padding-bottom: 11px;
-    font-size: 9px;
-    white-space: nowrap;
-  }
-
-  .service-summary-strip {
-    margin-bottom: 10px;
-  }
-
-  .service-list {
-    grid-template-columns: 1fr !important;
-  }
-
-  .service-card-compact {
-    padding: 12px 12px 12px 15px !important;
-  }
-
-  .service-card-top {
-    gap: 8px !important;
-    margin-bottom: 8px !important;
-  }
-
-  .service-card-top h3 {
-    margin: 6px 0 0 !important;
-    font-size: 17px !important;
-  }
-
-  .service-card-top .icon-btn {
-    width: 37px !important;
-    min-width: 37px !important;
-    height: 37px !important;
-    min-height: 37px !important;
-  }
-
-  .service-main-data {
-    gap: 7px 10px;
-  }
-
-  .service-price {
-    width: 100%;
-    font-size: 19px !important;
-  }
-
-  .service-main-data > span {
-    font-size: 9px;
-  }
-
-  .service-details {
-    margin-top: 9px;
-  }
-
-  .service-details > summary {
-    min-height: 34px;
-    padding-top: 8px;
-  }
-
-  .service-time-breakdown {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 5px;
-  }
-
-  .service-time-breakdown > span {
-    padding: 7px 5px;
-    text-align: center;
-  }
-
-  .service-edit-btn {
-    min-height: 38px !important;
-    margin-top: 9px;
-    font-size: 10px !important;
-  }
-
-  /* Inventario */
-
-  .inventory-filter-bar {
-    grid-template-columns: minmax(0, 1fr) !important;
-    gap: 8px !important;
-    margin-bottom: 10px !important;
-    padding: 11px !important;
-    border-radius: 15px !important;
-    box-shadow: none !important;
-  }
-
-  .inventory-filter-count {
-    padding: 0 !important;
-    font-size: 9px !important;
-  }
-
-  .inventory-card-head h3,
-  .inventory-card h3 {
-    font-size: 16px !important;
-  }
-
-  .inventory-card p {
-    margin: 8px 0 !important;
-    font-size: 10px !important;
-    line-height: 1.4;
-  }
-
-  .inventory-actions {
-    grid-template-columns: 1fr 1fr !important;
-    gap: 7px !important;
-    margin-top: 10px !important;
-  }
-
-  .inventory-actions .primary-btn {
-    grid-column: 1 / -1;
-  }
-
-  .inventory-actions .btn {
-    min-height: 38px !important;
-    font-size: 9px !important;
-  }
-
-  /* Configuración en acordeones */
-
-  #settingsView .page-heading {
-    grid-template-columns: minmax(0, 1fr) !important;
-  }
-
-  #settingsView .page-heading .badge {
-    width: fit-content;
-  }
-
-  .settings-accordion-list {
-    gap: 8px;
-  }
-
-  .settings-accordion {
-    border-radius: 15px;
-    box-shadow: none;
-  }
-
-  .settings-accordion > summary {
-    grid-template-columns: 37px minmax(0, 1fr) auto auto;
-    gap: 9px;
-    min-height: 62px;
-    padding: 10px 11px;
-  }
-
-  .settings-summary-icon {
-    width: 37px;
-    height: 37px;
-    border-radius: 11px;
-    font-size: 15px;
-  }
-
-  .settings-summary-copy strong {
     font-size: 14px;
   }
 
-  .settings-summary-copy small {
-    max-width: 32ch;
-    font-size: 8px;
-  }
-
-  .settings-accordion-body {
-    padding: 0 11px 12px;
-  }
-
-  .settings-subsection {
-    padding-top: 11px;
-  }
-
-  .settings-subsection + .settings-subsection {
-    margin-top: 11px;
-  }
-
-  .settings-subsection h3 {
-    margin-bottom: 8px;
-    font-size: 11px;
-  }
-
-  .settings-accordion .form-grid,
-  .settings-accordion .form-grid.three,
-  .settings-toggle-list,
-  .settings-switches {
-    grid-template-columns: minmax(0, 1fr) !important;
-    gap: 8px !important;
-  }
-
-  .settings-days {
-    margin-top: 11px !important;
-  }
-
-  .settings-days .preference-options {
-    display: grid !important;
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 6px !important;
-  }
-
-  .settings-accordion .check-option {
-    min-height: 45px;
-    padding: 9px !important;
-    border-radius: 12px !important;
-  }
-
-  .settings-accordion .check-option strong {
+  .summary-metric span,
+  .summary-metric small {
     font-size: 10px;
   }
 
-  .settings-accordion .check-option small {
-    margin-top: 2px;
-    font-size: 8px;
-    line-height: 1.35;
+  .quick-actions-grid,
+  .quick-actions-grid.four {
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
   }
 
-  .settings-accordion .field {
-    gap: 5px !important;
+  .quick-actions-grid .btn {
+    min-height: 40px;
+    padding: 8px;
+    font-size: 11px;
   }
 
-  .settings-accordion .field > span {
-    font-size: 9px !important;
+  .record-detail-grid,
+  .record-form-grid,
+  .record-body .form-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px;
   }
 
-  .settings-accordion input,
-  .settings-accordion select,
-  .settings-accordion textarea {
-    font-size: 11px !important;
+  .modal-actions {
+    padding: 8px 10px calc(8px + env(safe-area-inset-bottom));
+    gap: 8px;
   }
 
-  .settings-data-actions {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
-    gap: 7px !important;
+  .modal-actions .btn {
+    min-height: 42px;
+    font-size: 12px;
   }
 
-  .settings-data-actions .danger-btn {
-    grid-column: 1 / -1;
+  /* ===== Servicios ===== */
+
+  #servicesView .page-heading p {
+    display: none;
+  }
+
+  #servicesView .compact-filter-row {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 9px;
+    align-items: end;
+  }
+
+  #servicesView .compact-filter-row > .muted {
+    padding-bottom: 11px;
+    white-space: nowrap;
+    font-size: 11px;
+  }
+
+  .service-card {
+    padding: 13px;
+  }
+
+  .service-card-top h3 {
+    margin: 5px 0 3px;
+    font-size: 17px;
+  }
+
+  .service-price {
+    font-size: 18px;
+  }
+
+  .service-card p {
+    font-size: 11px;
+    line-height: 1.4;
+  }
+
+  .service-card details {
+    margin-top: 8px;
+  }
+
+  .service-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .service-actions .btn {
+    min-height: 40px;
+    font-size: 11px;
+  }
+
+  /* ===== Configuración ===== */
+
+  #settingsView .page-heading {
+    grid-template-columns: 1fr;
+  }
+
+  #settingsView .page-heading p {
+    display: none;
+  }
+
+  .settings-section {
+    padding: 13px;
+  }
+
+  .settings-section h2 {
+    font-size: 19px;
+  }
+
+  .settings-section .form-grid {
+    grid-template-columns: 1fr !important;
+    gap: 10px;
+  }
+
+  .settings-section .field span {
+    font-size: 11px;
+  }
+
+  .settings-section input,
+  .settings-section select,
+  .settings-section textarea {
+    font-size: 13px;
   }
 
   .settings-savebar {
-    position: sticky !important;
-    bottom: 7px !important;
-    z-index: 18;
-    display: block !important;
-    padding: 7px !important;
-    border-radius: 14px !important;
-    box-shadow: 0 13px 32px rgba(0, 0, 0, .16) !important;
+    position: sticky;
+    bottom: 8px;
+    padding: 8px;
+    border-radius: 15px;
   }
 
-  .settings-savebar span,
-  .settings-savebar small,
-  .settings-savebar p {
+  .settings-savebar > span,
+  .settings-savebar > p,
+  .settings-savebar > small {
     display: none !important;
   }
 
   .settings-savebar .btn {
-    width: 100%;
-    min-height: 42px !important;
-    font-size: 10px !important;
+    min-height: 43px;
+    font-size: 12px;
   }
 
-  .availability-form {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 8px !important;
-  }
-
-  .availability-form .field:first-child,
-  .availability-form .field:nth-child(4),
-  .availability-form .block-all-day,
-  .availability-form .btn {
-    grid-column: 1 / -1;
-  }
-
-  .availability-block-row {
-    align-items: flex-start !important;
-    padding: 9px !important;
-  }
-
-  .availability-block-row .icon-btn {
-    width: 34px !important;
-    min-width: 34px !important;
-    height: 34px !important;
-    min-height: 34px !important;
-  }
-
-  .google-calendar-card {
-    grid-template-columns: 37px minmax(0, 1fr) !important;
-    gap: 9px !important;
-    padding: 10px !important;
-  }
-
-  .google-calendar-card > i {
-    width: 37px !important;
-    height: 37px !important;
-    border-radius: 11px !important;
-  }
-
-  input[type="color"] {
-    width: 100% !important;
-    min-height: 46px !important;
-    padding: 4px;
-  }
-
-  /* Menú lateral */
+  /* ===== Menú lateral y notificaciones ===== */
 
   .sidebar {
-    width: min(84vw, 318px) !important;
-    padding: 18px 13px 12px !important;
+    width: min(86vw, 330px);
+    padding: 18px 13px 14px;
   }
 
   .brand {
-    gap: 10px !important;
-    padding: 0 8px 16px !important;
+    padding: 0 8px 15px;
   }
 
   .brand-mark {
-    width: 43px !important;
-    height: 43px !important;
-    border-radius: 13px !important;
+    width: 46px;
+    height: 46px;
   }
 
   .brand strong {
-    font-size: 21px !important;
-  }
-
-  .nav-menu {
-    gap: 2px !important;
-  }
-
-  .nav-label {
-    padding: 11px 10px 4px !important;
-    font-size: 8px !important;
+    font-size: 21px;
   }
 
   .nav-link {
-    min-height: 44px;
-    gap: 10px !important;
-    padding: 9px 11px !important;
-    border-radius: 12px !important;
-    font-size: 13px !important;
+    min-height: 45px;
+    padding: 9px 11px;
+    gap: 10px;
+    font-size: 14px;
   }
-
-  .nav-link i {
-    font-size: 17px !important;
-  }
-
-  .sidebar-profile {
-    padding-top: 10px !important;
-  }
-
-  .profile-copy strong {
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
-
-  /* Notificaciones como hoja inferior */
 
   .notification-popover {
-    top: auto !important;
-    right: 8px !important;
-    bottom: calc(8px + env(safe-area-inset-bottom));
-    left: 8px !important;
-    width: auto !important;
-    max-height: min(72dvh, 520px);
+    top: auto;
+    right: 10px;
+    bottom: 10px;
+    left: 10px;
+    width: auto;
+    max-height: 68dvh;
+    padding: 14px;
+    border-radius: 20px;
     overflow: auto;
-    padding: 12px !important;
-    border-radius: 20px !important;
   }
 
-  .notification-popover-head {
-    position: sticky;
-    top: -12px;
-    z-index: 2;
-    margin: -12px -12px 0;
-    padding: 12px;
-    background: var(--surface);
-  }
+  /* ===== Ajustes finales ===== */
 
-  .notification-popover-head h3 {
-    font-size: 17px !important;
-  }
-
-  .notification-popover-list {
-    max-height: none !important;
-    gap: 7px !important;
-    padding: 8px 0 !important;
-  }
-
-  .notification-mini-item {
-    grid-template-columns: 35px minmax(0, 1fr) 34px !important;
-    gap: 8px !important;
-    padding: 9px !important;
-    border-radius: 12px !important;
-  }
-
-  .notification-mini-icon {
-    width: 35px !important;
-    height: 35px !important;
-    border-radius: 11px !important;
-  }
-
-  .notification-mini-item .icon-btn {
-    width: 34px !important;
-    height: 34px !important;
-    min-height: 34px !important;
-  }
-
-  /* Modales generales */
-
-  .modal-backdrop:not(:has(.record-modal-card)) {
-    align-items: flex-end !important;
-    padding: 0 !important;
-  }
-
-  .modal-backdrop:not(:has(.record-modal-card)) .modal-card {
-    width: 100% !important;
-    max-height: 90dvh !important;
-    padding: 16px 12px calc(14px + env(safe-area-inset-bottom)) !important;
-    border-radius: 22px 22px 0 0 !important;
-  }
-
-  .modal-header {
-    margin-bottom: 12px !important;
-  }
-
-  .modal-header h2 {
-    font-size: 19px !important;
-  }
-
-  /* Fotografías */
-
-  .photo-gallery {
-    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
-    gap: 8px !important;
-  }
-
-  .photo-open {
-    height: 132px !important;
-  }
-
-  .photo-card-body {
-    padding: 9px !important;
-  }
-
-  .photo-card-body p {
-    min-height: 0 !important;
-    font-size: 8px !important;
-  }
-
-  /* Fin móvil */
-}
-
-@media (max-width: 390px) {
-  :root {
-    --mobile-x: 9px;
-  }
-
-  .topbar {
-    padding: 0 6px !important;
-  }
-
-  .topbar > .mobile-only,
-  .topbar .icon-btn,
-  .topbar-actions .primary-btn {
-    width: 41px !important;
-    min-width: 41px !important;
-    height: 41px !important;
-    min-height: 41px !important;
-  }
-
-  .search-box {
-    height: 41px !important;
-    padding: 0 9px !important;
-  }
-
-  .search-box input,
-  .search-box input::placeholder {
-    font-size: 11px !important;
-  }
-
-  h1 {
-    font-size: 27px !important;
-  }
-
-  .stat-card {
-    min-height: 98px !important;
-  }
-
-  .agenda-card-actions {
-    grid-template-columns: 1fr 1fr 43px;
-  }
-
-  .agenda-card-actions > .btn,
-  .agenda-more > summary {
-    padding: 0 6px;
+  .badge {
     font-size: 9px;
   }
 
-  .record-tabs button {
-    padding: 7px 8px !important;
+  .btn {
+    font-size: 12px;
   }
 
-  .settings-summary-copy small {
-    display: none;
+  .empty-state {
+    padding: 28px 12px;
   }
 
-  .settings-accordion > summary {
-    min-height: 56px;
+  .empty-state h3 {
+    font-size: 16px;
+  }
+
+  .empty-state p {
+    font-size: 11px;
   }
 }
 
-/* En escritorio, la agenda sigue usando tabla. */
-@media (min-width: 761px) {
-  .agenda-desktop-table {
-    display: block;
+@media (max-width: 380px) {
+  .content {
+    padding-right: 11px;
+    padding-left: 11px;
   }
 
-  .agenda-mobile-list {
-    display: none !important;
+  .hero-row h1,
+  .page-heading h1,
+  #dashboardView h1 {
+    font-size: 24px;
+  }
+
+  .professional-request-primary,
+  .professional-request-secondary {
+    grid-template-columns: 1fr;
+  }
+
+  #recordsView .stats-grid,
+  #servicesView .stats-grid {
+    gap: 5px;
   }
 }
