@@ -27,6 +27,7 @@
   .page-heading h1,
   .compact-page-heading h1 {
     margin-bottom: 7px;
+    font-size: 34px;
   }
 
   .page-heading p,
@@ -292,25 +293,38 @@
     display: block !important;
   }
 
+  #agendaView .page-heading {
+    margin-bottom: 20px;
+  }
+
+  #agendaView .page-heading h1 {
+    font-size: 34px;
+  }
+
   .agenda-filter-bar {
     display: grid;
     grid-template-columns:
-      minmax(180px, 230px)
-      minmax(210px, 260px)
+      minmax(190px, 230px)
+      minmax(210px, 270px)
       auto
-      minmax(120px, 1fr);
+      minmax(100px, 1fr);
     align-items: end;
     gap: 10px;
-    padding: 13px;
-    margin-bottom: 16px;
+    padding: 12px;
+    margin-bottom: 14px;
     border: 1px solid var(--line);
-    border-radius: 17px;
+    border-radius: 16px;
     background: var(--surface);
     box-shadow: var(--shadow);
   }
 
   .agenda-filter-bar .field {
     margin: 0;
+  }
+
+  .agenda-filter-bar input,
+  .agenda-filter-bar select {
+    min-height: 42px;
   }
 
   .agenda-filter-actions {
@@ -321,59 +335,161 @@
 
   .agenda-filter-actions .btn {
     min-height: 42px;
+    padding: 8px 13px;
   }
 
   .agenda-filter-summary {
     align-self: center;
     justify-self: end;
     color: var(--muted);
-    font-size: 11px;
+    font-size: 10px;
     font-weight: 700;
     white-space: nowrap;
   }
 
   .agenda-desktop-table {
-    overflow-x: auto;
-    padding: 14px 16px;
+    width: 100%;
+    max-width: 100%;
+    overflow: hidden;
+    padding: 10px 12px;
     border: 1px solid var(--line);
-    border-radius: 18px;
+    border-radius: 16px;
     background: var(--surface);
     box-shadow: var(--shadow);
   }
 
   .agenda-desktop-table .data-table {
     width: 100%;
-    min-width: 960px;
+    min-width: 0 !important;
+    table-layout: fixed;
     border-collapse: collapse;
   }
 
   .agenda-desktop-table .data-table th {
-    padding: 12px 10px;
+    padding: 10px 8px;
     color: var(--muted);
-    font-size: 10px;
+    font-size: 9px;
     font-weight: 800;
     text-align: left;
     white-space: nowrap;
   }
 
   .agenda-desktop-table .data-table td {
-    padding: 13px 10px;
+    min-width: 0;
+    padding: 11px 8px;
     border-top: 1px solid var(--line);
-    font-size: 11px;
+    font-size: 10px;
+    line-height: 1.35;
     vertical-align: middle;
+    overflow-wrap: anywhere;
   }
 
-  .agenda-desktop-table .table-actions {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: 6px;
+  .agenda-desktop-table .data-table th:nth-child(1),
+  .agenda-desktop-table .data-table td:nth-child(1) {
+    width: 7%;
+  }
+
+  .agenda-desktop-table .data-table th:nth-child(2),
+  .agenda-desktop-table .data-table td:nth-child(2) {
+    width: 5%;
+  }
+
+  .agenda-desktop-table .data-table th:nth-child(3),
+  .agenda-desktop-table .data-table td:nth-child(3) {
+    width: 10%;
+  }
+
+  .agenda-desktop-table .data-table th:nth-child(4),
+  .agenda-desktop-table .data-table td:nth-child(4) {
+    width: 14%;
+  }
+
+  .agenda-desktop-table .data-table th:nth-child(5),
+  .agenda-desktop-table .data-table td:nth-child(5) {
+    width: 7%;
+  }
+
+  .agenda-desktop-table .data-table th:nth-child(6),
+  .agenda-desktop-table .data-table td:nth-child(6) {
+    width: 8%;
+  }
+
+  .agenda-desktop-table .data-table th:nth-child(7),
+  .agenda-desktop-table .data-table td:nth-child(7) {
+    width: 9%;
+  }
+
+  .agenda-desktop-table .data-table th:nth-child(8),
+  .agenda-desktop-table .data-table td:nth-child(8) {
+    width: 8%;
+  }
+
+  .agenda-desktop-table .data-table th:nth-child(9),
+  .agenda-desktop-table .data-table td:nth-child(9) {
+    width: 15%;
+  }
+
+  .agenda-desktop-table .data-table th:nth-child(10),
+  .agenda-desktop-table .data-table td:nth-child(10) {
+    width: 17%;
+  }
+
+  .agenda-desktop-table td:nth-child(1),
+  .agenda-desktop-table td:nth-child(2),
+  .agenda-desktop-table td:nth-child(5) {
     white-space: nowrap;
   }
 
-  .agenda-desktop-table .table-actions .icon-btn {
-    width: 34px;
-    height: 34px;
+  .agenda-desktop-table td:nth-child(4) .badge {
+    display: inline-flex;
+    width: fit-content;
+    margin-bottom: 4px;
+  }
+
+  .agenda-desktop-table td:nth-child(4) strong,
+  .agenda-desktop-table td:nth-child(4) span:not(.badge) {
+    display: block;
+  }
+
+  .agenda-desktop-table td:nth-child(9) .badge {
+    display: inline-flex;
+    max-width: 100%;
+    white-space: normal;
+    line-height: 1.25;
+  }
+
+  .agenda-desktop-table .table-actions {
+    display: flex !important;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 5px;
+    min-width: 0;
+    white-space: normal;
+  }
+
+  .agenda-desktop-table .table-actions > * {
+    position: static !important;
+    flex: 0 0 auto;
+    margin: 0 !important;
+    transform: none !important;
+  }
+
+  .agenda-desktop-table .table-actions .icon-btn,
+  .agenda-desktop-table .table-actions .btn {
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+    min-height: 32px;
+    padding: 0;
+    font-size: 0;
+    border-radius: 10px;
+  }
+
+  .agenda-desktop-table .table-actions .icon-btn i,
+  .agenda-desktop-table .table-actions .btn i {
+    margin: 0;
+    font-size: 12px;
   }
 
   /* =========================================================
@@ -755,6 +871,79 @@
   .settings-savebar-compact > span {
     color: var(--muted);
     font-size: 10px;
+  }
+
+  /* =========================================================
+     PIE DE LA BARRA LATERAL
+  ========================================================= */
+
+  .sidebar-profile {
+    display: grid !important;
+    grid-template-columns: 42px repeat(3, 36px);
+    grid-template-rows: auto 36px;
+    align-items: center;
+    justify-content: start;
+    gap: 8px 7px;
+    padding: 12px 10px !important;
+  }
+
+  .sidebar-profile .avatar {
+    grid-column: 1;
+    grid-row: 1;
+    width: 42px;
+    min-width: 42px;
+    height: 42px;
+    margin: 0;
+  }
+
+  .sidebar-profile .profile-copy {
+    grid-column: 2 / 5;
+    grid-row: 1;
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .sidebar-profile .profile-copy strong,
+  .sidebar-profile .profile-copy span {
+    display: block;
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sidebar-profile .profile-copy strong {
+    font-size: 12px;
+  }
+
+  .sidebar-profile .profile-copy span {
+    margin-top: 2px;
+    font-size: 9px;
+  }
+
+  .sidebar-profile .icon-btn {
+    width: 36px;
+    min-width: 36px;
+    height: 36px;
+    min-height: 36px;
+    padding: 0;
+    margin: 0;
+    border-radius: 11px;
+  }
+
+  #adminSettingsBtn {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  #themeToggle {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  #logoutBtn {
+    grid-column: 3;
+    grid-row: 2;
   }
 
   /* =========================================================
