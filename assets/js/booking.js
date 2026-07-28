@@ -480,78 +480,174 @@ let settings = {
   }
 
   async function init() {
-    try {
-      const platform = await window.ByAleePlatform.ready;
-      if (!platform.configured) throw platform.error || new Error("Faltan las variables de Supabase.");
-      await fetchPublicData(today);
-      if (settings.bookingEnabled === false) {
-        $("#bookingCard").innerHTML = '<div class="booking-disabled"><i class="bi bi-calendar-x"></i><h2>Reservas temporalmente pausadas</h2><p>Escribí a ByAlee por WhatsApp para consultar disponibilidad.</p></div>';
+  try {
+    /*
+     * La reserva pública consulta directamente el endpoint
+     * de Vercel. No necesita inicializar Supabase en el navegador.
+     */
+    await fetchPublicData(today);
+
+    if (settings.bookingEnabled === false) {
+      $("#bookingCard").innerHTML = `
+        <div class="booking-disabled">
+          <i class="bi bi-calendar-x"></i>
+          <h2>Reservas temporalmente pausadas</h2>
+          <p>
+            Escribí a ByAlee por WhatsApp para consultar
+            disponibilidad.
+          </p>
+        </div>
+      `;
+
+      return;
+    }
+
+    applyAppearance();
+    renderBrand();
+    renderAreas();
+    renderServices();
+
+    $("#bookingDate").min = today;
+    $("#bookingDate").value = today;
+    $("#signatureDate").value = today;
+
+    $("#bookingDate").onchange = async () => {
+      selectedTime = "";
+      await refreshDateAvailability();
+    };
+
+    $("#toggleDetailsBtn").onclick = () => {
+      setDetails(!detailsExpanded);
+    };
+
+    $$("[name='depositMethod']").forEach(input => {
+      input.onchange = updateDeposit;
+    });
+
+    $("#depositProofInput").onchange = async event => {
+      const file = event.target.files?.[0];
+
+      if (!file) {
         return;
       }
 
-      applyAppearance();
-      renderBrand();
-      renderAreas();
-      renderServices();
-      $("#bookingDate").min = today;
-      $("#bookingDate").value = today;
-      $("#signatureDate").value = today;
-      $("#bookingDate").onchange = async () => {
-        selectedTime = "";
-        await refreshDateAvailability();
-      };
-      $("#toggleDetailsBtn").onclick = () => setDetails(!detailsExpanded);
-      $$("[name='depositMethod']").forEach(input => input.onchange = updateDeposit);
-      $("#depositProofInput").onchange = async event => {
-        const file = event.target.files?.[0];
-        if (!file) return;
-        if (!file.type.startsWith("image/")) return alert("Seleccioná una imagen válida.");
-        $("#depositProofPreview").innerHTML = '<i class="bi bi-hourglass-split"></i><span>Procesando…</span>';
-        try {
-          const dataUrl = await compressProof(file);
-          if (dataUrl.length > 3_400_000) throw new Error("La imagen sigue siendo demasiado grande.");
-          proofData = { name: file.name, size: file.size, type: file.type, dataUrl };
-          $("#depositProofPreview").innerHTML = `<img src="${dataUrl}" alt="Comprobante">`;
-        } catch (error) {
-          proofData = null;
-          $("#depositProofPreview").textContent = error.message || "No se pudo leer";
+      if (!file.type.startsWith("image/")) {
+        alert("Seleccioná una imagen válida.");
+        return;
+      }
+
+      $("#depositProofPreview").innerHTML = `
+        <i class="bi bi-hourglass-split"></i>
+        <span>Procesando…</span>
+      `;
+
+      try {
+        const dataUrl = await compressProof(file);
+
+        if (dataUrl.length > 3_400_000) {
+          throw new Error(
+            "La imagen sigue siendo demasiado grande."
+          );
         }
-      };
-      $("#policiesAccepted").onchange = () => $("#policiesRequiredNote").style.display = $("#policiesAccepted").checked ? "none" : "flex";
-      $("#consentAccepted").onchange = () => $("#consentRequiredNote").style.display = $("#consentAccepted").checked ? "none" : "flex";
-      $("#nextBtn").onclick = async () => {
-        if (!validateCurrentStep()) return;
-        if (step === 5) return complete();
-        go(step + 1);
-      };
-      $("#backBtn").onclick = () => go(step - 1);
-      $("#newBookingBtn").onclick = () => location.href = "/reservar";
-      if (settings.allowDepositProof === false) $("#proofMethodOption").hidden = true;
-      if (settings.requirePoliciesAcceptance === false) {
-        $("#policiesRequiredNote").style.display = "none";
-        $("#policiesAccepted").checked = true;
+
+        proofData = {
+          name: file.name,
+          size: file.size,
+          type: file.type,
+          dataUrl
+        };
+
+        $("#depositProofPreview").innerHTML = `
+          <img
+            src="${dataUrl}"
+            alt="Comprobante de seña"
+          >
+        `;
+      } catch (error) {
+        proofData = null;
+
+        $("#depositProofPreview").textContent =
+          error.message || "No se pudo leer la imagen.";
       }
-      if (settings.requireConsent === false) {
-        $("#consentRequiredNote").style.display = "none";
-        $("#consentAccepted").checked = true;
+    };
+
+    $("#policiesAccepted").onchange = () => {
+      $("#policiesRequiredNote").style.display =
+        $("#policiesAccepted").checked
+          ? "none"
+          : "flex";
+    };
+
+    $("#consentAccepted").onchange = () => {
+      $("#consentRequiredNote").style.display =
+        $("#consentAccepted").checked
+          ? "none"
+          : "flex";
+    };
+
+    $("#nextBtn").onclick = async () => {
+      if (!validateCurrentStep()) {
+        return;
       }
-      go(1);
-    } catch (error) {
-      console.error(error);
-      showConfigurationError(error.message);
+
+      if (step === 5) {
+        await complete();
+        return;
+      }
+
+      go(step + 1);
+    };
+
+    $("#backBtn").onclick = () => {
+      go(step - 1);
+    };
+
+    $("#newBookingBtn").onclick = () => {
+      location.href = "/reservar";
+    };
+
+    if (settings.allowDepositProof === false) {
+      $("#proofMethodOption").hidden = true;
     }
+
+    if (settings.requirePoliciesAcceptance === false) {
+      $("#policiesRequiredNote").style.display = "none";
+      $("#policiesAccepted").checked = true;
+    }
+
+    if (settings.requireConsent === false) {
+      $("#consentRequiredNote").style.display = "none";
+      $("#consentAccepted").checked = true;
+    }
+
+    go(1);
+  } catch (error) {
+    console.error(
+      "No se pudo cargar la reserva pública:",
+      error
+    );
+
+    showConfigurationError(
+      error.message ||
+      "No se pudo consultar la configuración pública."
+    );
   }
+}
 
 /*
- * Aplicación inmediata de la última configuración conocida.
- * No espera la respuesta de Supabase.
+ * Primer dibujo inmediato usando la última configuración
+ * y los últimos servicios guardados.
  */
 applyAppearance();
 renderBrand();
 
+if (services.length) {
+  renderAreas();
+  renderServices();
+}
+
 /*
- * Supabase actualiza después la configuración,
- * servicios, citas y disponibilidad.
+ * Actualiza silenciosamente los datos reales.
  */
 init();
 })();
