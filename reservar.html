@@ -2,31 +2,39 @@
 <html lang="es" data-theme="light">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta
+  name="viewport"
+  content="width=device-width,
+           initial-scale=1,
+           maximum-scale=1,
+           user-scalable=no,
+           viewport-fit=cover">
   <title>Reservar cita — ByAlee</title>
   <meta name="theme-color" content="#8F5C70">
 
   <script>
-    (() => {
-      "use strict";
+  (() => {
+    "use strict";
 
-      try {
-        const cached = JSON.parse(
-          localStorage.getItem("byalee_public_data_v2") || "null"
-        );
+    const CACHE_KEY = "byalee_public_data_v2";
 
-        const settings = cached?.settings;
+    try {
+      const cached = JSON.parse(
+        localStorage.getItem(CACHE_KEY) || "null"
+      );
 
-        if (!settings) {
-          return;
-        }
+      const cachedSettings = cached?.settings;
 
-        const appearance = settings.appearance || "light";
+      if (cachedSettings) {
+        const appearance =
+          cachedSettings.appearance || "light";
 
         const theme =
           appearance === "system"
             ? (
-                matchMedia("(prefers-color-scheme: dark)").matches
+                matchMedia(
+                  "(prefers-color-scheme: dark)"
+                ).matches
                   ? "dark"
                   : "light"
               )
@@ -34,34 +42,71 @@
 
         document.documentElement.dataset.theme = theme;
 
-        if (settings.primaryColor) {
+        if (cachedSettings.primaryColor) {
           document.documentElement.style.setProperty(
             "--primary",
-            settings.primaryColor
+            cachedSettings.primaryColor
           );
 
           document.documentElement.style.setProperty(
             "--primary-dark",
-            settings.primaryColor
+            cachedSettings.primaryColor
           );
 
           document
             .querySelector('meta[name="theme-color"]')
-            ?.setAttribute("content", settings.primaryColor);
+            ?.setAttribute(
+              "content",
+              cachedSettings.primaryColor
+            );
         }
-      } catch (error) {
-        console.warn(
-          "No se pudo aplicar la apariencia guardada:",
-          error
-        );
       }
-    })();
-  </script>
+    } catch (error) {
+      console.warn(
+        "No se pudo aplicar la apariencia guardada:",
+        error
+      );
+    }
+
+    /*
+     * Comienza a cargar los datos antes de que termine
+     * de procesarse todo el HTML.
+     */
+    const now = new Date();
+
+    const today = [
+      now.getFullYear(),
+      String(now.getMonth() + 1).padStart(2, "0"),
+      String(now.getDate()).padStart(2, "0")
+    ].join("-");
+
+    window.ByAleePublicDataPromise = fetch(
+      `/api/public-data?from=${today}`,
+      {
+        headers: {
+          Accept: "application/json"
+        }
+      }
+    )
+      .then(async response => ({
+        ok: response.ok,
+        status: response.status,
+        payload: await response
+          .json()
+          .catch(() => ({}))
+      }))
+      .catch(error => ({
+        ok: false,
+        error,
+        payload: {}
+      }));
+  })();
+</script>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-  <link rel="stylesheet" href="assets/css/styles.css">
+  <link rel="stylesheet" href="/assets/css/styles.css">
   <style>
     body{min-height:100vh;background:linear-gradient(145deg,var(--bg),var(--primary-soft));padding:26px}
     .booking-shell{max-width:1120px;margin:auto;display:grid;grid-template-columns:.72fr 1.28fr;gap:20px}
@@ -87,8 +132,10 @@
     @media(max-width:800px){body{padding:12px}.booking-shell{grid-template-columns:1fr}.studio-card{display:none}.choice-grid{grid-template-columns:1fr}.time-grid{grid-template-columns:repeat(3,1fr)}.booking-card{padding:20px}.deposit-options{grid-template-columns:1fr}.area-grid{grid-template-columns:repeat(2,1fr)}}
     @media(max-width:560px){body{padding:0;background:var(--surface)}.booking-card{border:0;border-radius:0;min-height:100dvh;box-shadow:none;padding:18px 14px 100px}.time-grid{grid-template-columns:repeat(2,1fr)}.booking-footer{position:fixed;left:0;right:0;bottom:0;background:color-mix(in srgb,var(--surface) 95%,transparent);backdrop-filter:blur(14px);padding:11px 14px;border-top:1px solid var(--line);z-index:15}.booking-footer .btn{flex:1}.proof-uploader{grid-template-columns:1fr}.proof-preview{height:160px}.detail-choice-grid{grid-template-columns:1fr}.success-summary{grid-template-columns:1fr}.accept-card{padding:13px}.policy-text,.consent-public{max-height:180px}}
   </style>
-  <link rel="stylesheet" href="assets/css/mobile.css">
-  <link rel="stylesheet" href="assets/css/booking-public.css">
+  <link rel="stylesheet" href="/assets/css/mobile.css">
+  <link rel="stylesheet" href="/assets/css/booking-public.css?v=performance-3">
+  <link rel="stylesheet" href="/assets/css/booking-performance.css?v=performance-3">
+  <script defer src="/assets/js/booking.js?v=performance-3"></script>
 </head>
 <body>
   <div class="booking-shell">
@@ -193,9 +240,5 @@
       <footer class="booking-footer" id="bookingFooter"><button class="btn ghost-btn" id="backBtn" type="button"><i class="bi bi-arrow-left"></i>Atrás</button><button class="btn primary-btn" id="nextBtn" type="button">Continuar<i class="bi bi-arrow-right"></i></button></footer>
     </main>
   </div>
-  <script src="assets/js/booking.js"></script>
-  <!--<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>-->
-  <script src="assets/js/booking-improvements.js"></script>
-  <!--<script src="assets/js/platform.js"></script>-->
 </body>
 </html>

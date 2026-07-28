@@ -12,6 +12,7 @@
     return `${year}-${month}-${day}`;
   }
   const today = browserDate();
+  const MINIMUM_NOTICE_MINUTES = 30;
   const defaultSettings = {
     studioName: "ByAlee",
     city: "Luque",
@@ -32,85 +33,98 @@
     requireDepositChoice: true
   };
 
-  /*let settings = { ...defaultSettings };*/
-  const PUBLIC_SETTINGS_CACHE_KEY =
-  "byalee_public_settings_v1";
+  const PUBLIC_DATA_CACHE_KEY = "byalee_public_data_v2";
 
-const PUBLIC_SETTING_KEYS = [
-  "studioName",
-  "city",
-  "openingTime",
-  "closingTime",
-  "slotInterval",
-  "workDays",
-  "currency",
-  "primaryColor",
-  "appearance",
-  "bookingEnabled",
-  "requireConsent",
-  "requirePoliciesAcceptance",
-  "bookingPoliciesVersion",
-  "bookingPoliciesText",
-  "defaultDeposit",
-  "allowDepositProof",
-  "requireDepositChoice"
-];
+  const PUBLIC_SETTING_KEYS = [
+    "studioName",
+    "city",
+    "openingTime",
+    "closingTime",
+    "slotInterval",
+    "workDays",
+    "currency",
+    "primaryColor",
+    "appearance",
+    "bookingEnabled",
+    "requireConsent",
+    "requirePoliciesAcceptance",
+    "bookingPoliciesVersion",
+    "bookingPoliciesText",
+    "defaultDeposit",
+    "allowDepositProof",
+    "requireDepositChoice"
+  ];
 
-function selectPublicSettings(source = {}) {
-  return PUBLIC_SETTING_KEYS.reduce(
-    (result, key) => {
+  function selectPublicSettings(source = {}) {
+    return PUBLIC_SETTING_KEYS.reduce((result, key) => {
       if (source[key] !== undefined) {
         result[key] = source[key];
       }
 
       return result;
-    },
-    {}
-  );
-}
-
-function loadCachedPublicSettings() {
-  try {
-    const cached = JSON.parse(
-      localStorage.getItem(
-        PUBLIC_SETTINGS_CACHE_KEY
-      ) || "null"
-    );
-
-    return cached && typeof cached === "object"
-      ? selectPublicSettings(cached)
-      : {};
-  } catch (error) {
-    console.warn(
-      "No se pudo leer la configuración pública:",
-      error
-    );
-
-    return {};
+    }, {});
   }
-}
 
-function saveCachedPublicSettings(value) {
-  try {
-    localStorage.setItem(
-      PUBLIC_SETTINGS_CACHE_KEY,
-      JSON.stringify(
-        selectPublicSettings(value)
-      )
-    );
-  } catch (error) {
-    console.warn(
-      "No se pudo guardar la configuración pública:",
-      error
-    );
+  function loadCachedPublicData() {
+    try {
+      const cached = JSON.parse(
+        localStorage.getItem(PUBLIC_DATA_CACHE_KEY) || "null"
+      );
+
+      if (!cached || typeof cached !== "object") {
+        return {
+          settings: {},
+          services: []
+        };
+      }
+
+      return {
+        settings: selectPublicSettings(cached.settings || {}),
+        services: Array.isArray(cached.services)
+          ? cached.services
+          : []
+      };
+    } catch (error) {
+      console.warn(
+        "No se pudo leer la configuración pública guardada:",
+        error
+      );
+
+      return {
+        settings: {},
+        services: []
+      };
+    }
   }
-}
 
-let settings = {
-  ...defaultSettings,
-  ...loadCachedPublicSettings()
-};
-  let services = [];
+  function saveCachedPublicData(value = {}) {
+    try {
+      localStorage.setItem(
+        PUBLIC_DATA_CACHE_KEY,
+        JSON.stringify({
+          settings: selectPublicSettings(value.settings || {}),
+          services: Array.isArray(value.services)
+            ? value.services
+            : [],
+          updatedAt: Date.now()
+        })
+      );
+    } catch (error) {
+      console.warn(
+        "No se pudo guardar la configuración pública:",
+        error
+      );
+    }
+  }
+
+  const cachedPublicData = loadCachedPublicData();
+
+  let settings = {
+    ...defaultSettings,
+    ...cachedPublicData.settings
+  };
+
+  let services = cachedPublicData.services;
   let appointments = [];
   let availabilityBlocks = [];
   let selectedArea = "";
@@ -123,9 +137,9 @@ let settings = {
 
   const areas = [
     { name: "Pestañas", icon: "eye" },
-    { name: "Cejas", icon: "emoji-sunglasses" },
-    { name: "Manos", icon: "hand-index-thumb" },
-    { name: "Pies", icon: "flower2" }
+    { name: "Cejas", icon: "brush" },
+    { name: "Manos", icon: "hand-index" },
+    { name: "Pies", icon: "gem" }
   ];
 
   function formatMoney(value) {
@@ -165,59 +179,83 @@ let settings = {
   }
 
   async function fetchPublicData(from = today, to = "") {
-  const query = new URLSearchParams({ from });
+    let payload = {};
 
-  if (to) {
-    query.set("to", to);
-  }
+    const canUsePrefetch =
+      from === today &&
+      !to &&
+      window.ByAleePublicDataPromise;
 
-  const response = await fetch(
-    `/api/public-data?${query}`,
-    {
-      headers: {
-        Accept: "application/json"
+    if (canUsePrefetch) {
+      const prefetched = await window.ByAleePublicDataPromise;
+      window.ByAleePublicDataPromise = null;
+
+      if (prefetched?.error) {
+        throw prefetched.error;
+      }
+
+      if (!prefetched?.ok) {
+        throw new Error(
+          prefetched?.payload?.error ||
+          "No se pudo consultar la disponibilidad."
+        );
+      }
+
+      payload = prefetched.payload || {};
+    } else {
+      const query = new URLSearchParams({ from });
+
+      if (to) {
+        query.set("to", to);
+      }
+
+      const response = await fetch(
+        `/api/public-data?${query}`,
+        {
+          headers: {
+            Accept: "application/json"
+          }
+        }
+      );
+
+      payload = await response
+        .json()
+        .catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(
+          payload.error ||
+          "No se pudo consultar la disponibilidad."
+        );
       }
     }
-  );
 
-  const payload = await response
-    .json()
-    .catch(() => ({}));
+    settings = {
+      ...defaultSettings,
+      ...(payload.settings || {})
+    };
 
-  if (!response.ok) {
-    throw new Error(
-      payload.error ||
-      "No se pudo consultar la disponibilidad."
-    );
+    services = Array.isArray(payload.services)
+      ? payload.services
+      : [];
+
+    appointments = Array.isArray(payload.appointments)
+      ? payload.appointments
+      : [];
+
+    availabilityBlocks = Array.isArray(
+      payload.availabilityBlocks
+    )
+      ? payload.availabilityBlocks
+      : [];
+
+    saveCachedPublicData({
+      settings,
+      services
+    });
+
+    return payload;
   }
-
-  settings = {
-    ...defaultSettings,
-    ...(payload.settings || {})
-  };
-
-  /*
-   * Guarda la configuración pública real recibida.
-   * En la próxima visita se aplicará inmediatamente.
-   */
-  saveCachedPublicSettings(settings);
-
-  services = Array.isArray(payload.services)
-    ? payload.services
-    : [];
-
-  appointments = Array.isArray(payload.appointments)
-    ? payload.appointments
-    : [];
-
-  availabilityBlocks = Array.isArray(
-    payload.availabilityBlocks
-  )
-    ? payload.availabilityBlocks
-    : [];
-
-  return payload;
-}
 
   function renderBrand() {
     const name = settings.studioName || "ByAlee";
@@ -295,31 +333,131 @@ let settings = {
   function renderTimes() {
     const target = $("#bookingTimes");
     const date = $("#bookingDate").value;
-    const service = services.find(item => Number(item.id) === Number(serviceId));
+    const service = services.find(
+      item => Number(item.id) === Number(serviceId)
+    );
+
     if (!date || !service) {
-      target.innerHTML = '<div class="step-help"><i class="bi bi-arrow-left-circle"></i><div><strong>Primero elegí un servicio</strong>Luego aparecerán los horarios donde entra la duración completa.</div></div>';
+      target.innerHTML = `
+        <div class="step-help">
+          <i class="bi bi-arrow-left-circle"></i>
+          <div>
+            <strong>Primero elegí un servicio</strong>
+            Luego aparecerán los horarios donde entra la duración completa.
+          </div>
+        </div>
+      `;
       return;
     }
-    const workDays = (settings.workDays || [1,2,3,4,5,6]).map(Number);
+
+    const workDays = (
+      settings.workDays || [1, 2, 3, 4, 5, 6]
+    ).map(Number);
+
     if (!workDays.includes(dayOfWeek(date))) {
-      target.innerHTML = '<div class="step-help"><i class="bi bi-calendar-x"></i><div><strong>Día no disponible</strong>Elegí otra fecha de atención.</div></div>';
+      target.innerHTML = `
+        <div class="step-help">
+          <i class="bi bi-calendar-x"></i>
+          <div>
+            <strong>Día no disponible</strong>
+            Elegí otra fecha de atención.
+          </div>
+        </div>
+      `;
       return;
     }
-    const opening = timeToMinutes(settings.openingTime || "08:00");
-    const closing = timeToMinutes(settings.closingTime || "20:00");
-    const interval = Number(settings.slotInterval || 30);
+
+    const opening = timeToMinutes(
+      settings.openingTime || "08:00"
+    );
+
+    const closing = timeToMinutes(
+      settings.closingTime || "20:00"
+    );
+
+    const interval = Number(
+      settings.slotInterval || 30
+    );
+
     const duration = totalDuration(service);
+    const now = new Date();
+    const isToday = date === browserDate();
+
+    const minimumStart = isToday
+      ? now.getHours() * 60 +
+        now.getMinutes() +
+        MINIMUM_NOTICE_MINUTES
+      : opening;
+
     const times = [];
-    for (let start = opening; start + duration <= closing; start += interval) {
+
+    for (
+      let start = opening;
+      start + duration <= closing;
+      start += interval
+    ) {
       const end = start + duration;
-      if (!isBlocked(date, start, end) && !isOccupied(date, start, end)) times.push(toTime(start));
+
+      if (start < minimumStart) {
+        continue;
+      }
+
+      if (
+        !isBlocked(date, start, end) &&
+        !isOccupied(date, start, end)
+      ) {
+        times.push(toTime(start));
+      }
     }
+
+    if (
+      selectedTime &&
+      !times.includes(selectedTime)
+    ) {
+      selectedTime = "";
+    }
+
     target.innerHTML = times.length
-      ? times.map(time => `<button type="button" class="time-btn ${time === selectedTime ? "active" : ""}" data-time="${time}">${time}</button>`).join("")
-      : '<div class="step-help"><i class="bi bi-calendar2-x"></i><div><strong>Sin horarios libres</strong>Probá con otra fecha.</div></div>';
-    $$("[data-time]").forEach(button => button.onclick = () => {
-      selectedTime = button.dataset.time;
-      renderTimes();
+      ? times
+          .map(
+            time => `
+              <button
+                type="button"
+                class="time-btn ${
+                  time === selectedTime
+                    ? "active"
+                    : ""
+                }"
+                data-time="${time}"
+              >
+                ${time}
+              </button>
+            `
+          )
+          .join("")
+      : `
+          <div class="step-help">
+            <i class="bi bi-calendar2-x"></i>
+            <div>
+              <strong>${
+                isToday
+                  ? "Ya no quedan horarios para hoy"
+                  : "Sin horarios libres"
+              }</strong>
+              ${
+                isToday
+                  ? "Elegí otra fecha para consultar disponibilidad."
+                  : "Probá con otra fecha."
+              }
+            </div>
+          </div>
+        `;
+
+    $$('[data-time]').forEach(button => {
+      button.onclick = () => {
+        selectedTime = button.dataset.time;
+        renderTimes();
+      };
     });
   }
 
@@ -479,37 +617,36 @@ let settings = {
       </div>`;
   }
 
-  async function init() {
-  try {
-    /*
-     * La reserva pública consulta directamente el endpoint
-     * de Vercel. No necesita inicializar Supabase en el navegador.
-     */
-    await fetchPublicData(today);
+  let interfaceBound = false;
 
-    if (settings.bookingEnabled === false) {
-      $("#bookingCard").innerHTML = `
-        <div class="booking-disabled">
-          <i class="bi bi-calendar-x"></i>
-          <h2>Reservas temporalmente pausadas</h2>
-          <p>
-            Escribí a ByAlee por WhatsApp para consultar
-            disponibilidad.
-          </p>
-        </div>
-      `;
+  function applyBookingRules() {
+    if (settings.allowDepositProof === false) {
+      $("#proofMethodOption").hidden = true;
+    } else {
+      $("#proofMethodOption").hidden = false;
+    }
 
+    if (settings.requirePoliciesAcceptance === false) {
+      $("#policiesRequiredNote").style.display = "none";
+      $("#policiesAccepted").checked = true;
+    }
+
+    if (settings.requireConsent === false) {
+      $("#consentRequiredNote").style.display = "none";
+      $("#consentAccepted").checked = true;
+    }
+  }
+
+  function bindInterface() {
+    if (interfaceBound) {
       return;
     }
 
-    applyAppearance();
-    renderBrand();
-    renderAreas();
-    renderServices();
+    interfaceBound = true;
 
     $("#bookingDate").min = today;
-    $("#bookingDate").value = today;
-    $("#signatureDate").value = today;
+    $("#bookingDate").value ||= today;
+    $("#signatureDate").value ||= today;
 
     $("#bookingDate").onchange = async () => {
       selectedTime = "";
@@ -520,7 +657,7 @@ let settings = {
       setDetails(!detailsExpanded);
     };
 
-    $$("[name='depositMethod']").forEach(input => {
+    $$('[name="depositMethod"]').forEach(input => {
       input.onchange = updateDeposit;
     });
 
@@ -558,16 +695,12 @@ let settings = {
         };
 
         $("#depositProofPreview").innerHTML = `
-          <img
-            src="${dataUrl}"
-            alt="Comprobante de seña"
-          >
+          <img src="${dataUrl}" alt="Comprobante">
         `;
       } catch (error) {
         proofData = null;
-
         $("#depositProofPreview").textContent =
-          error.message || "No se pudo leer la imagen.";
+          error.message || "No se pudo leer";
       }
     };
 
@@ -605,49 +738,83 @@ let settings = {
     $("#newBookingBtn").onclick = () => {
       location.href = "/reservar";
     };
+  }
 
-    if (settings.allowDepositProof === false) {
-      $("#proofMethodOption").hidden = true;
+  function renderInitialLoadingState() {
+    if (services.length) {
+      return;
     }
 
-    if (settings.requirePoliciesAcceptance === false) {
-      $("#policiesRequiredNote").style.display = "none";
-      $("#policiesAccepted").checked = true;
-    }
+    $("#areaChoices").innerHTML = `
+      <div class="booking-loading-message">
+        <i class="bi bi-calendar-heart"></i>
+        <span>Cargando servicios disponibles…</span>
+      </div>
+    `;
 
-    if (settings.requireConsent === false) {
-      $("#consentRequiredNote").style.display = "none";
-      $("#consentAccepted").checked = true;
+    $("#serviceChoices").innerHTML = "";
+  }
+
+  async function init() {
+    /*
+     * Todo lo que ya está guardado se dibuja antes de esperar
+     * la respuesta del servidor.
+     */
+    applyAppearance();
+    renderBrand();
+    bindInterface();
+    applyBookingRules();
+
+    if (services.length) {
+      renderAreas();
+      renderServices();
+    } else {
+      renderInitialLoadingState();
     }
 
     go(1);
-  } catch (error) {
-    console.error(
-      "No se pudo cargar la reserva pública:",
-      error
-    );
 
-    showConfigurationError(
-      error.message ||
-      "No se pudo consultar la configuración pública."
-    );
+    try {
+      await fetchPublicData(today);
+
+      if (settings.bookingEnabled === false) {
+        $("#bookingCard").innerHTML = `
+          <div class="booking-disabled">
+            <i class="bi bi-calendar-x"></i>
+            <h2>Reservas temporalmente pausadas</h2>
+            <p>
+              Escribí a ByAlee por WhatsApp para consultar
+              disponibilidad.
+            </p>
+          </div>
+        `;
+        return;
+      }
+
+      /*
+       * Actualización silenciosa con los datos reales.
+       */
+      applyAppearance();
+      renderBrand();
+      renderAreas();
+      renderServices();
+      applyBookingRules();
+
+      if (step === 2) {
+        renderTimes();
+      }
+    } catch (error) {
+      console.error(error);
+
+      /*
+       * Si existe caché utilizable, la reserva sigue disponible.
+       * Solo mostramos el error completo cuando no hay datos.
+       */
+      if (!services.length) {
+        showConfigurationError(error.message);
+      }
+    }
   }
-}
 
-/*
- * Primer dibujo inmediato usando la última configuración
- * y los últimos servicios guardados.
- */
-applyAppearance();
-renderBrand();
-
-if (services.length) {
-  renderAreas();
-  renderServices();
-}
-
-/*
- * Actualiza silenciosamente los datos reales.
- */
-init();
+  init();
 })();
