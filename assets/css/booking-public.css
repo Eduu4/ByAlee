@@ -1,0 +1,216 @@
+/*
+  ByAlee — mejoras del enlace público de reservas
+  Este archivo debe cargarse después de mobile.css.
+*/
+
+/* =========================================================
+   ICONOS DE ÁREAS: ASPECTO MÁS PROFESIONAL
+========================================================= */
+
+.area-btn {
+  min-height: 92px;
+  padding: 14px 10px;
+  gap: 9px;
+  border-radius: 17px;
+  font-size: 11px;
+  letter-spacing: .01em;
+  transition:
+    border-color .18s ease,
+    background-color .18s ease,
+    transform .18s ease;
+}
+
+.area-btn:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--primary) 55%, var(--line));
+}
+
+.area-btn i {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--primary) 28%, var(--line));
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--primary) 8%, var(--surface));
+  color: var(--primary);
+  font-size: 19px;
+  line-height: 1;
+}
+
+.area-btn.active {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 9%, var(--surface-2));
+  color: var(--text);
+  box-shadow: none;
+}
+
+.area-btn.active i {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #fff;
+}
+
+/* =========================================================
+   HORARIOS
+========================================================= */
+
+.time-status-note {
+  margin: 12px 0 0;
+  padding: 10px 12px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 10px;
+  line-height: 1.45;
+}
+
+.time-status-note i {
+  flex: 0 0 auto;
+  margin-top: 1px;
+  color: var(--primary);
+  font-size: 13px;
+}
+
+.booking-time-empty {
+  grid-column: 1 / -1;
+  min-height: 150px;
+  padding: 24px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  border: 1px dashed var(--line);
+  border-radius: 16px;
+  background: var(--surface-2);
+  color: var(--muted);
+  text-align: center;
+}
+
+.booking-time-empty i {
+  color: var(--primary);
+  font-size: 26px;
+}
+
+.booking-time-empty strong {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.booking-time-empty span {
+  max-width: 420px;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+/* =========================================================
+   POLÍTICAS Y CONSENTIMIENTO
+   Checkbox propio para garantizar que ambos sean visibles.
+========================================================= */
+
+.accept-card {
+  position: relative;
+  display: grid !important;
+  grid-template-columns: 24px minmax(0, 1fr);
+  align-items: start;
+  gap: 12px;
+  min-width: 0;
+}
+
+.accept-card input[type="checkbox"] {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+
+  position: static !important;
+  display: grid !important;
+  place-content: center;
+
+  width: 24px !important;
+  min-width: 24px !important;
+  max-width: 24px !important;
+  height: 24px !important;
+  min-height: 24px !important;
+  max-height: 24px !important;
+
+  margin: 0 !important;
+  padding: 0 !important;
+
+  opacity: 1 !important;
+  visibility: visible !important;
+
+  border: 2px solid color-mix(in srgb, var(--primary) 55%, var(--line));
+  border-radius: 7px;
+  background: var(--surface);
+  cursor: pointer;
+  box-shadow: none !important;
+  transition:
+    background-color .16s ease,
+    border-color .16s ease;
+}
+
+.accept-card input[type="checkbox"]::after {
+  content: "";
+  width: 10px;
+  height: 6px;
+  border-left: 2px solid #fff;
+  border-bottom: 2px solid #fff;
+  transform: rotate(-45deg) scale(0);
+  transform-origin: center;
+  transition: transform .14s ease;
+}
+
+.accept-card input[type="checkbox"]:checked {
+  border-color: var(--primary);
+  background: var(--primary);
+}
+
+.accept-card input[type="checkbox"]:checked::after {
+  transform: rotate(-45deg) scale(1);
+}
+
+.accept-card input[type="checkbox"]:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--primary) 24%, transparent);
+  outline-offset: 3px;
+}
+
+.accept-card:has(input[type="checkbox"]:checked) {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface-2));
+}
+
+.accept-card > span {
+  min-width: 0;
+}
+
+/* Evita que estilos globales oculten específicamente el segundo checkbox. */
+#policiesAccepted,
+#consentAccepted {
+  display: grid !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+/* =========================================================
+   MÓVIL
+========================================================= */
+
+@media (max-width: 560px) {
+  .area-btn {
+    min-height: 84px;
+  }
+
+  .area-btn i {
+    width: 38px;
+    height: 38px;
+    font-size: 17px;
+  }
+
+  .accept-card {
+    grid-template-columns: 24px minmax(0, 1fr);
+    padding: 13px;
+  }
+}
