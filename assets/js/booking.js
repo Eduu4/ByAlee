@@ -32,7 +32,84 @@
     requireDepositChoice: true
   };
 
-  let settings = { ...defaultSettings };
+  /*let settings = { ...defaultSettings };*/
+  const PUBLIC_SETTINGS_CACHE_KEY =
+  "byalee_public_settings_v1";
+
+const PUBLIC_SETTING_KEYS = [
+  "studioName",
+  "city",
+  "openingTime",
+  "closingTime",
+  "slotInterval",
+  "workDays",
+  "currency",
+  "primaryColor",
+  "appearance",
+  "bookingEnabled",
+  "requireConsent",
+  "requirePoliciesAcceptance",
+  "bookingPoliciesVersion",
+  "bookingPoliciesText",
+  "defaultDeposit",
+  "allowDepositProof",
+  "requireDepositChoice"
+];
+
+function selectPublicSettings(source = {}) {
+  return PUBLIC_SETTING_KEYS.reduce(
+    (result, key) => {
+      if (source[key] !== undefined) {
+        result[key] = source[key];
+      }
+
+      return result;
+    },
+    {}
+  );
+}
+
+function loadCachedPublicSettings() {
+  try {
+    const cached = JSON.parse(
+      localStorage.getItem(
+        PUBLIC_SETTINGS_CACHE_KEY
+      ) || "null"
+    );
+
+    return cached && typeof cached === "object"
+      ? selectPublicSettings(cached)
+      : {};
+  } catch (error) {
+    console.warn(
+      "No se pudo leer la configuración pública:",
+      error
+    );
+
+    return {};
+  }
+}
+
+function saveCachedPublicSettings(value) {
+  try {
+    localStorage.setItem(
+      PUBLIC_SETTINGS_CACHE_KEY,
+      JSON.stringify(
+        selectPublicSettings(value)
+      )
+    );
+  } catch (error) {
+    console.warn(
+      "No se pudo guardar la configuración pública:",
+      error
+    );
+  }
+}
+
+let settings = {
+  ...defaultSettings,
+  ...loadCachedPublicSettings()
+};
   let services = [];
   let appointments = [];
   let availabilityBlocks = [];
@@ -88,17 +165,59 @@
   }
 
   async function fetchPublicData(from = today, to = "") {
-    const query = new URLSearchParams({ from });
-    if (to) query.set("to", to);
-    const response = await fetch(`/api/public-data?${query}`, { headers: { Accept: "application/json" } });
-    const payload = await response.json().catch(() => ({}));
-    if (!response.ok) throw new Error(payload.error || "No se pudo consultar la disponibilidad.");
-    settings = { ...defaultSettings, ...(payload.settings || {}) };
-    services = Array.isArray(payload.services) ? payload.services : [];
-    appointments = Array.isArray(payload.appointments) ? payload.appointments : [];
-    availabilityBlocks = Array.isArray(payload.availabilityBlocks) ? payload.availabilityBlocks : [];
-    return payload;
+  const query = new URLSearchParams({ from });
+
+  if (to) {
+    query.set("to", to);
   }
+
+  const response = await fetch(
+    `/api/public-data?${query}`,
+    {
+      headers: {
+        Accept: "application/json"
+      }
+    }
+  );
+
+  const payload = await response
+    .json()
+    .catch(() => ({}));
+
+  if (!response.ok) {
+    throw new Error(
+      payload.error ||
+      "No se pudo consultar la disponibilidad."
+    );
+  }
+
+  settings = {
+    ...defaultSettings,
+    ...(payload.settings || {})
+  };
+
+  /*
+   * Guarda la configuración pública real recibida.
+   * En la próxima visita se aplicará inmediatamente.
+   */
+  saveCachedPublicSettings(settings);
+
+  services = Array.isArray(payload.services)
+    ? payload.services
+    : [];
+
+  appointments = Array.isArray(payload.appointments)
+    ? payload.appointments
+    : [];
+
+  availabilityBlocks = Array.isArray(
+    payload.availabilityBlocks
+  )
+    ? payload.availabilityBlocks
+    : [];
+
+  return payload;
+}
 
   function renderBrand() {
     const name = settings.studioName || "ByAlee";
@@ -423,5 +542,16 @@
     }
   }
 
-  init();
+/*
+ * Aplicación inmediata de la última configuración conocida.
+ * No espera la respuesta de Supabase.
+ */
+applyAppearance();
+renderBrand();
+
+/*
+ * Supabase actualiza después la configuración,
+ * servicios, citas y disponibilidad.
+ */
+init();
 })();
