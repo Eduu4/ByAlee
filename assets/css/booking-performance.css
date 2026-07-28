@@ -1,0 +1,57 @@
+/*
+  ByAlee — rendimiento visual y bloqueo de zoom móvil.
+  Pegar al final de assets/css/booking-public.css.
+*/
+
+.booking-loading-message {
+  grid-column: 1 / -1;
+  min-height: 160px;
+  padding: 24px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 10px;
+  border: 1px dashed var(--line);
+  border-radius: 17px;
+  background: var(--surface-2);
+  color: var(--muted);
+  text-align: center;
+}
+
+.booking-loading-message i {
+  color: var(--primary);
+  font-size: 27px;
+}
+
+.booking-loading-message span {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+@media (max-width: 800px) {
+  html,
+  body {
+    touch-action: pan-x pan-y;
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+
+  button,
+  a,
+  label,
+  input,
+  select,
+  textarea {
+    touch-action: manipulation;
+  }
+
+  /*
+   * Evita el zoom automático de iPhone al enfocar
+   * inputs con texto menor a 16px.
+   */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+}
