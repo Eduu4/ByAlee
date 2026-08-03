@@ -1449,3 +1449,37 @@
     display: none !important;
   }
 }
+
+/* =========================================================
+   BLOQUEO DE ZOOM EN DISPOSITIVOS MÓVILES
+========================================================= */
+
+@media (max-width: 760px) {
+  /*
+   * Evita el zoom automático de iPhone al enfocar
+   * campos cuyo texto sea menor a 16px.
+   */
+  input,
+  select,
+  textarea {
+    font-size: 16px !important;
+  }
+
+  /*
+   * Evita el zoom por doble toque en controles,
+   * manteniendo los clics y el desplazamiento normal.
+   */
+  button,
+  a,
+  label,
+  input,
+  select,
+  textarea {
+    touch-action: manipulation;
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+  }
+}
