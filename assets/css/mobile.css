@@ -1451,11 +1451,18 @@
 }
 
 /* =========================================================
-   BLOQUEO SEGURO DE ZOOM EN MÓVILES
+   BLOQUEO DE ZOOM EN DISPOSITIVOS MÓVILES
 ========================================================= */
 
-@media (max-width: 760px) {
-  html {
+@media (max-width: 900px) {
+  html,
+  body {
+    /*
+     * Permite desplazamiento normal con un dedo,
+     * pero no incluye pinch-zoom.
+     */
+    touch-action: pan-x pan-y;
+
     -webkit-text-size-adjust: 100%;
     text-size-adjust: 100%;
   }
@@ -1466,12 +1473,15 @@
   input,
   select,
   textarea {
-    touch-action: manipulation;
+    /*
+     * No usar manipulation porque permite pinch-zoom.
+     */
+    touch-action: pan-x pan-y;
   }
 
   /*
-   * Evita el zoom automático al seleccionar campos
-   * en iPhone y otros navegadores móviles.
+   * Evita el zoom automático cuando se enfoca
+   * un campo en navegadores móviles.
    */
   input,
   select,
