@@ -9,6 +9,11 @@
 
   const $ = (
     selector,
+ const LIGHT_LOGO =
+    "/assets/images/byale-logo-light.webp";
+
+  const $ = (
+    selector,
     parent = document
   ) => parent.querySelector(selector);
 
@@ -89,12 +94,11 @@
           }
         ).formatToParts(new Date());
 
-      const hour =
+      return Number(
         parts.find(
           part => part.type === "hour"
-        )?.value;
-
-      return Number(hour);
+        )?.value
+      );
     } catch {
       return new Date().getHours();
     }
@@ -123,22 +127,28 @@
       return;
     }
 
-    const expected =
-      `${greetingText()}, ` +
-      `${firstUsefulName()} ✨`;
+    const greetingValue =
+      greetingText();
 
-    if (
+    const userName =
+      firstUsefulName();
+
+    const expected =
+      `${greetingValue}, ${userName} ✨`;
+
+    const current =
       greeting.textContent
         .replace(/\s+/g, " ")
-        .trim() === expected
-    ) {
+        .trim();
+
+    if (current === expected) {
       return;
     }
 
     greeting.innerHTML =
-      `${escapeHtml(greetingText())}, ` +
+      `${escapeHtml(greetingValue)}, ` +
       `<span class="dashboard-user-name">` +
-      `${escapeHtml(firstUsefulName())}` +
+      `${escapeHtml(userName)}` +
       `</span> ` +
       `<span aria-hidden="true">✨</span>`;
   }
@@ -154,7 +164,8 @@
   }
 
   function installSidebarLogo() {
-    const brand = $(".sidebar > .brand");
+    const brand =
+      $(".sidebar > .brand");
 
     if (!brand) {
       return;
@@ -181,8 +192,18 @@
         $("#sidebarBrandLogo", brand);
     }
 
-    if (logo) {
-      logo.src = logoForCurrentTheme();
+    const expectedSource =
+      new URL(
+        logoForCurrentTheme(),
+        location.origin
+      ).href;
+
+    if (
+      logo &&
+      logo.src !== expectedSource
+    ) {
+      logo.src =
+        logoForCurrentTheme();
     }
   }
 
@@ -190,11 +211,15 @@
     [
       "#openPhysicalRecordImportBtn",
       "#physicalRecordImportRoot",
-      "#physicalImportOverlay"
+      "#physicalImportOverlay",
+      ".physical-import-launcher",
+      ".physical-import-overlay"
     ].forEach(selector => {
       document
         .querySelectorAll(selector)
-        .forEach(element => element.remove());
+        .forEach(element => {
+          element.remove();
+        });
     });
   }
 
@@ -221,9 +246,16 @@
         ":scope > span"
       );
 
-    if (title) {
+    const expectedTitle =
+      "Sugerir mantenimiento después de";
+
+    if (
+      title &&
+      title.textContent.trim() !==
+        expectedTitle
+    ) {
       title.textContent =
-        "Sugerir mantenimiento después de";
+        expectedTitle;
     }
 
     input.setAttribute(
@@ -266,17 +298,12 @@
     try {
       await window.byAleeAuthReady;
     } catch {
-      // auth.js se encarga de redirigir.
+      return;
     }
 
-    /*
-      app.js carga los datos compartidos de forma
-      asíncrona. Esperamos brevemente para obtener
-      el nombre real del perfil autenticado.
-    */
     for (
       let attempt = 0;
-      attempt < 40;
+      attempt < 30;
       attempt += 1
     ) {
       if (
@@ -292,11 +319,31 @@
 
     refreshInterface();
 
+    /*
+      Reintentos finitos por si app.js termina
+      de renderizar un poco después.
+      No se usan observadores sobre todo el DOM.
+    */
+    window.setTimeout(
+      refreshInterface,
+      800
+    );
+
+    window.setTimeout(
+      refreshInterface,
+      2500
+    );
+
     window.setInterval(
       updateGreeting,
       60_000
     );
 
+    /*
+      Este observador solo escucha el atributo
+      data-theme y no modifica ese atributo,
+      por lo que no genera un ciclo.
+    */
     const themeObserver =
       new MutationObserver(() => {
         installSidebarLogo();
@@ -307,61 +354,6 @@
       {
         attributes: true,
         attributeFilter: ["data-theme"]
-      }
-    );
-
-    const dashboard =
-      $("#dashboardView");
-
-    if (dashboard) {
-      const greetingObserver =
-        new MutationObserver(() => {
-          updateGreeting();
-        });
-
-      greetingObserver.observe(
-        dashboard,
-        {
-          childList: true,
-          subtree: true,
-          characterData: true
-        }
-      );
-    }
-
-    const settingsView =
-      $("#settingsView");
-
-    if (settingsView) {
-      const settingsObserver =
-        new MutationObserver(() => {
-          improveMaintenanceField();
-        });
-
-      settingsObserver.observe(
-        settingsView,
-        {
-          childList: true,
-          subtree: true
-        }
-      );
-    }
-
-    /*
-      Protección adicional: aunque quede el script
-      antiguo en la caché, cualquier botón o modal
-      que intente inyectar será retirado.
-    */
-    const bodyObserver =
-      new MutationObserver(() => {
-        removePhysicalImport();
-      });
-
-    bodyObserver.observe(
-      document.body,
-      {
-        childList: true,
-        subtree: true
       }
     );
   }
