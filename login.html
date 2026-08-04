@@ -11,6 +11,7 @@
   <title>Acceso — ByAlee</title>
   <meta name="theme-color" content="#8f5c70">
 
+  <!-- Aplica el tema guardado antes del primer renderizado. -->
   <script>
     (() => {
       "use strict";
@@ -34,15 +35,15 @@
       const publicSettings =
         readObject("byalee_public_data_v2").settings || {};
 
-      const cachedSettings =
-        readObject("byalee_login_branding_v4");
+      const loginSettings =
+        readObject("byalee_login_branding_v6");
 
-      const applicationSettings =
+      const appSettings =
         readObject("lashflow_demo_settings");
 
       const appearance =
-        applicationSettings.appearance ||
-        cachedSettings.appearance ||
+        appSettings.appearance ||
+        loginSettings.appearance ||
         publicSettings.appearance ||
         "dark";
 
@@ -62,8 +63,8 @@
             );
 
       const primaryColor =
-        applicationSettings.primaryColor ||
-        cachedSettings.primaryColor ||
+        appSettings.primaryColor ||
+        loginSettings.primaryColor ||
         publicSettings.primaryColor ||
         "#8f5c70";
 
@@ -91,33 +92,36 @@
 
   <link
     rel="stylesheet"
-    href="/assets/css/login.css?v=responsive-v5"
+    href="/assets/css/login.css?v=adaptable-v6"
   >
 </head>
 
 <body>
-  <main class="login-layout">
-    <section class="login-hero">
+  <main class="auth-shell">
+    <section
+      class="brand-panel"
+      aria-label="Presentación de ByAlee"
+    >
       <img
-        class="login-hero-photo"
+        class="brand-photo"
         src="/assets/images/login-portrait.webp"
         alt=""
         aria-hidden="true"
       >
 
-      <div class="login-hero-shade" aria-hidden="true"></div>
-      <div class="login-hero-glow" aria-hidden="true"></div>
-      <div class="login-hero-wave" aria-hidden="true"></div>
+      <div class="brand-shade" aria-hidden="true"></div>
+      <div class="brand-glow" aria-hidden="true"></div>
+      <div class="brand-wave" aria-hidden="true"></div>
 
-      <div class="login-hero-content">
+      <div class="brand-content">
         <img
-          class="login-logo"
-          id="brandLogo"
+          class="brand-logo"
+          data-brand-logo
           src="/assets/images/byale-logo-dark.webp"
           alt="By Ale — Lash & Brown"
         >
 
-        <div class="login-hero-divider" aria-hidden="true">
+        <div class="brand-divider" aria-hidden="true">
           <span></span>
           <b>✦</b>
           <span></span>
@@ -128,15 +132,14 @@
           <em>en su mejor versión.</em>
         </h1>
 
-        <p>
-          Gestioná citas, clientas y servicios desde un solo lugar.
-          Más tiempo para crear belleza y menos tiempo en tareas
-          administrativas.
+        <p class="brand-description">
+          Administrá citas, clientas, servicios y fichas desde
+          un solo lugar, con una experiencia adaptada a tu estudio.
         </p>
 
-        <div class="login-benefits">
+        <div class="brand-features">
           <article>
-            <span class="benefit-icon" aria-hidden="true">
+            <span class="feature-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24">
                 <path d="M7 3v3M17 3v3M4 9h16"/>
                 <rect x="4" y="5" width="16" height="15" rx="2"/>
@@ -146,12 +149,12 @@
 
             <span>
               <strong>Agenda inteligente</strong>
-              <small>Organizá citas y disponibilidad.</small>
+              <small>Citas, solicitudes y disponibilidad.</small>
             </span>
           </article>
 
           <article>
-            <span class="benefit-icon" aria-hidden="true">
+            <span class="feature-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24">
                 <circle cx="12" cy="8" r="4"/>
                 <path d="M4.5 20a7.5 7.5 0 0 1 15 0"/>
@@ -165,7 +168,7 @@
           </article>
 
           <article>
-            <span class="benefit-icon" aria-hidden="true">
+            <span class="feature-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24">
                 <path d="M4 19V11M10 19V7M16 19v-4M22 19V4"/>
                 <path d="M2 19h21"/>
@@ -173,17 +176,36 @@
             </span>
 
             <span>
-              <strong>Reportes y crecimiento</strong>
-              <small>Datos claros para mejores decisiones.</small>
+              <strong>Control del negocio</strong>
+              <small>Información clara para mejores decisiones.</small>
             </span>
           </article>
         </div>
       </div>
     </section>
 
-    <section class="login-main">
-      <div class="login-card" id="loginCard">
-        <header class="login-header">
+    <section class="auth-panel">
+      <div class="mobile-brand">
+        <img
+          data-brand-logo
+          src="/assets/images/byale-logo-dark.webp"
+          alt="By Ale — Lash & Brown"
+        >
+
+        <span>
+          Gestión simple para tu estudio
+        </span>
+      </div>
+
+      <div
+        class="auth-card"
+        id="loginCard"
+      >
+        <header class="auth-header">
+          <span class="auth-kicker">
+            ACCESO PRIVADO
+          </span>
+
           <h2>Bienvenida de nuevo</h2>
 
           <p>
@@ -193,16 +215,16 @@
         </header>
 
         <form
-          class="login-form"
+          class="auth-form"
           id="loginForm"
           novalidate
         >
-          <label class="login-field">
+          <label class="auth-field">
             <span>Correo o usuario</span>
 
-            <span class="login-control">
+            <span class="auth-control">
               <svg
-                class="login-control-icon"
+                class="auth-control-icon"
                 aria-hidden="true"
                 viewBox="0 0 24 24"
               >
@@ -222,12 +244,12 @@
             </span>
           </label>
 
-          <label class="login-field">
+          <label class="auth-field">
             <span>Contraseña</span>
 
-            <span class="login-control">
+            <span class="auth-control">
               <svg
-                class="login-control-icon"
+                class="auth-control-icon"
                 aria-hidden="true"
                 viewBox="0 0 24 24"
               >
@@ -271,7 +293,7 @@
             </span>
           </label>
 
-          <div class="login-options">
+          <div class="auth-options">
             <label class="remember-user">
               <input
                 id="rememberIdentifier"
@@ -291,7 +313,7 @@
           </div>
 
           <button
-            class="login-submit"
+            class="auth-submit"
             id="loginSubmit"
             type="submit"
           >
@@ -312,17 +334,20 @@
             aria-live="polite"
           ></div>
 
-          <div class="client-separator" aria-hidden="true">
+          <div
+            class="client-divider"
+            aria-hidden="true"
+          >
             <span></span>
-            <b>✦</b>
+            <small>CLIENTAS</small>
             <span></span>
           </div>
 
           <a
-            class="client-button"
+            class="client-action"
             href="/reservar"
           >
-            <span class="client-button-icon" aria-hidden="true">
+            <span class="client-action-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24">
                 <path d="M7 3v3M17 3v3M4 9h16"/>
                 <rect x="4" y="5" width="16" height="15" rx="2"/>
@@ -330,13 +355,13 @@
               </svg>
             </span>
 
-            <span class="client-button-copy">
-              <strong>Reservar como clienta</strong>
+            <span class="client-action-copy">
+              <strong>Reservar una cita</strong>
               <small>Ver días y horarios disponibles</small>
             </span>
 
             <svg
-              class="client-button-arrow"
+              class="client-action-arrow"
               aria-hidden="true"
               viewBox="0 0 24 24"
             >
@@ -345,11 +370,15 @@
           </a>
         </form>
       </div>
+
+      <p class="auth-security">
+        Acceso protegido mediante Supabase Authentication.
+      </p>
     </section>
   </main>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/assets/js/platform.js"></script>
-  <script src="/assets/js/login.js?v=responsive-v5"></script>
+  <script src="/assets/js/login.js?v=adaptable-v6"></script>
 </body>
 </html>

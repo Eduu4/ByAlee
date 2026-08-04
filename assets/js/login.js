@@ -8,7 +8,7 @@
   };
 
   const BRAND_CACHE_KEY =
-    "byalee_login_branding_v4";
+    "byalee_login_branding_v6";
 
   const IDENTIFIER_KEY =
     "byalee_login_identifier_v1";
@@ -43,8 +43,11 @@
   const studioNameElement =
     document.getElementById("loginStudioName");
 
-  const brandLogo =
-    document.getElementById("brandLogo");
+  const brandLogos = [
+    ...document.querySelectorAll(
+      "[data-brand-logo]"
+    )
+  ];
 
   let currentSettings = {
     ...DEFAULTS
@@ -111,11 +114,15 @@
       : "dark";
   }
 
-  function updateLogo(theme) {
-    brandLogo.src =
+  function updateLogos(theme) {
+    const source =
       theme === "dark"
         ? "/assets/images/byale-logo-dark.webp"
         : "/assets/images/byale-logo-light.webp";
+
+    brandLogos.forEach(logo => {
+      logo.src = source;
+    });
   }
 
   function applyBranding(settings = {}) {
@@ -172,7 +179,7 @@
         primaryColor
       );
 
-    updateLogo(theme);
+    updateLogos(theme);
   }
 
   function loadCachedBranding() {
