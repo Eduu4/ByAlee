@@ -77,12 +77,13 @@ a {
 
 /* =========================================================
    CABECERA MÓVIL
+   Corregida para que no se corte la imagen ni el texto
 ========================================================= */
 
 .login-hero {
   position: relative;
   isolation: isolate;
-  height: 116px;
+  min-height: 170px;
   overflow: hidden;
   border-bottom: 1px solid var(--line);
   background: #070708;
@@ -96,16 +97,16 @@ html[data-theme="light"] .login-hero {
   position: absolute;
   z-index: -3;
   inset: 0 auto 0 0;
-  width: 36%;
+  width: 30%;
   height: 100%;
   object-fit: cover;
-  object-position: center 25%;
-  opacity: 0.78;
+  object-position: center 28%;
+  opacity: 0.84;
 }
 
 html[data-theme="light"] .login-hero-photo {
-  opacity: 0.38;
-  filter: saturate(0.7) brightness(1.08);
+  opacity: 0.34;
+  filter: saturate(0.78) brightness(1.06);
 }
 
 .login-hero-shade {
@@ -115,9 +116,9 @@ html[data-theme="light"] .login-hero-photo {
   background:
     linear-gradient(
       90deg,
-      rgba(7, 7, 8, 0.06),
-      rgba(7, 7, 8, 0.86) 37%,
-      #070708 72%
+      rgba(7, 7, 8, 0.08) 0%,
+      rgba(7, 7, 8, 0.88) 30%,
+      #070708 68%
     );
 }
 
@@ -125,49 +126,49 @@ html[data-theme="light"] .login-hero-shade {
   background:
     linear-gradient(
       90deg,
-      rgba(255, 250, 250, 0.05),
-      rgba(255, 250, 250, 0.86) 38%,
-      #fffafa 72%
+      rgba(255, 250, 250, 0.04) 0%,
+      rgba(255, 250, 250, 0.88) 30%,
+      #fffafa 68%
     );
 }
 
 .login-hero-line {
   position: absolute;
   z-index: -1;
-  left: -8%;
-  right: -8%;
-  bottom: -20px;
-  height: 48px;
-  border-top: 2px solid
-    rgba(var(--login-primary-rgb), 0.7);
+  left: -10%;
+  right: -10%;
+  bottom: -6px;
+  height: 36px;
+  border-top: 2px solid rgba(var(--login-primary-rgb), 0.75);
   border-radius: 50%;
-  box-shadow:
-    0 -8px 24px
-    rgba(var(--login-primary-rgb), 0.25);
-  transform: rotate(-4deg);
+  box-shadow: 0 -6px 18px rgba(var(--login-primary-rgb), 0.22);
+  transform: rotate(-2deg);
 }
 
 .login-hero-content {
-  height: 100%;
+  position: relative;
+  min-height: 170px;
   padding:
-    max(9px, env(safe-area-inset-top))
+    max(12px, env(safe-area-inset-top))
     14px
-    8px
-    38%;
+    18px
+    33%;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+  justify-content: flex-start;
+  align-items: flex-start;
 }
 
 .login-logo {
-  width: 130px;
+  width: 124px;
+  max-width: 100%;
   height: auto;
   display: block;
 }
 
 .login-hero-divider {
-  width: 126px;
-  margin: 1px 0 4px;
+  width: 118px;
+  margin: 4px 0 8px;
   display: grid;
   grid-template-columns: 1fr auto 1fr;
   align-items: center;
@@ -177,25 +178,33 @@ html[data-theme="light"] .login-hero-shade {
 
 .login-hero-divider span {
   height: 1px;
-  background:
-    rgba(var(--login-primary-rgb), 0.55);
+  background: rgba(var(--login-primary-rgb), 0.58);
 }
 
 .login-hero-divider b {
   font-size: 7px;
+  line-height: 1;
+}
+
+.login-hero-copy {
+  width: 100%;
 }
 
 .login-hero-copy h1 {
-  max-width: 250px;
+  max-width: 230px;
   margin: 0;
   font-family: Fraunces, Georgia, serif;
-  font-size: 14px;
+  font-size: 12px;
   font-weight: 600;
-  line-height: 1.08;
+  line-height: 1.18;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  text-wrap: balance;
 }
 
 .login-hero-copy h1 em {
   color: var(--login-primary);
+  font-style: italic;
   font-weight: 600;
 }
 
@@ -593,58 +602,60 @@ html[data-theme="light"] .login-hero-shade {
 
 @media (max-height: 700px) and (max-width: 920px) {
   .login-hero {
-    height: 92px;
+    min-height: 144px;
   }
 
   .login-hero-content {
-    padding-top: 6px;
-    padding-bottom: 5px;
-  }
-
-  .login-logo {
-    width: 105px;
-  }
-
-  .login-hero-divider {
-    display: none;
-  }
-
-  .login-hero-copy h1 {
-    margin-top: 2px;
-    font-size: 12px;
-  }
-
-  .login-main {
-    padding-top: 12px;
+    min-height: 144px;
+    padding-top: 10px;
     padding-bottom: 14px;
   }
 
+  .login-logo {
+    width: 112px;
+  }
+
+  .login-hero-divider {
+    margin: 3px 0 6px;
+  }
+
+  .login-hero-copy h1 {
+    max-width: 210px;
+    font-size: 11px;
+    line-height: 1.14;
+  }
+
+  .login-main {
+    padding-top: 14px;
+    padding-bottom: 16px;
+  }
+
   .login-header {
-    margin-bottom: 11px;
+    margin-bottom: 12px;
   }
 
   .login-header h2 {
-    font-size: 25px;
+    font-size: 27px;
   }
 
   .login-header p {
-    margin-top: 3px;
+    margin-top: 4px;
   }
 
   .login-form {
-    gap: 9px;
+    gap: 10px;
   }
 
   .login-control input {
-    min-height: 45px;
+    min-height: 46px;
   }
 
   .login-submit {
-    min-height: 45px;
+    min-height: 46px;
   }
 
   .client-button {
-    min-height: 48px;
+    min-height: 49px;
   }
 
   .client-button-icon {
