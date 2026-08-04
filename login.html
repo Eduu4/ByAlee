@@ -34,15 +34,15 @@
       const publicSettings =
         readObject("byalee_public_data_v2").settings || {};
 
-      const loginSettings =
+      const cachedSettings =
         readObject("byalee_login_branding_v4");
 
-      const appSettings =
+      const applicationSettings =
         readObject("lashflow_demo_settings");
 
       const appearance =
-        appSettings.appearance ||
-        loginSettings.appearance ||
+        applicationSettings.appearance ||
+        cachedSettings.appearance ||
         publicSettings.appearance ||
         "dark";
 
@@ -62,8 +62,8 @@
             );
 
       const primaryColor =
-        appSettings.primaryColor ||
-        loginSettings.primaryColor ||
+        applicationSettings.primaryColor ||
+        cachedSettings.primaryColor ||
         publicSettings.primaryColor ||
         "#8f5c70";
 
@@ -91,13 +91,13 @@
 
   <link
     rel="stylesheet"
-    href="/assets/css/login.css?v=responsive-v4"
+    href="/assets/css/login.css?v=responsive-v5"
   >
 </head>
 
 <body>
   <main class="login-layout">
-    <aside class="login-hero">
+    <section class="login-hero">
       <img
         class="login-hero-photo"
         src="/assets/images/login-portrait.webp"
@@ -106,7 +106,8 @@
       >
 
       <div class="login-hero-shade" aria-hidden="true"></div>
-      <div class="login-hero-line" aria-hidden="true"></div>
+      <div class="login-hero-glow" aria-hidden="true"></div>
+      <div class="login-hero-wave" aria-hidden="true"></div>
 
       <div class="login-hero-content">
         <img
@@ -122,18 +123,16 @@
           <span></span>
         </div>
 
-        <div class="login-hero-copy">
-          <h1>
-            Tu negocio de belleza,
-            <em>en su mejor versión.</em>
-          </h1>
+        <h1>
+          Tu negocio de belleza,
+          <em>en su mejor versión.</em>
+        </h1>
 
-          <p>
-            Gestioná citas, clientas y servicios desde un solo lugar.
-            Más tiempo para crear belleza y menos tiempo en tareas
-            administrativas.
-          </p>
-        </div>
+        <p>
+          Gestioná citas, clientas y servicios desde un solo lugar.
+          Más tiempo para crear belleza y menos tiempo en tareas
+          administrativas.
+        </p>
 
         <div class="login-benefits">
           <article>
@@ -180,7 +179,7 @@
           </article>
         </div>
       </div>
-    </aside>
+    </section>
 
     <section class="login-main">
       <div class="login-card" id="loginCard">
@@ -313,9 +312,9 @@
             aria-live="polite"
           ></div>
 
-          <div class="client-separator">
+          <div class="client-separator" aria-hidden="true">
             <span></span>
-            <small>¿QUERÉS RESERVAR UNA CITA?</small>
+            <b>✦</b>
             <span></span>
           </div>
 
@@ -351,6 +350,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/assets/js/platform.js"></script>
-  <script src="/assets/js/login.js?v=responsive-v4"></script>
+  <script src="/assets/js/login.js?v=responsive-v5"></script>
 </body>
 </html>
