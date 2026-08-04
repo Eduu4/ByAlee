@@ -7,29 +7,44 @@
     appearance: "dark"
   };
 
-  const CACHE_KEY = "byalee_login_branding_v2";
-  const IDENTIFIER_KEY = "byalee_login_identifier_v1";
+  const BRAND_CACHE_KEY =
+    "byalee_login_branding_v4";
 
-  const form = document.getElementById("loginForm");
-  const card = document.getElementById("loginCard");
-  const message = document.getElementById("loginMessage");
-  const submit = document.getElementById("loginSubmit");
+  const IDENTIFIER_KEY =
+    "byalee_login_identifier_v1";
+
+  const form =
+    document.getElementById("loginForm");
+
+  const card =
+    document.getElementById("loginCard");
+
+  const message =
+    document.getElementById("loginMessage");
+
+  const submit =
+    document.getElementById("loginSubmit");
+
   const identifierInput =
     document.getElementById("loginIdentifier");
+
   const passwordInput =
     document.getElementById("loginPassword");
+
   const rememberInput =
     document.getElementById("rememberIdentifier");
+
   const passwordToggle =
     document.getElementById("passwordToggle");
+
   const helpButton =
     document.getElementById("loginHelp");
+
   const studioNameElement =
     document.getElementById("loginStudioName");
+
   const brandLogo =
     document.getElementById("brandLogo");
-  const mobileBrandLogo =
-    document.getElementById("mobileBrandLogo");
 
   let currentSettings = {
     ...DEFAULTS
@@ -52,14 +67,15 @@
   }
 
   function normalizeHex(value) {
-    const candidate = String(value || "").trim();
+    const color =
+      String(value || "").trim();
 
-    if (/^#[0-9a-f]{6}$/i.test(candidate)) {
-      return candidate.toLowerCase();
+    if (/^#[0-9a-f]{6}$/i.test(color)) {
+      return color.toLowerCase();
     }
 
-    if (/^#[0-9a-f]{3}$/i.test(candidate)) {
-      return `#${candidate
+    if (/^#[0-9a-f]{3}$/i.test(color)) {
+      return `#${color
         .slice(1)
         .split("")
         .map(character => character + character)
@@ -71,28 +87,14 @@
   }
 
   function hexToRgb(value) {
-    const hex = normalizeHex(value).slice(1);
+    const hex =
+      normalizeHex(value).slice(1);
 
     return {
       r: Number.parseInt(hex.slice(0, 2), 16),
       g: Number.parseInt(hex.slice(2, 4), 16),
       b: Number.parseInt(hex.slice(4, 6), 16)
     };
-  }
-
-  function mixColor(value, target, ratio) {
-    const sourceRgb = hexToRgb(value);
-    const targetRgb = hexToRgb(target);
-
-    const channel = key =>
-      Math.round(
-        sourceRgb[key] +
-        (targetRgb[key] - sourceRgb[key]) * ratio
-      )
-        .toString(16)
-        .padStart(2, "0");
-
-    return `#${channel("r")}${channel("g")}${channel("b")}`;
   }
 
   function resolveTheme(appearance) {
@@ -110,13 +112,10 @@
   }
 
   function updateLogo(theme) {
-    const source =
+    brandLogo.src =
       theme === "dark"
         ? "/assets/images/byale-logo-dark.webp"
         : "/assets/images/byale-logo-light.webp";
-
-    brandLogo.src = source;
-    mobileBrandLogo.src = source;
   }
 
   function applyBranding(settings = {}) {
@@ -125,39 +124,18 @@
       ...settings
     };
 
-    const theme = resolveTheme(
-      currentSettings.appearance
-    );
+    const theme =
+      resolveTheme(
+        currentSettings.appearance
+      );
 
-    const originalColor = normalizeHex(
-      currentSettings.primaryColor
-    );
+    const primaryColor =
+      normalizeHex(
+        currentSettings.primaryColor
+      );
 
-    const displayColor =
-      theme === "dark"
-        ? mixColor(originalColor, "#ffffff", 0.2)
-        : originalColor;
-
-    const deepColor =
-      theme === "dark"
-        ? mixColor(originalColor, "#000000", 0.12)
-        : mixColor(originalColor, "#000000", 0.22);
-
-    const rgb = hexToRgb(originalColor);
-
-    document.documentElement.dataset.theme = theme;
-    document.documentElement.style.setProperty(
-      "--login-primary",
-      displayColor
-    );
-    document.documentElement.style.setProperty(
-      "--login-primary-deep",
-      deepColor
-    );
-    document.documentElement.style.setProperty(
-      "--login-primary-rgb",
-      `${rgb.r}, ${rgb.g}, ${rgb.b}`
-    );
+    const rgb =
+      hexToRgb(primaryColor);
 
     const studioName =
       String(
@@ -166,12 +144,33 @@
       ).trim() ||
       DEFAULTS.studioName;
 
-    studioNameElement.textContent = studioName;
-    document.title = `Acceso — ${studioName}`;
+    document.documentElement.dataset.theme =
+      theme;
+
+    document.documentElement.style.setProperty(
+      "--login-primary",
+      primaryColor
+    );
+
+    document.documentElement.style.setProperty(
+      "--login-primary-rgb",
+      `${rgb.r}, ${rgb.g}, ${rgb.b}`
+    );
+
+    studioNameElement.textContent =
+      studioName;
+
+    document.title =
+      `Acceso — ${studioName}`;
 
     document
-      .querySelector('meta[name="theme-color"]')
-      ?.setAttribute("content", originalColor);
+      .querySelector(
+        'meta[name="theme-color"]'
+      )
+      ?.setAttribute(
+        "content",
+        primaryColor
+      );
 
     updateLogo(theme);
   }
@@ -183,54 +182,59 @@
 
     applyBranding({
       ...DEFAULTS,
-      ...readObject(CACHE_KEY),
+      ...readObject(BRAND_CACHE_KEY),
       ...publicSettings,
       ...readObject("lashflow_demo_settings")
     });
   }
 
-  function todayISO() {
+  function localDate() {
     const now = new Date();
 
     return [
       now.getFullYear(),
-      String(now.getMonth() + 1).padStart(2, "0"),
-      String(now.getDate()).padStart(2, "0")
+      String(now.getMonth() + 1)
+        .padStart(2, "0"),
+      String(now.getDate())
+        .padStart(2, "0")
     ].join("-");
   }
 
   async function refreshBranding() {
     try {
-      const today = todayISO();
+      const date =
+        localDate();
 
       const response = await fetch(
-        `/api/public-data?from=${today}&to=${today}`,
+        `/api/public-data?from=${date}&to=${date}`,
         {
           headers: {
             Accept: "application/json"
-          }
+          },
+          cache: "no-store"
         }
       );
 
-      const payload = await response
-        .json()
-        .catch(() => ({}));
+      const payload =
+        await response
+          .json()
+          .catch(() => ({}));
 
       if (!response.ok) {
         return;
       }
 
-      const remoteSettings = {
+      const settings = {
         ...DEFAULTS,
         ...(payload.settings || {})
       };
 
       localStorage.setItem(
-        CACHE_KEY,
-        JSON.stringify(remoteSettings)
+        BRAND_CACHE_KEY,
+        JSON.stringify(settings)
       );
 
-      applyBranding(remoteSettings);
+      applyBranding(settings);
     } catch (error) {
       console.warn(
         "No se pudo actualizar la apariencia del login:",
@@ -239,7 +243,10 @@
     }
   }
 
-  function setMessage(text, type = "error") {
+  function setMessage(
+    text,
+    type = "error"
+  ) {
     message.textContent = text;
     message.className =
       `login-message ${type}`;
@@ -252,8 +259,9 @@
 
   function safeNext() {
     const value =
-      new URLSearchParams(location.search)
-        .get("next") ||
+      new URLSearchParams(
+        location.search
+      ).get("next") ||
       "/admin";
 
     return value.startsWith("/") &&
@@ -268,32 +276,39 @@
       loading
     );
 
-    submit.disabled = loading;
+    submit.disabled =
+      loading;
 
-    submit.querySelector("span").textContent =
-      loading
-        ? "Verificando acceso…"
-        : "Iniciar sesión";
+    submit
+      .querySelector("span")
+      .textContent =
+        loading
+          ? "Verificando acceso…"
+          : "Iniciar sesión";
   }
 
   function restoreIdentifier() {
-    const savedIdentifier =
-      localStorage.getItem(IDENTIFIER_KEY) || "";
+    const saved =
+      localStorage.getItem(
+        IDENTIFIER_KEY
+      ) || "";
 
-    if (savedIdentifier) {
-      identifierInput.value = savedIdentifier;
+    if (saved) {
+      identifierInput.value = saved;
       rememberInput.checked = true;
     }
   }
 
-  function persistIdentifier() {
+  function saveIdentifier() {
     if (rememberInput.checked) {
       localStorage.setItem(
         IDENTIFIER_KEY,
         identifierInput.value.trim()
       );
     } else {
-      localStorage.removeItem(IDENTIFIER_KEY);
+      localStorage.removeItem(
+        IDENTIFIER_KEY
+      );
     }
   }
 
@@ -330,7 +345,7 @@
     "click",
     () => {
       setMessage(
-        "La recuperación de acceso debe realizarla la persona administradora desde Supabase Authentication.",
+        "Contactá a la administración para recuperar tu acceso.",
         "info"
       );
     }
@@ -338,8 +353,9 @@
 
   async function initialize() {
     const setupMessage =
-      new URLSearchParams(location.search)
-        .get("setup");
+      new URLSearchParams(
+        location.search
+      ).get("setup");
 
     if (setupMessage) {
       setMessage(
@@ -380,7 +396,9 @@
     }
 
     if (data.session) {
-      location.replace(safeNext());
+      location.replace(
+        safeNext()
+      );
     }
   }
 
@@ -419,7 +437,7 @@
         return;
       }
 
-      persistIdentifier();
+      saveIdentifier();
       setLoading(true);
 
       try {
@@ -443,8 +461,10 @@
           {
             method: "POST",
             headers: {
-              "Content-Type": "application/json",
-              Accept: "application/json"
+              "Content-Type":
+                "application/json",
+              Accept:
+                "application/json"
             },
             body: JSON.stringify({
               identifier,
@@ -453,9 +473,10 @@
           }
         );
 
-        const result = await response
-          .json()
-          .catch(() => ({}));
+        const result =
+          await response
+            .json()
+            .catch(() => ({}));
 
         if (!response.ok) {
           throw new Error(
@@ -483,7 +504,9 @@
           "success"
         );
 
-        location.replace(safeNext());
+        location.replace(
+          safeNext()
+        );
       } catch (error) {
         console.error(error);
 
@@ -496,7 +519,10 @@
                   "No se pudo iniciar sesión."
                 );
 
-        setMessage(text, "error");
+        setMessage(
+          text,
+          "error"
+        );
       } finally {
         setLoading(false);
       }
@@ -513,9 +539,9 @@
     event => {
       if (
         [
-          CACHE_KEY,
-          "lashflow_demo_settings",
-          "byalee_public_data_v2"
+          BRAND_CACHE_KEY,
+          "byalee_public_data_v2",
+          "lashflow_demo_settings"
         ].includes(event.key)
       ) {
         loadCachedBranding();
@@ -529,9 +555,12 @@
     "change",
     () => {
       if (
-        currentSettings.appearance === "system"
+        currentSettings.appearance ===
+        "system"
       ) {
-        applyBranding(currentSettings);
+        applyBranding(
+          currentSettings
+        );
       }
     }
   );

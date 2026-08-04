@@ -5,20 +5,12 @@
 
   <meta
     name="viewport"
-    content="width=device-width,
-             initial-scale=1,
-             maximum-scale=1,
-             user-scalable=no,
-             viewport-fit=cover"
+    content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover"
   >
 
   <title>Acceso — ByAlee</title>
   <meta name="theme-color" content="#8f5c70">
 
-  <!--
-    Aplica el último tema conocido antes de pintar la página.
-    Esto evita el destello claro/oscuro.
-  -->
   <script>
     (() => {
       "use strict";
@@ -39,19 +31,19 @@
         }
       };
 
-      const cachedPublic =
+      const publicSettings =
         readObject("byalee_public_data_v2").settings || {};
 
-      const cachedLogin =
-        readObject("byalee_login_branding_v2");
+      const loginSettings =
+        readObject("byalee_login_branding_v4");
 
-      const localSettings =
+      const appSettings =
         readObject("lashflow_demo_settings");
 
       const appearance =
-        localSettings.appearance ||
-        cachedLogin.appearance ||
-        cachedPublic.appearance ||
+        appSettings.appearance ||
+        loginSettings.appearance ||
+        publicSettings.appearance ||
         "dark";
 
       const theme =
@@ -70,12 +62,13 @@
             );
 
       const primaryColor =
-        localSettings.primaryColor ||
-        cachedLogin.primaryColor ||
-        cachedPublic.primaryColor ||
+        appSettings.primaryColor ||
+        loginSettings.primaryColor ||
+        publicSettings.primaryColor ||
         "#8f5c70";
 
       document.documentElement.dataset.theme = theme;
+
       document.documentElement.style.setProperty(
         "--login-primary",
         primaryColor
@@ -84,6 +77,7 @@
   </script>
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
+
   <link
     rel="preconnect"
     href="https://fonts.gstatic.com"
@@ -91,67 +85,59 @@
   >
 
   <link
-    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700&family=Inter:wght@400;500;600;700;800&display=swap"
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,600&family=Inter:wght@400;500;600;700&display=swap"
     rel="stylesheet"
   >
 
   <link
     rel="stylesheet"
-    href="/assets/css/login.css?v=responsive-v3"
+    href="/assets/css/login.css?v=responsive-v4"
   >
 </head>
 
 <body>
-  <main class="login-page">
-    <section class="brand-panel">
+  <main class="login-layout">
+    <aside class="login-hero">
       <img
-        class="brand-portrait"
+        class="login-hero-photo"
         src="/assets/images/login-portrait.webp"
         alt=""
         aria-hidden="true"
       >
 
-      <div class="brand-overlay" aria-hidden="true"></div>
-      <div class="brand-wave brand-wave-one" aria-hidden="true"></div>
-      <div class="brand-wave brand-wave-two" aria-hidden="true"></div>
-      <div class="brand-wave brand-wave-three" aria-hidden="true"></div>
+      <div class="login-hero-shade" aria-hidden="true"></div>
+      <div class="login-hero-line" aria-hidden="true"></div>
 
-      <div class="brand-content">
-        <picture class="brand-logo">
-          <source
-            media="(prefers-color-scheme: light)"
-            srcset="/assets/images/byale-logo-light.webp"
-          >
+      <div class="login-hero-content">
+        <img
+          class="login-logo"
+          id="brandLogo"
+          src="/assets/images/byale-logo-dark.webp"
+          alt="By Ale — Lash & Brown"
+        >
 
-          <img
-            id="brandLogo"
-            src="/assets/images/byale-logo-dark.webp"
-            alt="By Ale — Lash & Brown"
-          >
-        </picture>
-
-        <div class="brand-divider" aria-hidden="true">
+        <div class="login-hero-divider" aria-hidden="true">
           <span></span>
           <b>✦</b>
           <span></span>
         </div>
 
-        <div class="brand-copy">
+        <div class="login-hero-copy">
           <h1>
             Tu negocio de belleza,
             <em>en su mejor versión.</em>
           </h1>
 
           <p>
-            Gestioná tus citas, clientas y servicios de pestañas
-            y cejas en un solo lugar. Más tiempo para crear belleza,
-            menos tiempo en lo administrativo.
+            Gestioná citas, clientas y servicios desde un solo lugar.
+            Más tiempo para crear belleza y menos tiempo en tareas
+            administrativas.
           </p>
         </div>
 
-        <div class="feature-list">
-          <article class="feature-item">
-            <span class="feature-icon" aria-hidden="true">
+        <div class="login-benefits">
+          <article>
+            <span class="benefit-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24">
                 <path d="M7 3v3M17 3v3M4 9h16"/>
                 <rect x="4" y="5" width="16" height="15" rx="2"/>
@@ -161,12 +147,12 @@
 
             <span>
               <strong>Agenda inteligente</strong>
-              <small>Organizá tus citas y optimizá tu tiempo.</small>
+              <small>Organizá citas y disponibilidad.</small>
             </span>
           </article>
 
-          <article class="feature-item">
-            <span class="feature-icon" aria-hidden="true">
+          <article>
+            <span class="benefit-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24">
                 <circle cx="12" cy="8" r="4"/>
                 <path d="M4.5 20a7.5 7.5 0 0 1 15 0"/>
@@ -175,12 +161,12 @@
 
             <span>
               <strong>Gestión de clientas</strong>
-              <small>Historial, preferencias y notas personalizadas.</small>
+              <small>Historial, notas y preferencias.</small>
             </span>
           </article>
 
-          <article class="feature-item">
-            <span class="feature-icon" aria-hidden="true">
+          <article>
+            <span class="benefit-icon" aria-hidden="true">
               <svg viewBox="0 0 24 24">
                 <path d="M4 19V11M10 19V7M16 19v-4M22 19V4"/>
                 <path d="M2 19h21"/>
@@ -189,24 +175,16 @@
 
             <span>
               <strong>Reportes y crecimiento</strong>
-              <small>Información clara para tomar mejores decisiones.</small>
+              <small>Datos claros para mejores decisiones.</small>
             </span>
           </article>
         </div>
       </div>
-    </section>
+    </aside>
 
-    <section class="access-column">
-      <div class="access-card" id="loginCard">
-        <header class="access-header">
-          <div class="mobile-logo">
-            <img
-              id="mobileBrandLogo"
-              src="/assets/images/byale-logo-dark.webp"
-              alt="By Ale — Lash & Brown"
-            >
-          </div>
-
+    <section class="login-main">
+      <div class="login-card" id="loginCard">
+        <header class="login-header">
           <h2>Bienvenida de nuevo</h2>
 
           <p>
@@ -215,13 +193,17 @@
           </p>
         </header>
 
-        <form id="loginForm" class="login-form" novalidate>
+        <form
+          class="login-form"
+          id="loginForm"
+          novalidate
+        >
           <label class="login-field">
             <span>Correo o usuario</span>
 
-            <span class="input-control">
+            <span class="login-control">
               <svg
-                class="input-icon"
+                class="login-control-icon"
                 aria-hidden="true"
                 viewBox="0 0 24 24"
               >
@@ -233,7 +215,7 @@
                 id="loginIdentifier"
                 type="text"
                 autocomplete="username"
-                placeholder="Usuario o correo@ejemplo.com"
+                placeholder="Usuario o correo"
                 autocapitalize="none"
                 spellcheck="false"
                 required
@@ -244,9 +226,9 @@
           <label class="login-field">
             <span>Contraseña</span>
 
-            <span class="input-control">
+            <span class="login-control">
               <svg
-                class="input-icon"
+                class="login-control-icon"
                 aria-hidden="true"
                 viewBox="0 0 24 24"
               >
@@ -263,9 +245,9 @@
               >
 
               <button
-                type="button"
                 class="password-toggle"
                 id="passwordToggle"
+                type="button"
                 aria-label="Mostrar contraseña"
                 aria-pressed="false"
               >
@@ -290,61 +272,39 @@
             </span>
           </label>
 
-          <div class="form-options">
-            <label class="remember-option">
-              <input id="rememberIdentifier" type="checkbox">
+          <div class="login-options">
+            <label class="remember-user">
+              <input
+                id="rememberIdentifier"
+                type="checkbox"
+              >
+
               <span>Recordar usuario</span>
             </label>
 
             <button
-              type="button"
-              class="help-link"
+              class="forgot-password"
               id="loginHelp"
+              type="button"
             >
               ¿Olvidaste tu contraseña?
             </button>
           </div>
 
           <button
-            type="submit"
-            class="submit-button"
+            class="login-submit"
             id="loginSubmit"
+            type="submit"
           >
             <span>Iniciar sesión</span>
 
-            <svg aria-hidden="true" viewBox="0 0 24 24">
-              <path d="M5 12h14M14 7l5 5-5 5"/>
-            </svg>
-          </button>
-
-          <div class="login-divider" aria-hidden="true">
-            <span></span>
-            <small>ACCESO PARA CLIENTAS</small>
-            <span></span>
-          </div>
-
-          <a class="public-button" href="/reservar">
-            <span class="public-button-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24">
-                <path d="M7 3v3M17 3v3M4 9h16"/>
-                <rect x="4" y="5" width="16" height="15" rx="2"/>
-                <path d="m8 14 2 2 5-5"/>
-              </svg>
-            </span>
-
-            <span class="public-button-copy">
-              <strong>Soy clienta</strong>
-              <small>Reservar una cita</small>
-            </span>
-
             <svg
-              class="public-button-arrow"
               aria-hidden="true"
               viewBox="0 0 24 24"
             >
               <path d="M5 12h14M14 7l5 5-5 5"/>
             </svg>
-          </a>
+          </button>
 
           <div
             class="login-message"
@@ -352,6 +312,38 @@
             role="alert"
             aria-live="polite"
           ></div>
+
+          <div class="client-separator">
+            <span></span>
+            <small>¿QUERÉS RESERVAR UNA CITA?</small>
+            <span></span>
+          </div>
+
+          <a
+            class="client-button"
+            href="/reservar"
+          >
+            <span class="client-button-icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24">
+                <path d="M7 3v3M17 3v3M4 9h16"/>
+                <rect x="4" y="5" width="16" height="15" rx="2"/>
+                <path d="m8 14 2 2 5-5"/>
+              </svg>
+            </span>
+
+            <span class="client-button-copy">
+              <strong>Reservar como clienta</strong>
+              <small>Ver días y horarios disponibles</small>
+            </span>
+
+            <svg
+              class="client-button-arrow"
+              aria-hidden="true"
+              viewBox="0 0 24 24"
+            >
+              <path d="M5 12h14M14 7l5 5-5 5"/>
+            </svg>
+          </a>
         </form>
       </div>
     </section>
@@ -359,6 +351,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="/assets/js/platform.js"></script>
-  <script src="/assets/js/login.js?v=responsive-v3"></script>
+  <script src="/assets/js/login.js?v=responsive-v4"></script>
 </body>
 </html>
