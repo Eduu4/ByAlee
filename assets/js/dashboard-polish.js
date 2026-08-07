@@ -1,11 +1,11 @@
 (() => {
   "use strict";
 
-  const DARK_LOGO =
-    "/assets/images/byale-logo-dark.webp";
+  const LOGO_FOR_DARK_THEME =
+  "/assets/images/byale-logo-light.webp";
 
-  const LIGHT_LOGO =
-    "/assets/images/byale-logo-light.webp";
+const LOGO_FOR_LIGHT_THEME =
+  "/assets/images/byale-logo-dark.webp";
 
   const $ = (
     selector,
@@ -154,14 +154,13 @@
   }
 
   function logoForCurrentTheme() {
-    return (
-      document.documentElement
-        .dataset
-        .theme === "dark"
-        ? DARK_LOGO
-        : LIGHT_LOGO
-    );
-  }
+  const theme =
+    document.documentElement.getAttribute("data-theme") || "dark";
+
+  return theme === "dark"
+    ? LOGO_FOR_DARK_THEME
+    : LOGO_FOR_LIGHT_THEME;
+}
 
   function installSidebarLogo() {
     const brand =
@@ -372,3 +371,126 @@
     initialize();
   }
 })();
+
+/* =========================================================
+   AJUSTE DE LOGO Y CONTRASTE DEL SIDEBAR
+========================================================= */
+
+/* Logo del sidebar */
+.sidebar-brand-logo-wrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 18px 14px 12px;
+}
+
+.sidebar-brand-logo {
+  display: block;
+  width: 100%;
+  max-width: 124px;
+  height: auto;
+  object-fit: contain;
+  opacity: 1 !important;
+  filter: none !important;
+}
+
+/* ---------- MODO OSCURO ---------- */
+[data-theme="dark"] .sidebar .brand,
+[data-theme="dark"] .sidebar-brand-logo-wrap {
+  background: transparent;
+}
+
+[data-theme="dark"] .sidebar .nav-link,
+[data-theme="dark"] .sidebar .sidebar-link,
+[data-theme="dark"] .sidebar a,
+[data-theme="dark"] .sidebar button {
+  color: rgba(255, 244, 248, 0.88) !important;
+  opacity: 1 !important;
+}
+
+[data-theme="dark"] .sidebar .nav-link:hover,
+[data-theme="dark"] .sidebar .sidebar-link:hover {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .sidebar .nav-link.active,
+[data-theme="dark"] .sidebar .sidebar-link.active {
+  color: #ffffff !important;
+}
+
+[data-theme="dark"] .sidebar .section-title,
+[data-theme="dark"] .sidebar .section-label,
+[data-theme="dark"] .sidebar small,
+[data-theme="dark"] .sidebar .muted {
+  color: rgba(255, 244, 248, 0.54) !important;
+  opacity: 1 !important;
+}
+
+/* ---------- MODO CLARO ---------- */
+[data-theme="light"] .sidebar {
+  background: #f7f3f6 !important;
+  border-right: 1px solid rgba(80, 40, 70, 0.08);
+}
+
+[data-theme="light"] .sidebar .brand,
+[data-theme="light"] .sidebar-brand-logo-wrap {
+  background: transparent;
+}
+
+[data-theme="light"] .sidebar .nav-link,
+[data-theme="light"] .sidebar .sidebar-link,
+[data-theme="light"] .sidebar a,
+[data-theme="light"] .sidebar button {
+  color: #544152 !important;
+  opacity: 1 !important;
+}
+
+[data-theme="light"] .sidebar .nav-link:hover,
+[data-theme="light"] .sidebar .sidebar-link:hover {
+  color: #241926 !important;
+  background: rgba(230, 112, 198, 0.10) !important;
+}
+
+[data-theme="light"] .sidebar .nav-link.active,
+[data-theme="light"] .sidebar .sidebar-link.active {
+  color: #6e146b !important;
+  background: rgba(236, 176, 226, 0.78) !important;
+  font-weight: 700;
+}
+
+[data-theme="light"] .sidebar .nav-link.active i,
+[data-theme="light"] .sidebar .sidebar-link.active i {
+  color: #6e146b !important;
+}
+
+[data-theme="light"] .sidebar .section-title,
+[data-theme="light"] .sidebar .section-label,
+[data-theme="light"] .sidebar small,
+[data-theme="light"] .sidebar .muted {
+  color: #8b7686 !important;
+  opacity: 1 !important;
+}
+
+[data-theme="light"] .sidebar .brand-title,
+[data-theme="light"] .sidebar .brand-name,
+[data-theme="light"] .sidebar .profile-name {
+  color: #241926 !important;
+  opacity: 1 !important;
+}
+
+[data-theme="light"] .sidebar .brand-subtitle,
+[data-theme="light"] .sidebar .profile-role {
+  color: #7a6576 !important;
+  opacity: 1 !important;
+}
+
+/* Íconos del sidebar */
+[data-theme="light"] .sidebar i,
+[data-theme="light"] .sidebar svg {
+  opacity: 1 !important;
+}
+
+[data-theme="dark"] .sidebar i,
+[data-theme="dark"] .sidebar svg {
+  opacity: 1 !important;
+}
