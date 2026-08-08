@@ -58,3 +58,126 @@
     max-height: 58px;
   }
 }
+
+/* =========================================================
+   SCROLL DEL MENÚ LATERAL
+   Fino, discreto y adaptado al tema
+========================================================= */
+
+.sidebar .nav-menu {
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  padding-right: 5px;
+
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+
+  /* Firefox */
+  scrollbar-width: thin;
+  scrollbar-color: transparent transparent;
+}
+
+/* Mostrar un indicador sutil solamente al usar el menú */
+.sidebar .nav-menu:hover {
+  scrollbar-color:
+    color-mix(
+      in srgb,
+      var(--primary) 45%,
+      transparent
+    )
+    transparent;
+}
+
+/* Chrome / Edge / Brave / Safari */
+.sidebar .nav-menu::-webkit-scrollbar {
+  width: 5px;
+}
+
+.sidebar .nav-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.sidebar .nav-menu::-webkit-scrollbar-thumb {
+  min-height: 40px;
+
+  border-radius: 999px;
+
+  background: transparent;
+
+  transition: background 0.2s ease;
+}
+
+.sidebar .nav-menu:hover::-webkit-scrollbar-thumb {
+  background:
+    color-mix(
+      in srgb,
+      var(--primary) 45%,
+      transparent
+    );
+}
+
+.sidebar .nav-menu::-webkit-scrollbar-thumb:hover {
+  background:
+    color-mix(
+      in srgb,
+      var(--primary) 70%-thumb {
+  background:
+    color-mix(
+      in srgb,
+      var(--primary) 45%,
+      transparent
+    );
+}
+
+,
+      transparent
+    );
+}
+
+/* Quitar las flechas blancas de arriba y abajo */
+.sidebar .nav-menu::-webkit-scrollbar-button {
+  width: 0;
+  height: 0;
+  display: none;
+}
+
+/* ---------- MODO OSCURO ---------- */
+
+html[data-theme="dark"] .sidebar .nav-menu:hover {
+  scrollbar-color:
+    rgba(213, 154, 179, 0.42)
+    transparent;
+}
+
+html[data-theme="dark"]
+.sidebar
+.nav-menu:hover::-webkit-scrollbar-thumb {
+  background: rgba(213, 154, 179, 0.42);
+}
+
+html[data-theme="dark"]
+.sidebar
+.nav-menu::-webkit-scrollbar-thumb:hover {
+  background: rgba(213, 154, 179, 0.68);
+}
+
+/* ---------- MODO CLARO ---------- */
+
+html[data-theme="light"] .sidebar .nav-menu:hover {
+  scrollbar-color:
+    rgba(143, 92, 112, 0.35)
+    transparent;
+}
+
+html[data-theme="light"]
+.sidebar
+.nav-menu:hover::-webkit-scrollbar-thumb {
+  background: rgba(143, 92, 112, 0.35);
+}
+
+html[data-theme="light"]
+.sidebar
+.nav-menu::-webkit-scrollbar-thumb:hover {
+  background: rgba(143, 92, 112, 0.58);
+}
