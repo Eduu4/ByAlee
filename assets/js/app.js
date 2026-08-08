@@ -499,30 +499,32 @@
     $("#statRevenue").textContent = money(revenue);
     $("#statHours").textContent = `${(occupied / 60).toFixed(1)} h`;
     $("#statFree").textContent = `${Math.max(0, (workday - occupied) / 60).toFixed(1)} h disponibles`;
-    const upcomingMaintenance = DATA.visits.filter(visit => {
-      const upcomingMaintenance =
-        DATA.visits.filter(visit => {
-          const service =
-            serviceById(visit.serviceId);
+    const upcomingMaintenance =
+  DATA.visits.filter(visit => {
+    const service =
+      serviceById(visit.serviceId);
 
-          const maintenanceDays =
-            Number(service?.maintenanceDays || 0);
+    const maintenanceDays =
+      Number(service?.maintenanceDays || 0);
 
-          if (maintenanceDays <= 0) {
-            return false;
-          }
+    if (maintenanceDays <= 0) {
+      return false;
+    }
 
-          const due =
-            addDays(
-              visit.date,
-              maintenanceDays
-            );
+    const due =
+      addDays(
+        visit.date,
+        maintenanceDays
+      );
 
-          return (
-            due >= todayISO &&
-            due <= addDays(todayISO, 7)
-          );
-        }).length;
+    return (
+      due >= todayISO &&
+      due <= addDays(todayISO, 7)
+    );
+  }).length;
+
+$("#statMaintenance").textContent =
+  upcomingMaintenance;
     $("#statMaintenance").textContent = upcomingMaintenance || DATA.maintenance.filter(item => item.date >= todayISO).length;
     const dayRequests = all.filter(a => a.status === "requested").length;
     const dayPending = all.filter(a => a.status === "pending").length;
