@@ -303,16 +303,117 @@
       <form id="serviceForm">
         <input type="hidden" name="serviceId" id="editingServiceId">
         <div class="form-grid">
-          <label class="field full"><span>Nombre del servicio</span><input name="name" required placeholder="Ej. Volumen tecnológico"></label>
-          <label class="field"><span>Categoría</span><select name="category"><option>Pestañas</option><option>Cejas</option><option>Manos</option><option>Pies</option><option>Rostro</option><option>Otro</option></select></label>
-          <label class="field"><span>Duración del servicio (min)</span><input name="duration" type="number" min="5" step="5" required></label>
-          <label class="field"><span>Precio (Gs.)</span><input name="price" type="number" min="0" step="5000" required></label>
-          <label class="field"><span>Preparación (min)</span><input name="prep" type="number" min="0" step="5" required></label>
-          <label class="field"><span>Limpieza / cierre (min)</span><input name="cleanup" type="number" min="0" step="5" required></label>
-          <label class="field"><span>Color identificador</span><input name="color" type="color" value="#8f5c70"></label>
-          <label class="check-option"><input name="active" type="checkbox" checked><span>Disponible para nuevas reservas</span></label>
-          <label class="field full"><span>Descripción para la clienta</span><textarea name="description" rows="3" placeholder="Qué incluye, para quién se recomienda, etc."></textarea></label>
-        </div>
+
+        <label class="field full">
+          <span>Nombre del servicio</span>
+          <input
+            name="name"
+            required
+            placeholder="Ej. Volumen tecnológico"
+          >
+        </label>
+
+        <label class="field">
+          <span>Categoría</span>
+          <select name="category">
+            <option>Pestañas</option>
+            <option>Cejas</option>
+            <option>Manos</option>
+            <option>Pies</option>
+            <option>Rostro</option>
+            <option>Otro</option>
+          </select>
+        </label>
+
+        <label class="field">
+          <span>Duración del servicio (min)</span>
+          <input
+            name="duration"
+            type="number"
+            min="5"
+            step="5"
+            required
+          >
+        </label>
+
+        <label class="field">
+          <span>Precio (Gs.)</span>
+          <input
+            name="price"
+            type="number"
+            min="0"
+            step="5000"
+            required
+          >
+        </label>
+
+        <label class="field">
+          <span>Preparación (min)</span>
+          <input
+            name="prep"
+            type="number"
+            min="0"
+            step="5"
+            required
+          >
+        </label>
+
+        <label class="field">
+          <span>Limpieza / cierre (min)</span>
+          <input
+            name="cleanup"
+            type="number"
+            min="0"
+            step="5"
+            required
+          >
+        </label>
+
+        <label class="field">
+          <span>Mantenimiento sugerido</span>
+          <input
+            name="maintenanceDays"
+            type="number"
+            min="0"
+            max="90"
+            step="1"
+            value="18"
+            required
+          >
+
+          <small class="field-help">
+            Días después del servicio para sugerir el próximo mantenimiento.
+            Usa 0 si este servicio no requiere mantenimiento.
+          </small>
+        </label>
+
+        <label class="field">
+          <span>Color identificador</span>
+          <input
+            name="color"
+            type="color"
+            value="#8f5c70"
+          >
+        </label>
+
+        <label class="check-option">
+          <input
+            name="active"
+            type="checkbox"
+            checked
+          >
+          <span>Disponible para nuevas reservas</span>
+        </label>
+
+        <label class="field full">
+          <span>Descripción para la clienta</span>
+          <textarea
+            name="description"
+            rows="3"
+            placeholder="Qué incluye, para quién se recomienda, etc."
+          ></textarea>
+        </label>
+      </div>
         <div class="duration-preview" id="serviceBlockPreview"></div>
         <div class="modal-actions">
           <button type="button" class="btn danger-btn" id="deleteServiceBtn" hidden><i class="bi bi-trash3"></i>Eliminar</button>

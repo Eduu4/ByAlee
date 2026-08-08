@@ -15,15 +15,14 @@
 
   const DEFAULT_SETTINGS = {
     role: "admin",
-    userName: "ByAlee",
+    userName: "ByAle",
     userEmail: "",
-    studioName: "ByAlee",
+    studioName: "ByAle",
     studioPhone: "0981 000 000",
     city: "Luque",
     openingTime: "08:00",
     closingTime: "20:00",
     slotInterval: 30,
-    maintenanceDays: 18,
     defaultDeposit: 50000,
     currency: "Gs.",
     primaryColor: "#8f5c70",
@@ -182,7 +181,16 @@
       service.prep = Number(service.prep || 0);
       service.cleanup = Number(service.cleanup || 0);
       service.price = Number(service.price || 0);
-      if (typeof service.active !== "boolean") service.active = true;
+
+      service.maintenanceDays =
+        Number.isFinite(Number(service.maintenanceDays))
+          ? Math.max(0, Number(service.maintenanceDays))
+          : 18;
+
+      if (typeof service.active !== "boolean") {
+        service.active = true;
+      }
+
       service.description ||= "";
       service.category ||= inferCategory(service.name);
       service.color ||= "#8f5c70";
@@ -313,8 +321,32 @@
     const usualService = usualServiceId ? serviceById(usualServiceId) : null;
     const lastService = lastServiceId ? serviceById(lastServiceId) : null;
     const averagePrice = visits.length ? Math.round(visits.reduce((sum, visit) => sum + Number(visit.price || 0), 0) / visits.length) : 0;
-    const maintenanceDate = lastVisit ? addDays(lastVisit.date, DATA.settings.maintenanceDays) : null;
-    return {client, record, visits, appointments, usualService, lastService, lastVisit, averagePrice, maintenanceDate, risks:getRiskFlags(record)};
+    const maintenanceService =
+      lastVisit?.serviceId
+        ? serviceById(lastVisit.serviceId)
+        : null;
+    const maintenanceDays =
+      Number(maintenanceService?.maintenanceDays || 0);
+    const maintenanceDate =
+      lastVisit && maintenanceDays > 0
+        ? addDays(
+            lastVisit.date,
+            maintenanceDays
+          )
+        : null;
+    return {
+      client,
+      record,
+      visits,
+      appointments,
+      usualService,
+      lastService,
+      lastVisit,
+      averagePrice,
+      maintenanceDays,
+      maintenanceDate,
+      risks: getRiskFlags(record)
+    };
   }
 
 
@@ -468,9 +500,29 @@
     $("#statHours").textContent = `${(occupied / 60).toFixed(1)} h`;
     $("#statFree").textContent = `${Math.max(0, (workday - occupied) / 60).toFixed(1)} h disponibles`;
     const upcomingMaintenance = DATA.visits.filter(visit => {
-      const due = addDays(visit.date, DATA.settings.maintenanceDays);
-      return due >= todayISO && due <= addDays(todayISO, 7);
-    }).length;
+      const upcomingMaintenance =
+        DATA.visits.filter(visit => {
+          const service =
+            serviceById(visit.serviceId);
+
+          const maintenanceDays =
+            Number(service?.maintenanceDays || 0);
+
+          if (maintenanceDays <= 0) {
+            return false;
+          }
+
+          const due =
+            addDays(
+              visit.date,
+              maintenanceDays
+            );
+
+          return (
+            due >= todayISO &&
+            due <= addDays(todayISO, 7)
+          );
+        }).length;
     $("#statMaintenance").textContent = upcomingMaintenance || DATA.maintenance.filter(item => item.date >= todayISO).length;
     const dayRequests = all.filter(a => a.status === "requested").length;
     const dayPending = all.filter(a => a.status === "pending").length;
@@ -976,10 +1028,31 @@ function renderServices() {
         </div>
 
         <div class="service-main-data">
-          <strong class="service-price">${money(service.price)}</strong>
-          <span><i class="bi bi-clock"></i>${service.duration} min</span>
-          <span><i class="bi bi-calendar-range"></i>Bloque ${totalDuration(service)} min</span>
-        </div>
+
+        <strong class="service-price">
+          ${money(service.price)}
+        </strong>
+
+        <span>
+          <i class="bi bi-clock"></i>
+          ${service.duration} min
+        </span>
+
+        <span>
+          <i class="bi bi-calendar-range"></i>
+          Bloque ${totalDuration(service)} min
+        </span>
+
+        <span>
+          <i class="bi bi-arrow-repeat"></i>
+          ${
+            Number(service.maintenanceDays || 0) > 0
+              ? `Mantenimiento ${service.maintenanceDays} días`
+              : "Sin mantenimiento"
+          }
+        </span>
+
+      </div>
 
         <details class="service-details">
           <summary>Ver descripción y tiempos <i class="bi bi-chevron-down"></i></summary>
@@ -1079,7 +1152,6 @@ function renderSettings() {
       ${field("Apertura", "openingTime", DATA.settings.openingTime, "time")}
       ${field("Cierre", "closingTime", DATA.settings.closingTime, "time")}
       <label class="field"><span>Intervalo</span><select name="slotInterval">${[15,20,30,45,60].map(value => `<option value="${value}" ${Number(DATA.settings.slotInterval) === value ? "selected" : ""}>${value} minutos</option>`).join("")}</select></label>
-      ${field("Mantenimiento sugerido", "maintenanceDays", DATA.settings.maintenanceDays, "number", 'min="1" max="90"')}
     </div>
 
     <div class="preference-group settings-days">
@@ -1394,7 +1466,13 @@ function summaryPane(client, insight) {
       <article class="summary-metric">
         <span>Próximo mantenimiento</span>
         <strong>${maintenanceLabel}</strong>
-        <small>Cada ${DATA.settings.maintenanceDays} días</small>
+        <small>
+          ${
+            insight.maintenanceDays > 0
+              ? `Cada ${insight.maintenanceDays} días`
+              : "Sin mantenimiento sugerido"
+          }
+        </small>
       </article>
     </div>
 
@@ -1899,6 +1977,7 @@ function summaryPane(client, insight) {
       control("price").value = Number(service.price || 0);
       control("prep").value = Number(service.prep || 0);
       control("cleanup").value = Number(service.cleanup || 0);
+      control("maintenanceDays").value = Number(service.maintenanceDays ?? 18);
       control("color").value = service.color || DATA.settings.primaryColor;
       control("active").checked = service.active !== false;
       control("description").value = service.description || "";
@@ -1908,6 +1987,7 @@ function summaryPane(client, insight) {
       control("price").value = 150000;
       control("prep").value = 10;
       control("cleanup").value = 10;
+      control("maintenanceDays").value = 18;
       control("color").value = DATA.settings.primaryColor;
       control("active").checked = true;
     }
@@ -1941,6 +2021,12 @@ function summaryPane(client, insight) {
       price: Number(get("price").value),
       prep: Number(get("prep").value),
       cleanup: Number(get("cleanup").value),
+
+      maintenanceDays: Math.max(
+        0,
+        Number(get("maintenanceDays").value || 0)
+      ),
+
       color: get("color").value,
       active: get("active").checked,
       description: get("description").value.trim()
@@ -2063,7 +2149,7 @@ function summaryPane(client, insight) {
   // Configuración
   function saveSettings(event) {
     event.preventDefault(); const form = event.currentTarget; const selectedDays = $$('[name="workDays"]:checked', form).map(input => Number(input.value));
-    Object.assign(DATA.settings, {userName:form.elements.userName.value.trim() || "ByAlee",userEmail:form.elements.userEmail.value.trim(),role:"admin",studioPhone:form.elements.studioPhone.value.trim(),studioName:form.elements.studioName.value.trim() || "ByAlee",city:form.elements.city.value.trim(),currency:form.elements.currency.value,defaultDeposit:Number(form.elements.defaultDeposit.value||0),openingTime:form.elements.openingTime.value,closingTime:form.elements.closingTime.value,slotInterval:Number(form.elements.slotInterval.value),maintenanceDays:Number(form.elements.maintenanceDays.value),workDays:selectedDays,bookingEnabled:form.elements.bookingEnabled.checked,requireConsent:form.elements.requireConsent.checked,requirePoliciesAcceptance:form.elements.requirePoliciesAcceptance.checked,autoOpenConfirmationWhatsApp:form.elements.autoOpenConfirmationWhatsApp.checked,allowDepositProof:form.elements.allowDepositProof.checked,requireDepositChoice:form.elements.requireDepositChoice.checked,birthdayNotificationsEnabled:form.elements.birthdayNotificationsEnabled.checked,birthdayNoticeDays:Number(form.elements.birthdayNoticeDays.value||0),birthdayMessageTemplate:form.elements.birthdayMessageTemplate.value.trim()||DEFAULT_SETTINGS.birthdayMessageTemplate,bookingPoliciesText:form.elements.bookingPoliciesText.value.trim()||DEFAULT_SETTINGS.bookingPoliciesText,bookingPoliciesVersion:form.elements.bookingPoliciesVersion.value.trim()||"1.0",googleCalendarEnabled:form.elements.googleCalendarEnabled.checked,googleCalendarId:form.elements.googleCalendarId.value.trim()||"primary",confirmationMessageTemplate:form.elements.confirmationMessageTemplate.value.trim()||DEFAULT_SETTINGS.confirmationMessageTemplate,primaryColor:form.elements.primaryColor.value,appearance:form.elements.appearance.value});
+    Object.assign(DATA.settings, {userName:form.elements.userName.value.trim() || "ByAlee",userEmail:form.elements.userEmail.value.trim(),role:"admin",studioPhone:form.elements.studioPhone.value.trim(),studioName:form.elements.studioName.value.trim() || "ByAlee",city:form.elements.city.value.trim(),currency:form.elements.currency.value,defaultDeposit:Number(form.elements.defaultDeposit.value||0),openingTime:form.elements.openingTime.value,closingTime:form.elements.closingTime.value,slotInterval:Number(form.elements.slotInterval.value),workDays:selectedDays,bookingEnabled:form.elements.bookingEnabled.checked,requireConsent:form.elements.requireConsent.checked,requirePoliciesAcceptance:form.elements.requirePoliciesAcceptance.checked,autoOpenConfirmationWhatsApp:form.elements.autoOpenConfirmationWhatsApp.checked,allowDepositProof:form.elements.allowDepositProof.checked,requireDepositChoice:form.elements.requireDepositChoice.checked,birthdayNotificationsEnabled:form.elements.birthdayNotificationsEnabled.checked,birthdayNoticeDays:Number(form.elements.birthdayNoticeDays.value||0),birthdayMessageTemplate:form.elements.birthdayMessageTemplate.value.trim()||DEFAULT_SETTINGS.birthdayMessageTemplate,bookingPoliciesText:form.elements.bookingPoliciesText.value.trim()||DEFAULT_SETTINGS.bookingPoliciesText,bookingPoliciesVersion:form.elements.bookingPoliciesVersion.value.trim()||"1.0",googleCalendarEnabled:form.elements.googleCalendarEnabled.checked,googleCalendarId:form.elements.googleCalendarId.value.trim()||"primary",confirmationMessageTemplate:form.elements.confirmationMessageTemplate.value.trim()||DEFAULT_SETTINGS.confirmationMessageTemplate,primaryColor:form.elements.primaryColor.value,appearance:form.elements.appearance.value});
     localStorage.setItem("lashflow_theme", DATA.settings.appearance); persist("settings"); applyAppearance(); applyUserProfile(); renderDashboard(); renderStaticViews(); showToast("Configuración guardada");
   }
 
