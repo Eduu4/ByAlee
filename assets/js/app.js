@@ -1548,7 +1548,6 @@ function renderSettings() {
         title:"Mi cuenta y seguridad",
         description:"Cambiá la contraseña de tu usuario.",
         content:securityContent,
-        open:true
       })}
     </div>
 
