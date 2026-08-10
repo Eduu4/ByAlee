@@ -54,14 +54,6 @@
         error,
         payload: {}
       }));
-
-    /*
-      Conservamos una promesa independiente para que la capa visual
-      pueda leer la personalización aunque booking.js consuma la original.
-    */
-    window.ByAleBookingVisualSettingsPromise = window.ByAleePublicDataPromise
-      .then(result => result?.payload?.settings || {})
-      .catch(() => ({}));
   })();
   </script>
 
@@ -99,11 +91,10 @@
 
   <link rel="stylesheet" href="/assets/css/mobile.css">
   <link rel="stylesheet" href="/assets/css/booking-public.css">
+  <link rel="stylesheet" href="/assets/css/booking-visual-safe-v3.css?v=3">
   <link rel="stylesheet" href="/assets/css/booking-performance.css">
-  <link rel="stylesheet" href="/assets/css/booking-public-pro.css?v=1">
 
-  <script defer src="/assets/js/booking.js"></script>
-  <script defer src="/assets/js/booking-public-pro.js"></script>
+  <script defer src="/assets/js/booking.js?v=3"></script>
 </head>
 <body>
   <div class="booking-shell">
@@ -122,9 +113,12 @@
     </aside>
 
     <main class="booking-card" id="bookingCard">
-      <div class="booking-mobile-brand" aria-hidden="true">
-        <img src="/assets/images/byale-logo-light.webp" alt="" onerror="this.style.display='none'">
-        <div><strong id="bookingMobileStudioName">ByAle</strong><span>Reservas online</span></div>
+      <div class="booking-mobile-brand booking-brand-centered" aria-label="ByAle — Reservas online">
+        <div class="booking-brand-logo-wrap">
+          <img class="booking-brand-logo booking-brand-logo-dark" src="/assets/images/byale-logo-dark.webp" alt="ByAle">
+          <img class="booking-brand-logo booking-brand-logo-light" src="/assets/images/byale-logo-light.webp" alt="ByAle">
+        </div>
+        <span class="booking-brand-subtitle">Reservas online</span>
       </div>
 
       <div class="booking-steps"><span class="active"></span><span></span><span></span><span></span><span></span><span></span></div>
