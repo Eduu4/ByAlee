@@ -54,12 +54,21 @@
       if (!holder) {
         holder = document.createElement("span");
         holder.className = "pro-area-icon";
+        holder.setAttribute("aria-hidden", "true");
+
         const label = button.querySelector("span:not(.pro-area-icon)");
         if (label) button.insertBefore(holder, label);
         else button.prepend(holder);
       }
 
-      holder.innerHTML = ICONS[area] || ICONS["Pestañas"];
+      /*
+       * No reescribimos el SVG si el icono ya corresponde al área.
+       * Esto evita generar mutaciones innecesarias dentro del botón.
+       */
+      if (holder.dataset.areaIcon !== area) {
+        holder.innerHTML = ICONS[area] || ICONS["Pestañas"];
+        holder.dataset.areaIcon = area;
+      }
     });
   }
 
@@ -119,8 +128,24 @@
     const target = $("#areaChoices");
     if (!target) return;
 
-    const observer = new MutationObserver(() => enhanceAreaButtons());
-    observer.observe(target, { childList: true, subtree: true });
+    /*
+     * booking.js reemplaza los botones como hijos directos de #areaChoices.
+     * Solo observamos ese nivel. No observamos el subtree porque nuestros
+     * propios SVG también modifican el interior de los botones y eso podía
+     * provocar un bucle continuo de MutationObserver.
+     */
+    let scheduled = false;
+    const observer = new MutationObserver(() => {
+      if (scheduled) return;
+      scheduled = true;
+
+      requestAnimationFrame(() => {
+        scheduled = false;
+        enhanceAreaButtons();
+      });
+    });
+
+    observer.observe(target, { childList: true });
     enhanceAreaButtons();
   }
 
