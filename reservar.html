@@ -89,10 +89,23 @@
     @media(max-width:560px){body{padding:0;background:var(--surface)}.booking-card{border:0;border-radius:0;min-height:100dvh;box-shadow:none;padding:18px 14px 100px}.time-grid{grid-template-columns:repeat(2,1fr)}.booking-footer{position:fixed;left:0;right:0;bottom:0;background:color-mix(in srgb,var(--surface) 95%,transparent);backdrop-filter:blur(14px);padding:11px 14px;border-top:1px solid var(--line);z-index:15}.booking-footer .btn{flex:1}.proof-uploader{grid-template-columns:1fr}.proof-preview{height:160px}.detail-choice-grid{grid-template-columns:1fr}.success-summary{grid-template-columns:1fr}.accept-card{padding:13px}.policy-text,.consent-public{max-height:180px}}
   </style>
 
+  <!-- Fallback crítico del logo: evita que las imágenes se muestren a tamaño natural incluso si falla el CSS visual externo. -->
+  <style>
+    .booking-mobile-brand{display:none}
+    .booking-brand-logo-wrap{width:180px;max-width:52vw;min-height:54px;display:grid;place-items:center;margin:0 auto}
+    .booking-brand-logo{display:none;width:100%!important;max-width:180px!important;height:auto!important;max-height:70px!important;object-fit:contain!important;object-position:center!important}
+    html[data-theme="light"] .booking-brand-logo-dark{display:block!important}
+    html[data-theme="light"] .booking-brand-logo-light{display:none!important}
+    html[data-theme="dark"] .booking-brand-logo-dark{display:none!important}
+    html[data-theme="dark"] .booking-brand-logo-light{display:block!important}
+    @media(max-width:800px){
+      .booking-mobile-brand.booking-brand-centered{display:flex;flex-direction:column;align-items:center;justify-content:center;width:100%;margin:0 0 18px;padding:2px 0 15px;border-bottom:1px solid var(--line);text-align:center}
+    }
+  </style>
   <link rel="stylesheet" href="/assets/css/mobile.css">
   <link rel="stylesheet" href="/assets/css/booking-public.css">
-  <link rel="stylesheet" href="/assets/css/booking-visual-safe-v3.css?v=3">
   <link rel="stylesheet" href="/assets/css/booking-performance.css">
+  <link rel="stylesheet" href="/assets/css/booking-visual-safe-v4.css?v=4">
 
   <script defer src="/assets/js/booking.js?v=3"></script>
 </head>
@@ -115,8 +128,8 @@
     <main class="booking-card" id="bookingCard">
       <div class="booking-mobile-brand booking-brand-centered" aria-label="ByAle — Reservas online">
         <div class="booking-brand-logo-wrap">
-          <img class="booking-brand-logo booking-brand-logo-dark" src="/assets/images/byale-logo-dark.webp" alt="ByAle">
-          <img class="booking-brand-logo booking-brand-logo-light" src="/assets/images/byale-logo-light.webp" alt="ByAle">
+          <img class="booking-brand-logo booking-brand-logo-dark" src="/assets/images/byale-logo-dark.webp" alt="ByAle" width="180" height="70" style="display:none;max-width:180px;width:100%;height:auto;object-fit:contain">
+          <img class="booking-brand-logo booking-brand-logo-light" src="/assets/images/byale-logo-light.webp" alt="ByAle" width="180" height="70" style="display:none;max-width:180px;width:100%;height:auto;object-fit:contain">
         </div>
         <span class="booking-brand-subtitle">Reservas online</span>
       </div>

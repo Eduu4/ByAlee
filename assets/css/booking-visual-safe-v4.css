@@ -1,0 +1,314 @@
+/*
+  ByAle — Reserva pública visual segura v3
+  ------------------------------------------------------------
+  SOLO PRESENTACIÓN.
+  No modifica booking.js, eventos, validaciones, fetch, APIs ni Supabase.
+  Debe cargarse DESPUÉS de booking-public.css.
+*/
+
+/* =========================================================
+   MARCA / LOGO
+========================================================= */
+.booking-mobile-brand {
+  display: none;
+}
+
+.booking-brand-logo-light {
+  display: none;
+}
+
+html[data-theme="light"] .booking-brand-logo-dark {
+  display: block;
+}
+
+html[data-theme="light"] .booking-brand-logo-light {
+  display: none;
+}
+
+html[data-theme="dark"] .booking-brand-logo-dark {
+  display: none;
+}
+
+html[data-theme="dark"] .booking-brand-logo-light {
+  display: block;
+}
+
+/* =========================================================
+   ICONOS DE ÁREAS — SVG MEDIANTE CSS, SIN JAVASCRIPT
+   Conserva los botones y eventos originales de booking.js.
+========================================================= */
+.area-btn i {
+  width: 48px;
+  height: 48px;
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--primary) 30%, var(--line));
+  border-radius: 15px;
+  background: color-mix(in srgb, var(--primary) 8%, var(--surface));
+  color: var(--primary);
+  transition: background-color .18s ease, color .18s ease, border-color .18s ease, transform .18s ease;
+}
+
+.area-btn i::before {
+  content: "" !important;
+  width: 26px;
+  height: 26px;
+  display: block;
+  background: currentColor;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  font-family: initial !important;
+}
+
+/* Pestañas */
+.area-btn[data-area="Pestañas"] i::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 12s3.5-5 9.5-5 9.5 5 9.5 5-3.5 5-9.5 5-9.5-5-9.5-5Z'/%3E%3Ccircle cx='12' cy='12' r='2.5'/%3E%3Cpath d='M5.2 7.5 3.9 5.8M8 6.1 7.4 4M12 5.6V3.3M16 6.1l.7-2.1M18.8 7.5l1.3-1.7'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 12s3.5-5 9.5-5 9.5 5 9.5 5-3.5 5-9.5 5-9.5-5-9.5-5Z'/%3E%3Ccircle cx='12' cy='12' r='2.5'/%3E%3Cpath d='M5.2 7.5 3.9 5.8M8 6.1 7.4 4M12 5.6V3.3M16 6.1l.7-2.1M18.8 7.5l1.3-1.7'/%3E%3C/svg%3E");
+}
+
+/* Cejas */
+.area-btn[data-area="Cejas"] i::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M3 14.8c4.6-5.7 11.2-7.2 18-3.1'/%3E%3Cpath d='M4.6 16.4c4.7-3.6 9.7-4.7 15-3.1'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M3 14.8c4.6-5.7 11.2-7.2 18-3.1'/%3E%3Cpath d='M4.6 16.4c4.7-3.6 9.7-4.7 15-3.1'/%3E%3C/svg%3E");
+}
+
+/* Manos */
+.area-btn[data-area="Manos"] i::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 11V5.5a1.5 1.5 0 0 1 3 0V10'/%3E%3Cpath d='M10 10V4.5a1.5 1.5 0 0 1 3 0V10'/%3E%3Cpath d='M13 10V5.5a1.5 1.5 0 0 1 3 0v5.2'/%3E%3Cpath d='M16 10.7V8a1.5 1.5 0 0 1 3 0v5.5c0 4.4-2.6 7-6.8 7H11c-3.1 0-4.8-1.7-6.2-4.1l-1.4-2.3a1.7 1.7 0 0 1 2.7-2l1.6 1.6'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 11V5.5a1.5 1.5 0 0 1 3 0V10'/%3E%3Cpath d='M10 10V4.5a1.5 1.5 0 0 1 3 0V10'/%3E%3Cpath d='M13 10V5.5a1.5 1.5 0 0 1 3 0v5.2'/%3E%3Cpath d='M16 10.7V8a1.5 1.5 0 0 1 3 0v5.5c0 4.4-2.6 7-6.8 7H11c-3.1 0-4.8-1.7-6.2-4.1l-1.4-2.3a1.7 1.7 0 0 1 2.7-2l1.6 1.6'/%3E%3C/svg%3E");
+}
+
+/* Pies */
+.area-btn[data-area="Pies"] i::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black'%3E%3Cellipse cx='8.2' cy='13.5' rx='3.2' ry='5.3' transform='rotate(-12 8.2 13.5)'/%3E%3Ccircle cx='5.2' cy='6.3' r='1.35'/%3E%3Ccircle cx='7.7' cy='5.1' r='1.15'/%3E%3Ccircle cx='10' cy='5.2' r='1'/%3E%3Cellipse cx='16.2' cy='14' rx='3.1' ry='5.1' transform='rotate(13 16.2 14)'/%3E%3Ccircle cx='18.9' cy='6.8' r='1.35'/%3E%3Ccircle cx='16.5' cy='5.5' r='1.15'/%3E%3Ccircle cx='14.2' cy='5.6' r='1'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black'%3E%3Cellipse cx='8.2' cy='13.5' rx='3.2' ry='5.3' transform='rotate(-12 8.2 13.5)'/%3E%3Ccircle cx='5.2' cy='6.3' r='1.35'/%3E%3Ccircle cx='7.7' cy='5.1' r='1.15'/%3E%3Ccircle cx='10' cy='5.2' r='1'/%3E%3Cellipse cx='16.2' cy='14' rx='3.1' ry='5.1' transform='rotate(13 16.2 14)'/%3E%3Ccircle cx='18.9' cy='6.8' r='1.35'/%3E%3Ccircle cx='16.5' cy='5.5' r='1.15'/%3E%3Ccircle cx='14.2' cy='5.6' r='1'/%3E%3C/svg%3E");
+}
+
+.area-btn.active i {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #fff;
+  transform: translateY(-1px);
+}
+
+.area-btn {
+  position: relative;
+  overflow: hidden;
+  min-height: 100px;
+  border-radius: 19px;
+  transition: border-color .18s ease, background-color .18s ease, transform .18s ease, box-shadow .18s ease;
+}
+
+.area-btn:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--primary) 55%, var(--line));
+}
+
+.area-btn.active {
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--primary) 10%, transparent);
+}
+
+/* =========================================================
+   CHECKBOXES DE POLÍTICAS Y CONSENTIMIENTO
+   Se usa el checkbox NATIVO con accent-color para evitar
+   romper el comportamiento o el hit-area del label.
+========================================================= */
+.accept-card {
+  width: 100% !important;
+  min-width: 0 !important;
+  display: flex !important;
+  align-items: flex-start !important;
+  gap: 12px !important;
+  box-sizing: border-box !important;
+}
+
+.accept-card input[type="checkbox"] {
+  -webkit-appearance: checkbox !important;
+  appearance: auto !important;
+  display: block !important;
+  position: static !important;
+  width: 20px !important;
+  min-width: 20px !important;
+  max-width: 20px !important;
+  height: 20px !important;
+  min-height: 20px !important;
+  max-height: 20px !important;
+  flex: 0 0 20px !important;
+  margin: 1px 0 0 !important;
+  padding: 0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  accent-color: var(--primary);
+  border: initial !important;
+  border-radius: initial !important;
+  background: initial !important;
+  box-shadow: none !important;
+}
+
+.accept-card input[type="checkbox"]::after {
+  content: none !important;
+  display: none !important;
+}
+
+.accept-card > span {
+  display: block !important;
+  flex: 1 1 auto !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+}
+
+.accept-card strong,
+.accept-card small {
+  display: block !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  white-space: normal !important;
+  word-break: normal !important;
+  overflow-wrap: break-word !important;
+}
+
+.accept-card strong {
+  line-height: 1.35 !important;
+}
+
+.accept-card small {
+  margin-top: 4px !important;
+  line-height: 1.45 !important;
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+@media (max-width: 800px) {
+  .booking-mobile-brand.booking-brand-centered {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin: -2px 0 18px;
+    padding: 2px 0 16px;
+    border-bottom: 1px solid var(--line);
+    text-align: center;
+  }
+
+  .booking-brand-logo-wrap {
+    width: min(190px, 52vw);
+    min-height: 58px;
+    display: grid;
+    place-items: center;
+  }
+
+  .booking-brand-logo {
+    width: 100%;
+    max-width: 180px;
+    height: auto;
+    max-height: 72px;
+    object-fit: contain;
+    object-position: center;
+  }
+
+  .booking-brand-subtitle {
+    margin-top: 3px;
+    color: var(--muted);
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: .18em;
+    text-transform: uppercase;
+  }
+
+  .booking-steps {
+    margin-top: 0;
+    margin-bottom: 22px;
+  }
+
+  .area-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .area-btn {
+    min-height: 100px;
+    padding: 13px 9px;
+  }
+
+  .area-btn i {
+    width: 46px;
+    height: 46px;
+  }
+
+  .area-btn i::before {
+    width: 25px;
+    height: 25px;
+  }
+
+  .policy-box {
+    min-width: 0;
+    overflow: hidden;
+  }
+
+  .accept-card {
+    padding: 13px !important;
+  }
+}
+
+@media (max-width: 560px) {
+  .booking-card {
+    padding-top: 14px;
+  }
+
+  .booking-brand-logo-wrap {
+    width: min(170px, 48vw);
+    min-height: 52px;
+  }
+
+  .booking-brand-logo {
+    max-width: 165px;
+    max-height: 64px;
+  }
+
+  .booking-brand-subtitle {
+    margin-top: 2px;
+    font-size: 8px;
+  }
+
+  .step > h2 {
+    font-size: clamp(26px, 7.4vw, 31px);
+    line-height: 1.06;
+  }
+
+  .policy-box {
+    padding: 14px;
+  }
+
+  .policy-text,
+  .consent-public {
+    padding: 13px;
+    font-size: 10px;
+    line-height: 1.62;
+  }
+
+  .accept-card strong {
+    font-size: 11px !important;
+  }
+
+  .accept-card small {
+    font-size: 9px !important;
+  }
+}
+
+@media (max-width: 360px) {
+  .booking-brand-logo-wrap {
+    width: 145px;
+  }
+
+  .area-btn {
+    min-height: 94px;
+  }
+}
