@@ -1084,18 +1084,530 @@ function renderServices() {
 }
 
   function renderInventory() {
-    const categories = [...new Set(DATA.inventory.map(item => item.category))].sort();
-    const visible = DATA.inventory
-      .filter(item => inventoryPriorityFilter === "all" || item.priority === inventoryPriorityFilter)
-      .filter(item => inventoryCategoryFilter === "all" || item.category === inventoryCategoryFilter)
-      .filter(item => !inventorySearch || normalize(`${item.name} ${item.category} ${item.location}`).includes(normalize(inventorySearch)))
-      .sort((a,b) => (a.priority === "professional" ? 0 : 1) - (b.priority === "professional" ? 0 : 1) || Number(a.stock > a.min) - Number(b.stock > b.min) || a.name.localeCompare(b.name));
-    $("#inventoryView").innerHTML = `<div class="grid-page"><div class="page-heading"><div><span class="eyebrow">INVENTARIO</span><h1>Control de productos</h1><p>Los productos de trabajo aparecen primero; también puedes controlar limpieza, higiene y suministros del local.</p></div><button class="btn primary-btn" id="addInventoryBtn"><i class="bi bi-plus-lg"></i>Nuevo producto</button></div><div class="inventory-filter-bar"><label class="field"><span>Buscar</span><input id="inventorySearch" value="${esc(inventorySearch)}" placeholder="Producto, categoría o ubicación"></label><label class="field"><span>Uso</span><select id="inventoryPriorityFilter"><option value="professional" ${inventoryPriorityFilter === "professional" ? "selected" : ""}>Productos de trabajo</option><option value="general" ${inventoryPriorityFilter === "general" ? "selected" : ""}>Limpieza / local</option><option value="all" ${inventoryPriorityFilter === "all" ? "selected" : ""}>Todo</option></select></label><label class="field"><span>Categoría</span><select id="inventoryCategoryFilter"><option value="all">Todas</option>${categories.map(category => `<option ${inventoryCategoryFilter === category ? "selected" : ""}>${esc(category)}</option>`).join("")}</select></label><span class="inventory-filter-count">${visible.length} producto(s)</span></div><div class="cards-grid">${visible.map(item => { const percentage = Math.min(100, Math.round(item.stock / Math.max(item.min * 2, 1) * 100)); const low = item.stock <= item.min; return `<article class="inventory-card ${low ? "inventory-low" : ""}"><div class="inventory-card-head"><div class="meta-row"><span class="badge">${esc(item.category)}</span><span class="badge ${item.priority === "professional" ? "status-complete" : ""}">${item.priority === "professional" ? "Trabajo" : "Local"}</span>${low ? '<span class="badge status-pending">Stock bajo</span>' : ""}</div><button class="icon-btn" onclick="window.editInventory(${Number(item.id)})" title="Modificar"><i class="bi bi-pencil-square"></i></button></div><h3>${esc(item.name)}</h3><p><strong>${item.stock}</strong> ${esc(item.unit)} disponibles · mínimo ${item.min}${item.location ? ` · ${esc(item.location)}` : ""}</p><div class="progress"><span style="width:${percentage}%"></span></div><div class="inventory-actions"><button class="btn ghost-btn" onclick="window.adjustInventoryStock(${Number(item.id)},-1)"><i class="bi bi-dash-lg"></i>Restar</button><button class="btn ghost-btn" onclick="window.adjustInventoryStock(${Number(item.id)},1)"><i class="bi bi-plus-lg"></i>Sumar</button><button class="btn primary-btn" onclick="window.editInventory(${Number(item.id)})"><i class="bi bi-pencil"></i>Editar</button></div></article>`; }).join("") || '<div class="empty-state"><i class="bi bi-box-seam"></i><strong>No hay productos con estos filtros</strong></div>'}</div></div>`;
-    $("#addInventoryBtn").onclick = () => openInventoryModal();
-    $("#inventoryPriorityFilter").onchange = event => { inventoryPriorityFilter = event.target.value; renderInventory(); };
-    $("#inventoryCategoryFilter").onchange = event => { inventoryCategoryFilter = event.target.value; renderInventory(); };
-    $("#inventorySearch").oninput = event => { inventorySearch = event.target.value; clearTimeout(renderInventory.searchTimer); renderInventory.searchTimer = setTimeout(renderInventory, 180); };
-  }
+
+  const categories = [
+    ...new Set(
+      DATA.inventory.map(item => item.category)
+    )
+  ].sort();
+
+
+  /*
+   * Obtiene los productos que coinciden
+   * con los filtros actuales.
+   */
+  const getVisibleInventory = () => {
+
+    return DATA.inventory
+      .filter(
+        item =>
+          inventoryPriorityFilter === "all" ||
+          item.priority === inventoryPriorityFilter
+      )
+      .filter(
+        item =>
+          inventoryCategoryFilter === "all" ||
+          item.category === inventoryCategoryFilter
+      )
+      .filter(item => {
+
+        if (!inventorySearch) {
+          return true;
+        }
+
+        const searchableText = normalize(
+          `${item.name} ${item.category} ${item.location}`
+        );
+
+        return searchableText.includes(
+          normalize(inventorySearch)
+        );
+
+      })
+      .sort(
+        (a, b) =>
+          (
+            a.priority === "professional"
+              ? 0
+              : 1
+          ) -
+          (
+            b.priority === "professional"
+              ? 0
+              : 1
+          ) ||
+          Number(a.stock > a.min) -
+          Number(b.stock > b.min) ||
+          a.name.localeCompare(b.name)
+      );
+
+  };
+
+
+  /*
+   * Genera una tarjeta de inventario.
+   */
+  const inventoryCard = item => {
+
+    const percentage = Math.min(
+      100,
+      Math.round(
+        item.stock /
+        Math.max(item.min * 2, 1) *
+        100
+      )
+    );
+
+    const low =
+      item.stock <= item.min;
+
+
+    return `
+      <article
+        class="inventory-card ${
+          low
+            ? "inventory-low"
+            : ""
+        }"
+      >
+
+        <div class="inventory-card-head">
+
+          <div class="meta-row">
+
+            <span class="badge">
+              ${esc(item.category)}
+            </span>
+
+            <span
+              class="badge ${
+                item.priority === "professional"
+                  ? "status-complete"
+                  : ""
+              }"
+            >
+              ${
+                item.priority === "professional"
+                  ? "Trabajo"
+                  : "Local"
+              }
+            </span>
+
+            ${
+              low
+                ? `
+                  <span class="badge status-pending">
+                    Stock bajo
+                  </span>
+                `
+                : ""
+            }
+
+          </div>
+
+
+          <button
+            class="icon-btn"
+            onclick="window.editInventory(${Number(item.id)})"
+            title="Modificar"
+          >
+            <i class="bi bi-pencil-square"></i>
+          </button>
+
+        </div>
+
+
+        <h3>
+          ${esc(item.name)}
+        </h3>
+
+
+        <p>
+
+          <strong>
+            ${item.stock}
+          </strong>
+
+          ${esc(item.unit)} disponibles
+
+          · mínimo ${item.min}
+
+          ${
+            item.location
+              ? ` · ${esc(item.location)}`
+              : ""
+          }
+
+        </p>
+
+
+        <div class="progress">
+          <span
+            style="width:${percentage}%"
+          ></span>
+        </div>
+
+
+        <div class="inventory-actions">
+
+          <button
+            class="btn ghost-btn"
+            onclick="
+              window.adjustInventoryStock(
+                ${Number(item.id)},
+                -1
+              )
+            "
+          >
+
+            <i class="bi bi-dash-lg"></i>
+
+            Restar
+
+          </button>
+
+
+          <button
+            class="btn ghost-btn"
+            onclick="
+              window.adjustInventoryStock(
+                ${Number(item.id)},
+                1
+              )
+            "
+          >
+
+            <i class="bi bi-plus-lg"></i>
+
+            Sumar
+
+          </button>
+
+
+          <button
+            class="btn primary-btn"
+            onclick="
+              window.editInventory(
+                ${Number(item.id)}
+              )
+            "
+          >
+
+            <i class="bi bi-pencil"></i>
+
+            Editar
+
+          </button>
+
+        </div>
+
+      </article>
+    `;
+
+  };
+
+
+  /*
+   * Actualiza solamente los resultados.
+   *
+   * IMPORTANTE:
+   * No vuelve a generar el buscador,
+   * por lo tanto no pierde el foco
+   * mientras se está escribiendo.
+   */
+  const updateInventoryResults = () => {
+
+    const visible =
+      getVisibleInventory();
+
+
+    const grid =
+      $("#inventoryView .cards-grid");
+
+    const count =
+      $("#inventoryView .inventory-filter-count");
+
+
+    if (count) {
+
+      count.textContent =
+        `${visible.length} producto(s)`;
+
+    }
+
+
+    if (grid) {
+
+      grid.innerHTML =
+        visible.length
+
+          ? visible
+              .map(inventoryCard)
+              .join("")
+
+          : `
+              <div class="empty-state">
+
+                <i class="bi bi-box-seam"></i>
+
+                <strong>
+                  No hay productos con estos filtros
+                </strong>
+
+              </div>
+            `;
+
+    }
+
+  };
+
+
+  const visible =
+    getVisibleInventory();
+
+
+  $("#inventoryView").innerHTML = `
+
+    <div class="grid-page">
+
+      <div class="page-heading">
+
+        <div>
+
+          <span class="eyebrow">
+            INVENTARIO
+          </span>
+
+          <h1>
+            Control de productos
+          </h1>
+
+          <p>
+            Los productos de trabajo aparecen primero;
+            también puedes controlar limpieza, higiene
+            y suministros del local.
+          </p>
+
+        </div>
+
+
+        <button
+          class="btn primary-btn"
+          id="addInventoryBtn"
+        >
+
+          <i class="bi bi-plus-lg"></i>
+
+          Nuevo producto
+
+        </button>
+
+      </div>
+
+
+      <div class="inventory-filter-bar">
+
+
+        <label class="field">
+
+          <span>
+            Buscar
+          </span>
+
+          <input
+            id="inventorySearch"
+            value="${esc(inventorySearch)}"
+            placeholder="Escribí el nombre del producto..."
+            autocomplete="off"
+          >
+
+        </label>
+
+
+        <label class="field">
+
+          <span>
+            Uso
+          </span>
+
+          <select
+            id="inventoryPriorityFilter"
+          >
+
+            <option
+              value="professional"
+              ${
+                inventoryPriorityFilter === "professional"
+                  ? "selected"
+                  : ""
+              }
+            >
+              Productos de trabajo
+            </option>
+
+            <option
+              value="general"
+              ${
+                inventoryPriorityFilter === "general"
+                  ? "selected"
+                  : ""
+              }
+            >
+              Limpieza / local
+            </option>
+
+            <option
+              value="all"
+              ${
+                inventoryPriorityFilter === "all"
+                  ? "selected"
+                  : ""
+              }
+            >
+              Todo
+            </option>
+
+          </select>
+
+        </label>
+
+
+        <label class="field">
+
+          <span>
+            Categoría
+          </span>
+
+          <select
+            id="inventoryCategoryFilter"
+          >
+
+            <option value="all">
+              Todas
+            </option>
+
+            ${
+              categories
+                .map(
+                  category => `
+                    <option
+                      value="${esc(category)}"
+                      ${
+                        inventoryCategoryFilter === category
+                          ? "selected"
+                          : ""
+                      }
+                    >
+                      ${esc(category)}
+                    </option>
+                  `
+                )
+                .join("")
+            }
+
+          </select>
+
+        </label>
+
+
+        <span class="inventory-filter-count">
+
+          ${visible.length} producto(s)
+
+        </span>
+
+      </div>
+
+
+      <div class="cards-grid">
+
+        ${
+          visible.length
+
+            ? visible
+                .map(inventoryCard)
+                .join("")
+
+            : `
+                <div class="empty-state">
+
+                  <i class="bi bi-box-seam"></i>
+
+                  <strong>
+                    No hay productos con estos filtros
+                  </strong>
+
+                </div>
+              `
+        }
+
+      </div>
+
+    </div>
+  `;
+
+
+  $("#addInventoryBtn").onclick =
+    () => openInventoryModal();
+
+
+  $("#inventoryPriorityFilter").onchange =
+    event => {
+
+      inventoryPriorityFilter =
+        event.target.value;
+
+      renderInventory();
+
+    };
+
+
+  $("#inventoryCategoryFilter").onchange =
+    event => {
+
+      inventoryCategoryFilter =
+        event.target.value;
+
+      renderInventory();
+
+    };
+
+
+  /*
+   * BUSCADOR
+   *
+   * Espera un momento después de que
+   * el usuario termine de escribir.
+   *
+   * Ya NO ejecuta renderInventory(),
+   * por lo que el input no pierde
+   * el foco.
+   */
+  $("#inventorySearch").oninput =
+    event => {
+
+      inventorySearch =
+        event.target.value;
+
+
+      clearTimeout(
+        renderInventory.searchTimer
+      );
+
+
+      renderInventory.searchTimer =
+        setTimeout(
+          () => {
+
+            updateInventoryResults();
+
+          },
+          350
+        );
+
+    };
+
+}
 
   function renderFinance() {
     const activeAppointments = DATA.appointments.filter(appointment => !appointmentFreesSlot(appointment));
