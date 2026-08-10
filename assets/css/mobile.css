@@ -1489,137 +1489,324 @@
     font-size: 16px !important;
   }
 }
+
+/* =========================================================
+   MOBILE — BOTONES PRINCIPALES Y SERVICIOS
+   Solo visual
+========================================================= */
+
 @media (max-width: 760px) {
 
-  /* =========================================================
-     SERVICIOS — limpieza visual mobile
-  ========================================================= */
+  /* =====================================================
+     NUEVA CITA — BARRA SUPERIOR
+  ===================================================== */
 
-  /* Oculta el botón global de "Nueva cita" en la barra superior
-     para evitar duplicidad/confusión en mobile */
+  /*
+   * Por defecto, en mobile "Nueva cita" vuelve a mostrarse.
+   * Se conserva el texto, no solamente el icono +.
+   */
   #newAppointmentBtn {
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+
+    width: auto !important;
+    min-width: 104px !important;
+    height: 44px;
+    min-height: 44px;
+
+    padding: 0 13px !important;
+
+    gap: 6px;
+
+    font-size: 12px !important;
+    font-weight: 700;
+
+    white-space: nowrap;
+
+    border-radius: 14px;
+  }
+
+  #newAppointmentBtn i {
+    margin: 0 !important;
+    font-size: 16px !important;
+  }
+
+
+  /*
+   * Dejamos que el buscador se adapte al espacio disponible
+   * cuando aparece "Nueva cita".
+   */
+  .topbar .search-wrap {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
+
+  .topbar .search-box {
+    min-width: 0;
+  }
+
+  .topbar .search-box input {
+    width: 100%;
+    min-width: 0;
+    text-overflow: ellipsis;
+  }
+
+
+  /* =====================================================
+     SERVICIOS
+  ===================================================== */
+
+  /*
+   * Dentro de Servicios ocultamos Nueva cita de la barra
+   * superior porque ahí ya tenemos la acción "Nuevo".
+   *
+   * Esto NO afecta Mi jornada, Agenda, Clientas, etc.
+   */
+  body:has(#servicesView.active) #newAppointmentBtn {
     display: none !important;
   }
 
-  /* Encabezado de Servicios más limpio */
-  #servicesView .compact-page-heading,
-  #servicesView .page-heading {
-    grid-template-columns: 1fr;
-    gap: 12px;
-    margin-bottom: 14px;
+
+  /*
+   * Encabezado igual al concepto que querías:
+   *
+   * Servicios                      [ + Nuevo ]
+   */
+  #servicesView .page-heading,
+  #servicesView .compact-page-heading {
+    display: grid;
+
+    grid-template-columns:
+      minmax(0, 1fr)
+      auto;
+
+    align-items: start;
+
+    column-gap: 12px;
+    row-gap: 6px;
+
+    width: 100%;
+    margin-bottom: 18px;
   }
+
 
   #servicesView .page-heading > div:first-child {
     min-width: 0;
   }
 
-  /* Botón "Nuevo" de Servicios:
-     deja de verse como botoncito raro y pasa a verse normal */
-  #servicesView .page-icon-action {
-    justify-self: start;
+
+  #servicesView .page-heading h1 {
+    margin-bottom: 0;
+  }
+
+
+  /*
+   * Botón Nuevo alineado a la DERECHA.
+   */
+  #servicesView #addServiceBtn {
+    justify-self: end;
+    align-self: center;
+
     display: inline-flex;
     align-items: center;
     justify-content: center;
+
     width: auto;
-    min-width: 136px;
+    min-width: 108px;
+
     height: 42px;
     min-height: 42px;
+
     padding: 0 14px;
+
+    gap: 7px;
+
     border-radius: 14px;
-    font-size: 13px;
-    gap: 8px;
+
+    font-size: 12px;
+    font-weight: 700;
+
     white-space: nowrap;
   }
 
-  #servicesView .page-icon-action span {
-    display: inline;
-    font-size: 13px;
+
+  #servicesView #addServiceBtn span {
+    display: inline !important;
+
+    font-size: 12px !important;
     font-weight: 700;
+
     line-height: 1;
   }
 
-  #servicesView .page-icon-action i {
+
+  #servicesView #addServiceBtn i {
     margin: 0;
-    font-size: 16px;
+
+    font-size: 15px;
   }
 
-  /* Toolbar de categoría + contador en una sola columna */
+
+  /* =====================================================
+     FILTROS
+  ===================================================== */
+
   #servicesView .service-toolbar {
-    grid-template-columns: 1fr;
-    align-items: stretch;
+    display: grid;
+
+    grid-template-columns:
+      minmax(0, 1fr)
+      auto;
+
+    align-items: end;
+
     gap: 8px;
+
+    width: 100%;
   }
+
+
+  #servicesView .service-toolbar .field {
+    min-width: 0;
+    margin: 0;
+  }
+
 
   #servicesView .service-result-count {
-    padding: 0 2px;
-    color: var(--muted);
-    font-size: 11px;
-    line-height: 1.3;
-    white-space: normal;
+    padding-bottom: 12px;
+
+    font-size: 10px;
+
+    white-space: nowrap;
   }
 
-  /* Tarjetas resumen */
+
+  /* =====================================================
+     RESUMEN
+  ===================================================== */
+
   #servicesView .service-summary-strip {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 8px;
-    padding: 10px;
+
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+
+    gap: 7px;
+
+    width: 100%;
+
+    padding: 8px;
+
+    margin: 0;
+
     border-radius: 16px;
   }
 
+
   #servicesView .service-summary-strip article {
     min-width: 0;
-    padding: 10px 8px;
+
+    padding: 9px 5px;
+
+    text-align: center;
+
+    border-radius: 12px;
   }
+
 
   #servicesView .service-summary-strip span {
-    font-size: 10px;
+    font-size: 9px;
   }
 
+
   #servicesView .service-summary-strip strong {
-    font-size: 18px;
+    font-size: 17px;
     line-height: 1;
   }
 
-  /* Tarjeta de servicio más prolija */
+
+  /* =====================================================
+     TARJETA DEL SERVICIO
+  ===================================================== */
+
+  #servicesView .service-list {
+    gap: 12px;
+  }
+
+
   #servicesView .service-card-compact {
-    padding: 14px;
+    width: 100%;
+
+    padding: 13px;
+
     border-radius: 18px;
   }
 
+
   #servicesView .service-card-top {
     align-items: flex-start;
-    gap: 10px;
+
+    margin-bottom: 9px;
   }
 
-  /* Precio y tiempos más ordenados */
-  #servicesView .service-main-data {
-    grid-template-columns: 1fr;
-    align-items: start;
-    gap: 8px;
+
+  #servicesView .service-card-top h3 {
+    margin-top: 7px;
+
+    font-size: 18px;
   }
+
+
+  #servicesView .service-main-data {
+    display: grid;
+
+    grid-template-columns: 1fr;
+
+    align-items: start;
+
+    gap: 6px;
+
+    padding: 10px;
+
+    border-radius: 12px;
+  }
+
 
   #servicesView .service-price {
     font-size: 18px;
+
     line-height: 1.1;
   }
 
+
   #servicesView .service-main-data span {
-    font-size: 11px;
+    font-size: 10px;
+
     white-space: normal;
   }
 
-  #servicesView .service-details summary {
-    font-size: 12px;
+
+  #servicesView .service-details {
+    margin-top: 8px;
   }
 
-  #servicesView .service-time-breakdown {
-    grid-template-columns: 1fr;
-    gap: 7px;
+
+  #servicesView .service-details summary {
+    min-height: 42px;
+
+    font-size: 11px;
   }
+
 
   #servicesView .service-edit-btn {
-    min-height: 42px;
-    font-size: 12px;
+    width: 100%;
+
+    min-height: 40px;
+
+    margin-top: 8px;
+
+    font-size: 11px;
   }
+
 }
