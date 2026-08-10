@@ -16,6 +16,7 @@ function addDays(date, amount) {
 
 export default async function handler(req, res) {
   if (!allowMethods(req, res, ["GET"])) return;
+
   try {
     const admin = createAdminClient();
     const studio = await getStudio(admin);
@@ -32,20 +33,35 @@ export default async function handler(req, res) {
       admin.from("appointments").select("id,date,time,start_minute,end_minute,status,service_id").eq("studio_id", studio.id).gte("date", from).lte("date", to).in("status", ["requested","pending","confirmed"])
     ]);
 
-    const firstError = [settingsResult.error, servicesResult.error, blocksResult.error, appointmentsResult.error].find(Boolean);
+    const firstError = [
+      settingsResult.error,
+      servicesResult.error,
+      blocksResult.error,
+      appointmentsResult.error
+    ].find(Boolean);
+
     if (firstError) throw firstError;
 
     const rawSettings = settingsResult.data?.data || {};
+
     const publicSettingKeys = [
       "studioName", "city", "openingTime", "closingTime", "slotInterval", "workDays",
       "currency", "primaryColor", "appearance", "bookingEnabled", "requireConsent",
       "allowDepositProof", "requireDepositChoice", "defaultDeposit",
       "requirePoliciesAcceptance", "bookingPoliciesVersion", "bookingPoliciesText",
-      "allowOptionalBookingDetails", "timezone"
+      "allowOptionalBookingDetails", "timezone",
+
+      /* Personalización visual de reservar.html */
+      "bookingPublicHeading", "bookingPublicIntro", "bookingVisualStyle",
+      "bookingIconStyle", "bookingShowTrustPanel", "locationUrl"
     ];
-    const settings = Object.fromEntries(publicSettingKeys
-      .filter(key => Object.prototype.hasOwnProperty.call(rawSettings, key))
-      .map(key => [key, rawSettings[key]]));
+
+    const settings = Object.fromEntries(
+      publicSettingKeys
+        .filter(key => Object.prototype.hasOwnProperty.call(rawSettings, key))
+        .map(key => [key, rawSettings[key]])
+    );
+
     const services = (servicesResult.data || []).map(row => ({
       id: Number(row.id),
       name: row.data?.name || "Servicio",
@@ -58,6 +74,7 @@ export default async function handler(req, res) {
       description: String(row.data?.description || "").slice(0, 500),
       active: true
     }));
+
     const availabilityBlocks = (blocksResult.data || []).map(row => ({
       id: Number(row.id),
       date: row.date,
@@ -65,6 +82,7 @@ export default async function handler(req, res) {
       endMinute: row.end_minute,
       allDay: row.all_day
     }));
+
     const appointments = (appointmentsResult.data || []).map(row => ({
       id: Number(row.id),
       date: row.date,
@@ -76,7 +94,11 @@ export default async function handler(req, res) {
     }));
 
     return json(res, 200, {
-      studio: { name: studio.name, slug: studio.slug, timezone: studio.timezone },
+      studio: {
+        name: studio.name,
+        slug: studio.slug,
+        timezone: studio.timezone
+      },
       settings,
       services,
       availabilityBlocks,

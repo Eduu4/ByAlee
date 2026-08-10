@@ -1,0 +1,265 @@
+/*
+  ByAle — Reserva pública v6
+  Correcciones VISUALES aisladas para reservar.html.
+  Se carga después de booking-public.css.
+*/
+
+/* =========================================================
+   MARCA / LOGO
+   Misma lógica del panel privado:
+   - tema dark  -> byale-logo-dark.webp (letras claras)
+   - tema light -> byale-logo-light.webp (letras oscuras)
+   El cambio de src lo realiza booking-public-ui.js.
+========================================================= */
+
+.public-brand-cover {
+  min-height: 126px;
+  margin-bottom: 22px;
+  padding: 20px 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--surface-2);
+  overflow: hidden;
+}
+
+.public-brand-logo {
+  display: block;
+  width: min(220px, 88%);
+  max-width: 100%;
+  max-height: 92px;
+  height: auto;
+  object-fit: contain;
+  object-position: center;
+}
+
+.booking-mobile-brand {
+  display: none;
+}
+
+/* =========================================================
+   UBICACIÓN
+========================================================= */
+
+.public-location-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.public-location-link[aria-disabled="true"] {
+  cursor: default;
+}
+
+.public-location-link[aria-disabled="true"] .public-location-arrow {
+  display: none;
+}
+
+.public-location-link[aria-disabled="false"] {
+  cursor: pointer;
+}
+
+.public-location-link[aria-disabled="false"]:hover {
+  border-color: color-mix(in srgb, var(--primary) 35%, var(--line));
+}
+
+.public-location-arrow {
+  margin-left: auto;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.booking-mobile-location {
+  margin-top: 7px;
+  padding: 7px 11px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-2);
+  color: var(--muted);
+  font-size: 10px;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.booking-mobile-location[hidden] {
+  display: none !important;
+}
+
+/* =========================================================
+   ICONOS DE ÁREAS
+   Solo cambia la presentación, no data-area ni eventos.
+========================================================= */
+
+.area-btn i {
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  border: 1px solid color-mix(in srgb, var(--primary) 30%, var(--line));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--primary) 8%, var(--surface));
+  color: var(--primary);
+  line-height: 1;
+}
+
+.area-btn i::before {
+  content: "" !important;
+  width: 24px;
+  height: 24px;
+  display: block;
+  background: currentColor;
+  -webkit-mask-position: center;
+  mask-position: center;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: contain;
+  mask-size: contain;
+  font-family: initial !important;
+}
+
+.area-btn[data-area="Pestañas"] i::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 12s3.5-5 9.5-5 9.5 5 9.5 5-3.5 5-9.5 5-9.5-5-9.5-5Z'/%3E%3Ccircle cx='12' cy='12' r='2.5'/%3E%3Cpath d='M5.2 7.5 3.9 5.8M8 6.1 7.4 4M12 5.6V3.3M16 6.1l.7-2.1M18.8 7.5l1.3-1.7'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 12s3.5-5 9.5-5 9.5 5 9.5 5-3.5 5-9.5 5-9.5-5-9.5-5Z'/%3E%3Ccircle cx='12' cy='12' r='2.5'/%3E%3Cpath d='M5.2 7.5 3.9 5.8M8 6.1 7.4 4M12 5.6V3.3M16 6.1l.7-2.1M18.8 7.5l1.3-1.7'/%3E%3C/svg%3E");
+}
+
+.area-btn[data-area="Cejas"] i::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M3 14.8c4.6-5.7 11.2-7.2 18-3.1'/%3E%3Cpath d='M4.6 16.4c4.7-3.6 9.7-4.7 15-3.1'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M3 14.8c4.6-5.7 11.2-7.2 18-3.1'/%3E%3Cpath d='M4.6 16.4c4.7-3.6 9.7-4.7 15-3.1'/%3E%3C/svg%3E");
+}
+
+.area-btn[data-area="Manos"] i::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 11V5.5a1.5 1.5 0 0 1 3 0V10M10 10V4.5a1.5 1.5 0 0 1 3 0V10M13 10V5.5a1.5 1.5 0 0 1 3 0v5.2M16 10.7V8a1.5 1.5 0 0 1 3 0v5.5c0 4.4-2.6 7-6.8 7H11c-3.1 0-4.8-1.7-6.2-4.1l-1.4-2.3a1.7 1.7 0 0 1 2.7-2l1.6 1.6'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 11V5.5a1.5 1.5 0 0 1 3 0V10M10 10V4.5a1.5 1.5 0 0 1 3 0V10M13 10V5.5a1.5 1.5 0 0 1 3 0v5.2M16 10.7V8a1.5 1.5 0 0 1 3 0v5.5c0 4.4-2.6 7-6.8 7H11c-3.1 0-4.8-1.7-6.2-4.1l-1.4-2.3a1.7 1.7 0 0 1 2.7-2l1.6 1.6'/%3E%3C/svg%3E");
+}
+
+.area-btn[data-area="Pies"] i::before {
+  -webkit-mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black'%3E%3Cellipse cx='8.2' cy='13.5' rx='3.2' ry='5.3' transform='rotate(-12 8.2 13.5)'/%3E%3Ccircle cx='5.2' cy='6.3' r='1.35'/%3E%3Ccircle cx='7.7' cy='5.1' r='1.15'/%3E%3Ccircle cx='10' cy='5.2' r='1'/%3E%3Cellipse cx='16.2' cy='14' rx='3.1' ry='5.1' transform='rotate(13 16.2 14)'/%3E%3Ccircle cx='18.9' cy='6.8' r='1.35'/%3E%3Ccircle cx='16.5' cy='5.5' r='1.15'/%3E%3Ccircle cx='14.2' cy='5.6' r='1'/%3E%3C/svg%3E");
+  mask-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black'%3E%3Cellipse cx='8.2' cy='13.5' rx='3.2' ry='5.3' transform='rotate(-12 8.2 13.5)'/%3E%3Ccircle cx='5.2' cy='6.3' r='1.35'/%3E%3Ccircle cx='7.7' cy='5.1' r='1.15'/%3E%3Ccircle cx='10' cy='5.2' r='1'/%3E%3Cellipse cx='16.2' cy='14' rx='3.1' ry='5.1' transform='rotate(13 16.2 14)'/%3E%3Ccircle cx='18.9' cy='6.8' r='1.35'/%3E%3Ccircle cx='16.5' cy='5.5' r='1.15'/%3E%3Ccircle cx='14.2' cy='5.6' r='1'/%3E%3C/svg%3E");
+}
+
+.area-btn.active i {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #fff;
+}
+
+/* =========================================================
+   POLÍTICAS Y CONSENTIMIENTO
+   Se vuelve al checkbox NATIVO del navegador.
+   No se reemplaza por pseudo-elementos ni se oculta.
+========================================================= */
+
+.accept-card {
+  display: grid !important;
+  grid-template-columns: 26px minmax(0, 1fr) !important;
+  align-items: start !important;
+  gap: 12px !important;
+  width: 100% !important;
+  min-width: 0 !important;
+}
+
+.accept-card input[type="checkbox"],
+#policiesAccepted,
+#consentAccepted {
+  -webkit-appearance: auto !important;
+  appearance: auto !important;
+  position: static !important;
+  display: block !important;
+  width: 22px !important;
+  min-width: 22px !important;
+  max-width: 22px !important;
+  height: 22px !important;
+  min-height: 22px !important;
+  max-height: 22px !important;
+  margin: 1px 0 0 !important;
+  padding: 0 !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  transform: none !important;
+  accent-color: var(--primary) !important;
+  cursor: pointer !important;
+  box-shadow: none !important;
+}
+
+.accept-card input[type="checkbox"]::before,
+.accept-card input[type="checkbox"]::after,
+#policiesAccepted::before,
+#policiesAccepted::after,
+#consentAccepted::before,
+#consentAccepted::after {
+  content: none !important;
+  display: none !important;
+}
+
+.accept-card > span {
+  display: block !important;
+  width: auto !important;
+  min-width: 0 !important;
+  max-width: none !important;
+  overflow: visible !important;
+}
+
+.accept-card strong,
+.accept-card small {
+  width: auto !important;
+  max-width: none !important;
+  white-space: normal !important;
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}
+
+.accept-card:has(input[type="checkbox"]:checked) {
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 10%, var(--surface-2));
+}
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (max-width: 800px) {
+  .booking-mobile-brand {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    margin: 0 0 17px;
+    padding: 2px 0 15px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .booking-mobile-logo {
+    width: min(176px, 46vw);
+    max-height: 64px;
+  }
+}
+
+@media (max-width: 560px) {
+  .booking-mobile-logo {
+    width: min(164px, 48vw);
+    max-height: 58px;
+  }
+
+  .accept-card {
+    grid-template-columns: 24px minmax(0, 1fr) !important;
+    gap: 10px !important;
+    padding: 13px !important;
+  }
+
+  .accept-card input[type="checkbox"],
+  #policiesAccepted,
+  #consentAccepted {
+    width: 21px !important;
+    min-width: 21px !important;
+    max-width: 21px !important;
+    height: 21px !important;
+    min-height: 21px !important;
+    max-height: 21px !important;
+  }
+}

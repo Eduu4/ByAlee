@@ -89,43 +89,31 @@
     @media(max-width:560px){body{padding:0;background:var(--surface)}.booking-card{border:0;border-radius:0;min-height:100dvh;box-shadow:none;padding:18px 14px 100px}.time-grid{grid-template-columns:repeat(2,1fr)}.booking-footer{position:fixed;left:0;right:0;bottom:0;background:color-mix(in srgb,var(--surface) 95%,transparent);backdrop-filter:blur(14px);padding:11px 14px;border-top:1px solid var(--line);z-index:15}.booking-footer .btn{flex:1}.proof-uploader{grid-template-columns:1fr}.proof-preview{height:160px}.detail-choice-grid{grid-template-columns:1fr}.success-summary{grid-template-columns:1fr}.accept-card{padding:13px}.policy-text,.consent-public{max-height:180px}}
   </style>
 
-  <!-- Mejora visual segura: no toca eventos, validaciones, APIs ni Supabase. -->
-  <style>
-    /* Logo mobile: negro en tema claro y blanco en tema oscuro. */
-    .booking-mobile-brand{display:none}
-    .booking-mobile-logo{display:none;width:min(190px,52vw);height:auto;max-height:76px;object-fit:contain;margin:0 auto}
-    html[data-theme="light"] .booking-mobile-logo.logo-dark{display:block}
-    html[data-theme="dark"] .booking-mobile-logo.logo-light{display:block}
 
-    /* Iconos de áreas: solo presentación. Los botones y data-area siguen siendo los originales. */
-    .area-btn i{width:46px;height:46px;display:grid;place-items:center;border:1px solid color-mix(in srgb,var(--primary) 30%,var(--line));border-radius:15px;background:color-mix(in srgb,var(--primary) 8%,var(--surface));color:var(--primary)}
-    .area-btn i::before{content:""!important;width:25px;height:25px;display:block;background:currentColor;-webkit-mask-position:center;mask-position:center;-webkit-mask-repeat:no-repeat;mask-repeat:no-repeat;-webkit-mask-size:contain;mask-size:contain;font-family:initial!important}
-    .area-btn[data-area="Pestañas"] i::before{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 12s3.5-5 9.5-5 9.5 5 9.5 5-3.5 5-9.5 5-9.5-5-9.5-5Z'/%3E%3Ccircle cx='12' cy='12' r='2.5'/%3E%3Cpath d='M5.2 7.5 3.9 5.8M8 6.1 7.4 4M12 5.6V3.3M16 6.1l.7-2.1M18.8 7.5l1.3-1.7'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.8' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M2.5 12s3.5-5 9.5-5 9.5 5 9.5 5-3.5 5-9.5 5-9.5-5-9.5-5Z'/%3E%3Ccircle cx='12' cy='12' r='2.5'/%3E%3Cpath d='M5.2 7.5 3.9 5.8M8 6.1 7.4 4M12 5.6V3.3M16 6.1l.7-2.1M18.8 7.5l1.3-1.7'/%3E%3C/svg%3E")}
-    .area-btn[data-area="Cejas"] i::before{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M3 14.8c4.6-5.7 11.2-7.2 18-3.1'/%3E%3Cpath d='M4.6 16.4c4.7-3.6 9.7-4.7 15-3.1'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2' stroke-linecap='round'%3E%3Cpath d='M3 14.8c4.6-5.7 11.2-7.2 18-3.1'/%3E%3Cpath d='M4.6 16.4c4.7-3.6 9.7-4.7 15-3.1'/%3E%3C/svg%3E")}
-    .area-btn[data-area="Manos"] i::before{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 11V5.5a1.5 1.5 0 0 1 3 0V10M10 10V4.5a1.5 1.5 0 0 1 3 0V10M13 10V5.5a1.5 1.5 0 0 1 3 0v5.2M16 10.7V8a1.5 1.5 0 0 1 3 0v5.5c0 4.4-2.6 7-6.8 7H11c-3.1 0-4.8-1.7-6.2-4.1l-1.4-2.3a1.7 1.7 0 0 1 2.7-2l1.6 1.6'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='1.7' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M7 11V5.5a1.5 1.5 0 0 1 3 0V10M10 10V4.5a1.5 1.5 0 0 1 3 0V10M13 10V5.5a1.5 1.5 0 0 1 3 0v5.2M16 10.7V8a1.5 1.5 0 0 1 3 0v5.5c0 4.4-2.6 7-6.8 7H11c-3.1 0-4.8-1.7-6.2-4.1l-1.4-2.3a1.7 1.7 0 0 1 2.7-2l1.6 1.6'/%3E%3C/svg%3E")}
-    .area-btn[data-area="Pies"] i::before{-webkit-mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black'%3E%3Cellipse cx='8.2' cy='13.5' rx='3.2' ry='5.3' transform='rotate(-12 8.2 13.5)'/%3E%3Ccircle cx='5.2' cy='6.3' r='1.35'/%3E%3Ccircle cx='7.7' cy='5.1' r='1.15'/%3E%3Ccircle cx='10' cy='5.2' r='1'/%3E%3Cellipse cx='16.2' cy='14' rx='3.1' ry='5.1' transform='rotate(13 16.2 14)'/%3E%3Ccircle cx='18.9' cy='6.8' r='1.35'/%3E%3Ccircle cx='16.5' cy='5.5' r='1.15'/%3E%3Ccircle cx='14.2' cy='5.6' r='1'/%3E%3C/svg%3E");mask-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='black'%3E%3Cellipse cx='8.2' cy='13.5' rx='3.2' ry='5.3' transform='rotate(-12 8.2 13.5)'/%3E%3Ccircle cx='5.2' cy='6.3' r='1.35'/%3E%3Ccircle cx='7.7' cy='5.1' r='1.15'/%3E%3Ccircle cx='10' cy='5.2' r='1'/%3E%3Cellipse cx='16.2' cy='14' rx='3.1' ry='5.1' transform='rotate(13 16.2 14)'/%3E%3Ccircle cx='18.9' cy='6.8' r='1.35'/%3E%3Ccircle cx='16.5' cy='5.5' r='1.15'/%3E%3Ccircle cx='14.2' cy='5.6' r='1'/%3E%3C/svg%3E")}
-    .area-btn.active i{border-color:var(--primary);background:var(--primary);color:#fff}
+  <link rel="stylesheet" href="/assets/css/booking-public.css?v=6">
+  <link rel="stylesheet" href="/assets/css/booking-fix-v6.css?v=6">
 
-    @media(max-width:800px){
-      .booking-mobile-brand{display:flex;align-items:center;justify-content:center;width:100%;margin:0 0 18px;padding:2px 0 16px;border-bottom:1px solid var(--line)}
-    }
-  </style>
-  <link rel="stylesheet" href="/assets/css/mobile.css">
-  <link rel="stylesheet" href="/assets/css/booking-public.css">
-  <link rel="stylesheet" href="/assets/css/booking-performance.css">
-
-  <script defer src="/assets/js/booking.js?v=20260810-restore1"></script>
+  <!-- La lógica funcional original se conserva intacta. -->
+  <script defer src="/assets/js/booking.js?v=6"></script>
+  <script defer src="/assets/js/booking-public-ui.js?v=6"></script>
 </head>
 <body>
   <div class="booking-shell">
     <aside class="studio-card">
-      <div class="studio-cover" id="studioCover">ByAle</div>
+      <div class="public-brand-cover" aria-label="ByAle — Lash & Brown">
+        <img class="public-brand-logo" src="/assets/images/byale-logo-light.webp" alt="ByAle — Lash & Brown">
+        <span id="studioCover" hidden>ByAle</span>
+      </div>
       <span class="eyebrow" id="studioEyebrow">BYALE</span>
       <h1 id="bookingPublicHeading">Reservá tu cita de forma simple</h1>
       <p id="bookingPublicIntro">Elegí el servicio y un horario disponible. La solicitud queda pendiente hasta que el local la confirme.</p>
 
       <div class="mini-list" id="bookingTrustPanel">
-        <div class="mini-item"><div class="mini-icon"><i class="bi bi-geo-alt"></i></div><div><strong>Ubicación</strong><span id="studioCity">Luque</span></div></div>
+        <a class="mini-item public-location-link" id="studioLocationLink" href="#" target="_blank" rel="noopener noreferrer" aria-disabled="true">
+          <div class="mini-icon"><i class="bi bi-geo-alt"></i></div>
+          <div><strong>Ubicación</strong><span id="studioCity">Luque</span></div>
+          <i class="bi bi-box-arrow-up-right public-location-arrow" aria-hidden="true"></i>
+        </a>
         <div class="mini-item"><div class="mini-icon"><i class="bi bi-clock"></i></div><div><strong>Horario general</strong><span id="studioHours">08:00 a 20:00</span></div></div>
         <div class="mini-item"><div class="mini-icon"><i class="bi bi-cash-coin"></i></div><div><strong>Seña flexible</strong><span>WhatsApp o comprobante</span></div></div>
         <div class="mini-item"><div class="mini-icon"><i class="bi bi-shield-check"></i></div><div><strong>Reserva segura</strong><span>Revisás todo antes de enviar</span></div></div>
@@ -133,9 +121,11 @@
     </aside>
 
     <main class="booking-card" id="bookingCard">
-      <div class="booking-mobile-brand" aria-label="ByAle">
-        <img class="booking-mobile-logo logo-dark" src="/assets/images/byale-logo-dark.webp" alt="ByAle">
-        <img class="booking-mobile-logo logo-light" src="/assets/images/byale-logo-light.webp" alt="ByAle">
+      <div class="booking-mobile-brand" aria-label="ByAle — Lash & Brown">
+        <img class="public-brand-logo booking-mobile-logo" src="/assets/images/byale-logo-light.webp" alt="ByAle — Lash & Brown">
+        <a class="booking-mobile-location" id="mobileLocationLink" href="#" target="_blank" rel="noopener noreferrer" hidden>
+          <i class="bi bi-geo-alt"></i><span id="mobileLocationText">Ver ubicación</span>
+        </a>
       </div>
 
       <div class="booking-steps"><span class="active"></span><span></span><span></span><span></span><span></span><span></span></div>
