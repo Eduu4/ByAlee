@@ -3104,3 +3104,38 @@ function summaryPane(client, insight) {
   renderStaticViews();
   refreshRemoteData(false);
 })();
+
+async function changeOwnPassword(
+  currentPassword,
+  newPassword,
+  confirmPassword
+) {
+  if (!currentPassword) {
+    throw new Error(
+      "Ingresá tu contraseña actual."
+    );
+  }
+
+  if (!newPassword) {
+    throw new Error(
+      "Ingresá la nueva contraseña."
+    );
+  }
+
+  if (newPassword.length < 8) {
+    throw new Error(
+      "La nueva contraseña debe tener al menos 8 caracteres."
+    );
+  }
+
+  if (newPassword !== confirmPassword) {
+    throw new Error(
+      "Las nuevas contraseñas no coinciden."
+    );
+  }
+
+  await window.ByAleeDB.changePassword(
+    currentPassword,
+    newPassword
+  );
+}

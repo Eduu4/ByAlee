@@ -438,6 +438,7 @@
     scheduleSync,
     syncNow,
     deleteItem,
+    changePassword,
     reloadAppointments,
     subscribeAppointments,
     isRemote: () => Boolean(state.configured && state.studioId),
@@ -452,3 +453,26 @@
     bookingProofGetAll: () => mediaGetAll(null, "booking_proof")
   };
 })();
+
+async function changePassword(currentPassword, newPassword) {
+  if (!(await init())) {
+    throw new Error("Supabase no está disponible.");
+  }
+
+  const attributes = {
+    password: newPassword
+  };
+
+  if (currentPassword) {
+    attributes.current_password = currentPassword;
+  }
+
+  const { data, error } =
+    await state.client.auth.updateUser(attributes);
+
+  if (error) {
+    throw error;
+  }
+
+  return data;
+}
