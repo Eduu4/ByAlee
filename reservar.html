@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
-  <title>Reservar cita — ByAlee</title>
+  <title>Reservar cita — ByAle</title>
   <meta name="theme-color" content="#8F5C70">
 
   <script>
@@ -13,94 +13,64 @@
     const CACHE_KEY = "byalee_public_data_v2";
 
     try {
-      const cached = JSON.parse(
-        localStorage.getItem(CACHE_KEY) || "null"
-      );
-
+      const cached = JSON.parse(localStorage.getItem(CACHE_KEY) || "null");
       const cachedSettings = cached?.settings;
 
       if (cachedSettings) {
-        const appearance =
-          cachedSettings.appearance || "light";
-
-        const theme =
-          appearance === "system"
-            ? (
-                matchMedia(
-                  "(prefers-color-scheme: dark)"
-                ).matches
-                  ? "dark"
-                  : "light"
-              )
-            : appearance;
+        const appearance = cachedSettings.appearance || "light";
+        const theme = appearance === "system"
+          ? (matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light")
+          : appearance;
 
         document.documentElement.dataset.theme = theme;
 
         if (cachedSettings.primaryColor) {
-          document.documentElement.style.setProperty(
-            "--primary",
-            cachedSettings.primaryColor
-          );
-
-          document.documentElement.style.setProperty(
-            "--primary-dark",
-            cachedSettings.primaryColor
-          );
-
-          document
-            .querySelector('meta[name="theme-color"]')
-            ?.setAttribute(
-              "content",
-              cachedSettings.primaryColor
-            );
+          document.documentElement.style.setProperty("--primary", cachedSettings.primaryColor);
+          document.documentElement.style.setProperty("--primary-dark", cachedSettings.primaryColor);
+          document.querySelector('meta[name="theme-color"]')?.setAttribute("content", cachedSettings.primaryColor);
         }
       }
     } catch (error) {
-      console.warn(
-        "No se pudo aplicar la apariencia guardada:",
-        error
-      );
+      console.warn("No se pudo aplicar la apariencia guardada:", error);
     }
 
-    /*
-     * Comienza a cargar los datos antes de que termine
-     * de procesarse todo el HTML.
-     */
     const now = new Date();
-
     const today = [
       now.getFullYear(),
       String(now.getMonth() + 1).padStart(2, "0"),
       String(now.getDate()).padStart(2, "0")
     ].join("-");
 
-    window.ByAleePublicDataPromise = fetch(
-      `/api/public-data?from=${today}`,
-      {
-        headers: {
-          Accept: "application/json"
-        }
-      }
-    )
+    window.ByAleePublicDataPromise = fetch(`/api/public-data?from=${today}`, {
+      headers: { Accept: "application/json" }
+    })
       .then(async response => ({
         ok: response.ok,
         status: response.status,
-        payload: await response
-          .json()
-          .catch(() => ({}))
+        payload: await response.json().catch(() => ({}))
       }))
       .catch(error => ({
         ok: false,
         error,
         payload: {}
       }));
+
+    /*
+      Conservamos una promesa independiente para que la capa visual
+      pueda leer la personalización aunque booking.js consuma la original.
+    */
+    window.ByAleBookingVisualSettingsPromise = window.ByAleePublicDataPromise
+      .then(result => result?.payload?.settings || {})
+      .catch(() => ({}));
   })();
-</script>
+  </script>
+
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Fraunces:wght@600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
   <link rel="stylesheet" href="/assets/css/styles.css">
+
   <style>
     body{min-height:100vh;background:linear-gradient(145deg,var(--bg),var(--primary-soft));padding:26px}
     .booking-shell{max-width:1120px;margin:auto;display:grid;grid-template-columns:.72fr 1.28fr;gap:20px}
@@ -126,70 +96,85 @@
     @media(max-width:800px){body{padding:12px}.booking-shell{grid-template-columns:1fr}.studio-card{display:none}.choice-grid{grid-template-columns:1fr}.time-grid{grid-template-columns:repeat(3,1fr)}.booking-card{padding:20px}.deposit-options{grid-template-columns:1fr}.area-grid{grid-template-columns:repeat(2,1fr)}}
     @media(max-width:560px){body{padding:0;background:var(--surface)}.booking-card{border:0;border-radius:0;min-height:100dvh;box-shadow:none;padding:18px 14px 100px}.time-grid{grid-template-columns:repeat(2,1fr)}.booking-footer{position:fixed;left:0;right:0;bottom:0;background:color-mix(in srgb,var(--surface) 95%,transparent);backdrop-filter:blur(14px);padding:11px 14px;border-top:1px solid var(--line);z-index:15}.booking-footer .btn{flex:1}.proof-uploader{grid-template-columns:1fr}.proof-preview{height:160px}.detail-choice-grid{grid-template-columns:1fr}.success-summary{grid-template-columns:1fr}.accept-card{padding:13px}.policy-text,.consent-public{max-height:180px}}
   </style>
+
   <link rel="stylesheet" href="/assets/css/mobile.css">
   <link rel="stylesheet" href="/assets/css/booking-public.css">
   <link rel="stylesheet" href="/assets/css/booking-performance.css">
+  <link rel="stylesheet" href="/assets/css/booking-public-pro.css?v=1">
+
   <script defer src="/assets/js/booking.js"></script>
+  <script defer src="/assets/js/booking-public-pro.js"></script>
 </head>
 <body>
   <div class="booking-shell">
     <aside class="studio-card">
-      <div class="studio-cover" id="studioCover">ByAlee</div>
-      <span class="eyebrow" id="studioEyebrow">BYALEE</span>
-      <h1>Reservá sin mensajes de ida y vuelta</h1>
-      <p>Elegí el área, el servicio y un horario disponible. La solicitud queda pendiente hasta que ByAlee la confirme por WhatsApp.</p>
-      <div class="mini-list">
+      <div class="studio-cover" id="studioCover">ByAle</div>
+      <span class="eyebrow" id="studioEyebrow">BYALE</span>
+      <h1 id="bookingPublicHeading">Reservá tu cita de forma simple</h1>
+      <p id="bookingPublicIntro">Elegí el servicio y un horario disponible. La solicitud queda pendiente hasta que el local la confirme.</p>
+
+      <div class="mini-list" id="bookingTrustPanel">
         <div class="mini-item"><div class="mini-icon"><i class="bi bi-geo-alt"></i></div><div><strong>Ubicación</strong><span id="studioCity">Luque</span></div></div>
         <div class="mini-item"><div class="mini-icon"><i class="bi bi-clock"></i></div><div><strong>Horario general</strong><span id="studioHours">08:00 a 20:00</span></div></div>
         <div class="mini-item"><div class="mini-icon"><i class="bi bi-cash-coin"></i></div><div><strong>Seña flexible</strong><span>WhatsApp o comprobante</span></div></div>
-        <div class="mini-item"><div class="mini-icon"><i class="bi bi-shield-check"></i></div><div><strong>Políticas claras</strong><span>Las vas a revisar antes de enviar</span></div></div>
+        <div class="mini-item"><div class="mini-icon"><i class="bi bi-shield-check"></i></div><div><strong>Reserva segura</strong><span>Revisás todo antes de enviar</span></div></div>
       </div>
     </aside>
 
     <main class="booking-card" id="bookingCard">
+      <div class="booking-mobile-brand" aria-hidden="true">
+        <img src="/assets/images/byale-logo-light.webp" alt="" onerror="this.style.display='none'">
+        <div><strong id="bookingMobileStudioName">ByAle</strong><span>Reservas online</span></div>
+      </div>
+
       <div class="booking-steps"><span class="active"></span><span></span><span></span><span></span><span></span><span></span></div>
 
       <section class="step active" data-step="1">
-        <span class="eyebrow">PASO 1 DE 6</span><h2>¿Qué te gustaría hacerte?</h2>
-        <p class="step-intro">Primero elegí un área general. Después vas a ver los servicios disponibles de ByAlee.</p>
+        <span class="eyebrow">PASO 1 DE 6</span>
+        <h2>¿Qué te gustaría hacerte?</h2>
+        <p class="step-intro">Primero elegí un área general. Después vas a ver los servicios disponibles.</p>
         <div class="area-grid" id="areaChoices"></div>
         <div class="choice-grid" id="serviceChoices"></div>
       </section>
 
       <section class="step" data-step="2">
-        <span class="eyebrow">PASO 2 DE 6</span><h2>Elegí fecha y hora</h2>
+        <span class="eyebrow">PASO 2 DE 6</span>
+        <h2>Elegí fecha y hora</h2>
         <p class="step-intro">Solo aparecen horarios libres según la duración del servicio, las citas existentes y los bloqueos personales de la profesional.</p>
         <label class="field"><span>Fecha <b class="required-mark">*</b></span><input type="date" id="bookingDate" required></label>
         <div class="time-grid" id="bookingTimes" style="margin-top:15px"></div>
       </section>
 
       <section class="step" data-step="3">
-        <span class="eyebrow">PASO 3 DE 6</span><h2>Datos necesarios</h2>
+        <span class="eyebrow">PASO 3 DE 6</span>
+        <h2>Datos necesarios</h2>
         <p class="step-intro">Solo pedimos nombre y WhatsApp. Los demás datos son opcionales.</p>
         <div class="form-grid">
           <label class="field"><span>Nombre y apellido <b class="required-mark">*</b></span><input id="bookingName" autocomplete="name" required></label>
           <label class="field"><span>WhatsApp <b class="required-mark">*</b></span><input id="bookingPhone" inputmode="tel" autocomplete="tel" placeholder="Ej. 0981 000 000" required></label>
-          <label class="field"><span>Fecha de nacimiento (opcional)</span><input id="bookingBirthDate" type="date"><small class="field-help">Se usa únicamente para identificar tu ficha y, si autorizás abajo, avisar a ByAlee que se acerca tu cumpleaños para fines informativos o promociones.</small></label>
+          <label class="field"><span>Fecha de nacimiento (opcional)</span><input id="bookingBirthDate" type="date"><small class="field-help">Se usa únicamente para identificar tu ficha y, si autorizás abajo, avisar que se acerca tu cumpleaños para fines informativos o promociones.</small></label>
           <label class="field"><span>Email (opcional)</span><input id="bookingEmail" type="email" autocomplete="email"></label>
           <label class="field"><span>Instagram (opcional)</span><input id="bookingInstagram" placeholder="@usuario"></label>
           <label class="field"><span>Zona o domicilio (opcional)</span><input id="bookingAddress"></label>
         </div>
+
         <label class="simple-option birthday-consent"><input type="checkbox" id="birthdayConsent"><span>Autorizo que mi fecha de nacimiento se use para recordatorios informativos o promociones de cumpleaños. Puedo no marcarlo y reservar igualmente.</span></label>
         <div class="privacy-note"><i class="bi bi-lock"></i><span>Tu información queda vinculada a tu ficha privada y no se muestra públicamente.</span></div>
 
         <div class="deposit-box" id="depositSection">
-          <div class="deposit-heading"><div><h3>Confirmación de la seña</h3><p>Elegí una forma. ByAlee revisará esta información antes de confirmar.</p></div><strong class="deposit-amount" id="depositAmountLabel">Gs. 0</strong></div>
+          <div class="deposit-heading"><div><h3>Confirmación de la seña</h3><p>Elegí una forma. El local revisará esta información antes de confirmar.</p></div><strong class="deposit-amount" id="depositAmountLabel">Gs. 0</strong></div>
           <div class="deposit-options">
             <label class="deposit-option"><input type="radio" name="depositMethod" value="whatsapp" checked><span><strong>Coordiné por WhatsApp</strong><small>Ya hablé o voy a enviar la seña por WhatsApp.</small></span></label>
-            <label class="deposit-option" id="proofMethodOption"><input type="radio" name="depositMethod" value="proof"><span><strong>Subir comprobante</strong><small>Adjunto una foto para que ByAlee la revise.</small></span></label>
+            <label class="deposit-option" id="proofMethodOption"><input type="radio" name="depositMethod" value="proof"><span><strong>Subir comprobante</strong><small>Adjunto una foto para que el local la revise.</small></span></label>
           </div>
           <div class="proof-uploader" id="proofUploader" hidden><div class="proof-copy"><strong>Comprobante</strong><span>Podés sacar una foto o elegirla de tu galería.</span><label class="btn primary-btn file-label"><i class="bi bi-camera"></i>Elegir imagen<input type="file" id="depositProofInput" accept="image/*" capture="environment" hidden></label></div><div class="proof-preview" id="depositProofPreview"><i class="bi bi-image"></i><span>Sin imagen</span></div></div>
         </div>
       </section>
 
       <section class="step" data-step="4">
-        <span class="eyebrow">PASO 4 DE 6</span><h2>Contanos un poco más, solo si querés</h2>
-        <p class="step-intro">No hace falta conocer términos técnicos. Esta parte sirve para que ByAlee entienda la idea general antes de la cita.</p>
+        <span class="eyebrow">PASO 4 DE 6</span>
+        <h2>Contanos un poco más, solo si querés</h2>
+        <p class="step-intro">No hace falta conocer términos técnicos. Esta parte sirve para que la profesional entienda la idea general antes de la cita.</p>
         <div class="step-help"><i class="bi bi-chat-heart"></i><div><strong>Podés omitir todo este paso</strong>El diseño, medidas y detalles profesionales se definen durante la evaluación presencial.</div></div>
         <div class="optional-head"><div><strong>Detalles opcionales</strong><p>Elegí opciones generales o escribí con tus palabras.</p></div><button type="button" class="btn ghost-btn" id="toggleDetailsBtn"><i class="bi bi-pencil-square"></i>Agregar detalles</button></div>
         <div class="details-content" id="detailsContent" hidden>
@@ -200,17 +185,18 @@
               <label class="field"><span>¿Tenés sensibilidad o alergia conocida?</span><select id="sensitivity"><option value="unknown">No estoy segura</option><option value="no">No</option><option value="yes">Sí, quiero comentarlo</option></select></label>
               <label class="field"><span>También me interesa</span><div class="detail-choice-grid" id="additionalAreas"></div></label>
               <label class="field full"><span>¿Qué te gustaría lograr?</span><textarea id="clientRequest" rows="4" placeholder="Ej. algo natural, preparar cejas y pestañas para un evento, color nude en pies..."></textarea></label>
-              <label class="field full"><span>Mensaje adicional</span><textarea id="bookingNotes" rows="3" placeholder="Cualquier dato que quieras que ByAlee sepa antes de confirmar."></textarea></label>
+              <label class="field full"><span>Mensaje adicional</span><textarea id="bookingNotes" rows="3" placeholder="Cualquier dato que quieras que la profesional sepa antes de confirmar."></textarea></label>
             </div>
           </div>
         </div>
       </section>
 
       <section class="step" data-step="5">
-        <span class="eyebrow">PASO 5 DE 6</span><h2>Políticas y consentimiento</h2>
+        <span class="eyebrow">PASO 5 DE 6</span>
+        <h2>Políticas y consentimiento</h2>
         <p class="step-intro">Revisá las condiciones del local y marcá las casillas. Esto evita confusiones sobre confirmaciones, señas, cancelaciones y seguridad.</p>
         <div class="policy-box">
-          <h3 style="font-family:Fraunces;margin-bottom:10px">Políticas de ByAlee</h3>
+          <h3 style="font-family:Fraunces;margin-bottom:10px">Políticas del local</h3>
           <div class="policy-text" id="policyText"></div>
           <label class="accept-card" for="policiesAccepted"><input type="checkbox" id="policiesAccepted"><span><strong>Leí y acepto las políticas del local</strong><small>Incluyen confirmación de la cita, reagendamientos, cancelaciones, puntualidad y manejo de la seña.</small></span></label>
           <div class="required-note" id="policiesRequiredNote"><i class="bi bi-info-circle"></i><span>Marcá esta casilla para continuar.</span></div>
