@@ -1,6 +1,7 @@
 /* =========================================================
-   BYALEE — AJUSTES DEL DASHBOARD
+   BYALE — AJUSTES DEL DASHBOARD
 ========================================================= */
+
 
 /* Logo real en la esquina superior izquierda. */
 .sidebar > .brand.sidebar-brand-logo-wrap {
@@ -11,6 +12,7 @@
   justify-content: center;
 }
 
+
 .sidebar-brand-logo {
   width: min(176px, 100%);
   max-height: 68px;
@@ -18,10 +20,12 @@
   object-fit: contain;
 }
 
+
 /* Nombre autenticado dentro del saludo. */
 .dashboard-user-name {
   color: inherit;
 }
+
 
 /* Explicación de mantenimiento sugerido. */
 .field-help {
@@ -32,6 +36,7 @@
   font-weight: 500;
   line-height: 1.45;
 }
+
 
 /*
   La migración física queda desactivada.
@@ -46,6 +51,7 @@
   display: none !important;
 }
 
+
 /* Sidebar abierto en teléfonos y tablets. */
 @media (max-width: 760px) {
   .sidebar > .brand.sidebar-brand-logo-wrap {
@@ -53,16 +59,19 @@
     padding: 2px 8px 16px;
   }
 
+
   .sidebar-brand-logo {
     width: min(154px, 100%);
     max-height: 58px;
   }
 }
 
+
 /* =========================================================
    SCROLL DEL MENÚ LATERAL
    Fino, discreto y adaptado al tema
 ========================================================= */
+
 
 .sidebar .nav-menu {
   overflow-y: auto;
@@ -78,6 +87,7 @@
   scrollbar-color: transparent transparent;
 }
 
+
 /* Mostrar un indicador sutil solamente al usar el menú */
 .sidebar .nav-menu:hover {
   scrollbar-color:
@@ -89,14 +99,17 @@
     transparent;
 }
 
+
 /* Chrome / Edge / Brave / Safari */
 .sidebar .nav-menu::-webkit-scrollbar {
   width: 5px;
 }
 
+
 .sidebar .nav-menu::-webkit-scrollbar-track {
   background: transparent;
 }
+
 
 .sidebar .nav-menu::-webkit-scrollbar-thumb {
   min-height: 40px;
@@ -108,6 +121,7 @@
   transition: background 0.2s ease;
 }
 
+
 .sidebar .nav-menu:hover::-webkit-scrollbar-thumb {
   background:
     color-mix(
@@ -117,23 +131,16 @@
     );
 }
 
+
 .sidebar .nav-menu::-webkit-scrollbar-thumb:hover {
   background:
     color-mix(
       in srgb,
-      var(--primary) 70%-thumb {
-  background:
-    color-mix(
-      in srgb,
-      var(--primary) 45%,
+      var(--primary) 70%,
       transparent
     );
 }
 
-,
-      transparent
-    );
-}
 
 /* Quitar las flechas blancas de arriba y abajo */
 .sidebar .nav-menu::-webkit-scrollbar-button {
@@ -142,7 +149,9 @@
   display: none;
 }
 
+
 /* ---------- MODO OSCURO ---------- */
+
 
 html[data-theme="dark"] .sidebar .nav-menu:hover {
   scrollbar-color:
@@ -150,11 +159,13 @@ html[data-theme="dark"] .sidebar .nav-menu:hover {
     transparent;
 }
 
+
 html[data-theme="dark"]
 .sidebar
 .nav-menu:hover::-webkit-scrollbar-thumb {
   background: rgba(213, 154, 179, 0.42);
 }
+
 
 html[data-theme="dark"]
 .sidebar
@@ -162,7 +173,9 @@ html[data-theme="dark"]
   background: rgba(213, 154, 179, 0.68);
 }
 
+
 /* ---------- MODO CLARO ---------- */
+
 
 html[data-theme="light"] .sidebar .nav-menu:hover {
   scrollbar-color:
@@ -170,11 +183,13 @@ html[data-theme="light"] .sidebar .nav-menu:hover {
     transparent;
 }
 
+
 html[data-theme="light"]
 .sidebar
 .nav-menu:hover::-webkit-scrollbar-thumb {
   background: rgba(143, 92, 112, 0.35);
 }
+
 
 html[data-theme="light"]
 .sidebar

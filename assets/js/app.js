@@ -123,6 +123,7 @@
   let currentRecordClientId = null;
   let editingAppointmentId = null;
   let editingVisitId = null;
+  let newClientDraftId = null;
   let pendingReschedule = null;
   let inventoryCategoryFilter = "all";
   let inventoryPriorityFilter = "professional";
@@ -525,7 +526,6 @@
 
 $("#statMaintenance").textContent =
   upcomingMaintenance;
-    $("#statMaintenance").textContent = upcomingMaintenance || DATA.maintenance.filter(item => item.date >= todayISO).length;
     const dayRequests = all.filter(a => a.status === "requested").length;
     const dayPending = all.filter(a => a.status === "pending").length;
     $("#summaryText").textContent = all.length
@@ -1373,14 +1373,29 @@ function renderSettings() {
   function createNewClient() {
     const client = {
       id: uid(),
-      name:"Nueva clienta", phone:"", birthDate:"", address:"", email:"", instagram:"", firstTime:true,
-      last:"Primera cita", favorite:"Sin definir", visits:0, spent:0, note:"", formStatus:"pending"
+      name: "",
+      phone: "",
+      birthDate: "",
+      address: "",
+      email: "",
+      instagram: "",
+      firstTime: true,
+      last: "Primera cita",
+      favorite: "Sin definir",
+      visits: 0,
+      spent: 0,
+      note: "",
+      formStatus: "pending"
     };
+
     DATA.clients.push(client);
     DATA.records.push(emptyRecord(client.id));
-    persist("clients", "records");
-    renderStaticViews();
-    openClientRecord(client.id);
+
+    // Es un borrador: no se persiste hasta presionar Guardar ficha.
+    newClientDraftId = client.id;
+
+    // Para una clienta nueva abrimos directamente la pestaña Datos.
+    openClientRecord(client.id, "personal");
   }
 
   function emptyRecord(clientId) {
@@ -1679,30 +1694,111 @@ function summaryPane(client, insight) {
     if (targetTab === "gallery" && currentRecordClientId) refreshGallery(currentRecordClientId);
   }
 
-  function openClientRecord(clientId) {
-    const client = clientById(clientId);
-    if (!client) {
-      showToast("No se encontró la clienta");
-      return;
-    }
-    currentRecordClientId = client.id;
-    const record = recordByClient(client.id) || emptyRecord(client.id);
-    if (!recordByClient(client.id)) DATA.records.push(record);
-    $("#recordClientId").value = client.id;
-    $("#recordModalTitle").textContent = client.name;
-    $("#recordModalSubtitle").textContent = `${client.phone || "Sin WhatsApp"} · ${client.formStatus === "complete" ? "Ficha completa" : "Información pendiente"}`;
-    renderRecordForm(client, record);
-    activateRecordTab("summary");
-    $("#recordModal").classList.add("open");
-    $("#recordModal").setAttribute("aria-hidden", "false");
+  function openClientRecord(
+  clientId,
+  initialTab = "summary"
+) {
+  const client = clientById(clientId);
+
+  if (!client) {
+    showToast("No se encontró la clienta");
+    return;
   }
 
-  function closeRecordModal() {
-    $("#recordModal").classList.remove("open");
-    $("#recordModal").setAttribute("aria-hidden", "true");
-    currentRecordClientId = null;
-    editingVisitId = null;
+  currentRecordClientId = client.id;
+
+  const record =
+    recordByClient(client.id) ||
+    emptyRecord(client.id);
+
+  if (!recordByClient(client.id)) {
+    DATA.records.push(record);
   }
+
+  $("#recordClientId").value =
+    client.id;
+
+  $("#recordModalTitle").textContent =
+    client.name || "Nueva clienta";
+
+  $("#recordModalSubtitle").textContent =
+    client.phone
+      ? `${client.phone} · ${
+          client.formStatus === "complete"
+            ? "Ficha completa"
+            : "Información pendiente"
+        }`
+      : (
+          newClientDraftId === client.id
+            ? "Completá los datos de la nueva clienta"
+            : "Sin WhatsApp · Información pendiente"
+        );
+
+  renderRecordForm(
+    client,
+    record
+  );
+
+  activateRecordTab(
+    initialTab
+  );
+
+  $("#recordModal")
+    .classList
+    .add("open");
+
+  $("#recordModal")
+    .setAttribute(
+      "aria-hidden",
+      "false"
+    );
+}
+
+  function closeRecordModal() {
+
+  /*
+    Si estaba creando una clienta nueva
+    y todavía no presionó Guardar ficha,
+    eliminamos el borrador.
+  */
+  if (
+    newClientDraftId !== null &&
+    Number(currentRecordClientId) ===
+      Number(newClientDraftId)
+  ) {
+
+    DATA.clients =
+      DATA.clients.filter(
+        client =>
+          Number(client.id) !==
+          Number(newClientDraftId)
+      );
+
+    DATA.records =
+      DATA.records.filter(
+        record =>
+          Number(record.clientId) !==
+          Number(newClientDraftId)
+      );
+
+    newClientDraftId = null;
+
+    renderStaticViews();
+  }
+
+  $("#recordModal")
+    .classList
+    .remove("open");
+
+  $("#recordModal")
+    .setAttribute(
+      "aria-hidden",
+      "true"
+    );
+
+  currentRecordClientId = null;
+  editingVisitId = null;
+}
 
   function readRadio(form, name, fallback = "") {
     return form.querySelector(`[name="${name}"]:checked`)?.value || fallback;
@@ -1721,7 +1817,22 @@ function summaryPane(client, insight) {
     }
 
     const value = name => form.elements[name]?.value?.trim?.() ?? form.elements[name]?.value ?? "";
-    client.name = value("name") || client.name;
+    const clientName =
+      value("name");
+
+    if (!clientName) {
+      activateRecordTab("personal");
+
+      showToast(
+        "Ingresá el nombre de la clienta"
+      );
+
+      form.elements.name?.focus();
+
+      return;
+    }
+
+    client.name = clientName;
     client.birthDate = value("birthDate");
     client.phone = value("phone");
     client.email = value("email");
@@ -1774,12 +1885,33 @@ function summaryPane(client, insight) {
       appointment.formStatus = client.formStatus;
     });
 
-    persist("clients", "records", "appointments");
+    /*
+      Si esta clienta era un borrador,
+      desde este momento pasa a ser real.
+    */
+    if (
+      newClientDraftId !== null &&
+      Number(newClientDraftId) ===
+        Number(client.id)
+    ) {
+      newClientDraftId = null;
+    }
+
+    persist(
+      "clients",
+      "records",
+      "appointments"
+    );
+
     applyUserProfile();
     renderDashboard();
     renderStaticViews();
+
     closeRecordModal();
-    showToast("Ficha guardada correctamente");
+
+    showToast(
+      "Ficha guardada correctamente"
+    );
   }
 
   function copyLeftMapToRight() {
@@ -2087,6 +2219,10 @@ function summaryPane(client, insight) {
   function addAvailabilityBlockFromSettings() { const date = $("#blockDate").value; const allDay = $("#blockAllDay").checked; const startTime = $("#blockStart").value; const endTime = $("#blockEnd").value; const reason = $("#blockReason").value.trim() || "Horario no disponible"; if (!date) return alert("Selecciona la fecha a bloquear."); if (!allDay && (!startTime || !endTime || minutes(endTime) <= minutes(startTime))) return alert("Revisa el horario de inicio y fin."); DATA.availabilityBlocks.push({id:uid(),date,allDay,startTime:allDay?DATA.settings.openingTime:startTime,endTime:allDay?DATA.settings.closingTime:endTime,reason,source:"manual"}); persist("availabilityBlocks"); renderSettings(); renderDashboard(); showToast("Horario bloqueado"); }
 
   // Búsqueda global
+  const GLOBAL_SEARCH_DELAY = 400;
+  const GLOBAL_SEARCH_MIN_CHARS = 2;
+  let globalSearchTimer = null;
+
   function buildSearchResults(query) {
     const q = normalize(query);
     if (!q) return [];
@@ -2112,14 +2248,34 @@ function summaryPane(client, insight) {
 
   function renderSearchResults(query) {
     const box = $("#globalSearchResults");
-    const results = buildSearchResults(query);
-    if (!normalize(query)) {
+    const normalizedQuery = normalize(query);
+
+    // No abrimos resultados con una sola letra.
+    if (normalizedQuery.length < GLOBAL_SEARCH_MIN_CHARS) {
       box.hidden = true;
+      box.innerHTML = "";
       return;
     }
+
+    const results = buildSearchResults(query);
     box.hidden = false;
     box.innerHTML = results.length ? results.map(result => `<button type="button" class="search-result" data-result-type="${result.type}" data-result-id="${result.id}"><span class="search-result-icon"><i class="bi bi-${result.icon}"></i></span><span><strong>${esc(result.title)}</strong><small>${esc(result.subtitle)}</small></span><i class="bi bi-chevron-right"></i></button>`).join("") : `<div class="search-empty"><i class="bi bi-search"></i><strong>Sin resultados</strong><span>Prueba con nombre, teléfono, servicio, efecto o fecha.</span></div>`;
     $$('[data-result-type]', box).forEach(button => button.onclick = () => selectSearchResult(button.dataset.resultType, Number(button.dataset.resultId)));
+  }
+
+  function scheduleGlobalSearch(query) {
+    clearTimeout(globalSearchTimer);
+
+    const box = $("#globalSearchResults");
+    if (normalize(query).length < GLOBAL_SEARCH_MIN_CHARS) {
+      box.hidden = true;
+      box.innerHTML = "";
+      return;
+    }
+
+    globalSearchTimer = setTimeout(() => {
+      renderSearchResults(query);
+    }, GLOBAL_SEARCH_DELAY);
   }
 
   function selectSearchResult(type, id) {
@@ -2687,14 +2843,23 @@ function summaryPane(client, insight) {
     } else showAppointmentClientHint(null);
   });
 
-  $("#globalSearch").addEventListener("input", event => renderSearchResults(event.target.value));
+  $("#globalSearch").addEventListener("input", event => {
+    scheduleGlobalSearch(event.target.value);
+  });
+
   $("#globalSearch").addEventListener("keydown", event => {
     if (event.key === "Enter") {
       event.preventDefault();
+      clearTimeout(globalSearchTimer);
+      renderSearchResults(event.currentTarget.value);
       const first = $("#globalSearchResults [data-result-type]");
       if (first) first.click();
     }
-    if (event.key === "Escape") $("#globalSearchResults").hidden = true;
+
+    if (event.key === "Escape") {
+      clearTimeout(globalSearchTimer);
+      $("#globalSearchResults").hidden = true;
+    }
   });
   document.addEventListener("keydown", event => {
     if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === "k") {
