@@ -1547,7 +1547,8 @@ function renderSettings() {
         icon:"bi-shield-lock",
         title:"Mi cuenta y seguridad",
         description:"Cambiá la contraseña de tu usuario.",
-        content:securityContent
+        content:securityContent,
+        open:true
       })}
     </div>
 
