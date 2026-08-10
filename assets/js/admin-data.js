@@ -430,6 +430,56 @@
     }
   }
 
+  async function changeOwnPassword(
+    currentPassword,
+    newPassword
+  ) {
+    if (!(await init())) {
+      throw new Error(
+        "No se pudo conectar con Supabase."
+      );
+    }
+
+    const {
+      data: userData,
+      error: userError
+    } = await state.client.auth.getUser();
+
+    if (userError) {
+      throw userError;
+    }
+
+    if (!userData?.user) {
+      throw new Error(
+        "La sesión no está activa."
+      );
+    }
+
+    const email =
+      userData.user.email || "";
+
+    if (!email) {
+      throw new Error(
+        "El usuario no tiene un correo asociado."
+      );
+    }
+
+    const {
+      data,
+      error
+    } = await state.client.auth.updateUser({
+      email,
+      current_password: currentPassword,
+      password: newPassword
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    return data;
+  }
+
   window.ByAleeDB = {
     state,
     init,
@@ -438,7 +488,7 @@
     scheduleSync,
     syncNow,
     deleteItem,
-    changePassword,
+    changeOwnPassword,
     reloadAppointments,
     subscribeAppointments,
     isRemote: () => Boolean(state.configured && state.studioId),
@@ -453,26 +503,3 @@
     bookingProofGetAll: () => mediaGetAll(null, "booking_proof")
   };
 })();
-
-async function changePassword(currentPassword, newPassword) {
-  if (!(await init())) {
-    throw new Error("Supabase no está disponible.");
-  }
-
-  const attributes = {
-    password: newPassword
-  };
-
-  if (currentPassword) {
-    attributes.current_password = currentPassword;
-  }
-
-  const { data, error } =
-    await state.client.auth.updateUser(attributes);
-
-  if (error) {
-    throw error;
-  }
-
-  return data;
-}

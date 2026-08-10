@@ -295,6 +295,13 @@
     if (brandStudio) brandStudio.textContent = DATA.settings.studioName;
     if (greeting) greeting.innerHTML = `Buenos días, ${esc(firstName)} <span>✨</span>`;
     $$(".admin-only").forEach(element => element.hidden = DATA.settings.role !== "admin");
+
+    /*
+      Configuración también queda disponible para profesionales,
+      pero renderSettings() limita lo que pueden ver a su propia cuenta.
+    */
+    const settingsButton = $("#adminSettingsBtn");
+    if (settingsButton) settingsButton.hidden = false;
   }
 
   function getRiskFlags(record) {
@@ -1104,11 +1111,207 @@ function renderServices() {
       </div></div>`;
   }
 
-function renderSettings() {
-  if (DATA.settings.role !== "admin") {
-    $("#settingsView").innerHTML = `<div class="empty-state"><i class="bi bi-lock"></i><strong>Acceso restringido</strong></div>`;
+  async function changeOwnPassword(currentPassword, newPassword) {
+    const db = window.ByAleeDB;
+
+    if (!db) {
+      throw new Error("La conexión con Supabase no está disponible.");
+    }
+
+    if (!db.state?.client) {
+      const initialized = await db.init?.();
+
+      if (!initialized || !db.state?.client) {
+        throw new Error("Supabase no está disponible.");
+      }
+    }
+
+    const client = db.state.client;
+    let user = db.state.user || null;
+
+    if (!user) {
+      const {
+        data,
+        error
+      } = await client.auth.getUser();
+
+      if (error) {
+        throw error;
+      }
+
+      user = data?.user || null;
+    }
+
+    const email = String(
+      user?.email ||
+      DATA.settings.userEmail ||
+      ""
+    ).trim();
+
+    if (!email) {
+      throw new Error(
+        "No se pudo identificar el correo de la cuenta actual."
+      );
+    }
+
+    /*
+      Verificamos primero la contraseña actual iniciando nuevamente
+      la sesión de la misma cuenta. No modifica login.html ni login.js.
+    */
+    const {
+      error: verifyError
+    } = await client.auth.signInWithPassword({
+      email,
+      password: currentPassword
+    });
+
+    if (verifyError) {
+      throw new Error("La contraseña actual no es correcta.");
+    }
+
+    const {
+      data,
+      error: updateError
+    } = await client.auth.updateUser({
+      password: newPassword
+    });
+
+    if (updateError) {
+      throw updateError;
+    }
+
+    if (data?.user) {
+      db.state.user = data.user;
+    }
+
+    return true;
+  }
+
+  function bindPasswordForm() {
+
+  const form =
+    $("#changePasswordForm");
+
+  if (!form) {
     return;
   }
+
+  form.addEventListener(
+    "submit",
+    async event => {
+
+      event.preventDefault();
+
+      const currentPassword =
+        form.elements.currentPassword
+          .value;
+
+      const newPassword =
+        form.elements.newPassword
+          .value;
+
+      const confirmPassword =
+        form.elements.confirmPassword
+          .value;
+
+      const message =
+        $("#changePasswordMessage");
+
+      if (!currentPassword) {
+        message.textContent =
+          "Ingresá tu contraseña actual.";
+
+        return;
+      }
+
+      if (newPassword.length < 8) {
+        message.textContent =
+          "La nueva contraseña debe tener al menos 8 caracteres.";
+
+        return;
+      }
+
+      if (
+        newPassword !==
+        confirmPassword
+      ) {
+        message.textContent =
+          "Las nuevas contraseñas no coinciden.";
+
+        return;
+      }
+
+      if (
+        currentPassword ===
+        newPassword
+      ) {
+        message.textContent =
+          "La nueva contraseña debe ser diferente a la actual.";
+
+        return;
+      }
+
+      const submit =
+        form.querySelector(
+          'button[type="submit"]'
+        );
+
+      submit.disabled = true;
+
+      message.textContent =
+        "Actualizando contraseña...";
+
+      try {
+
+        await changeOwnPassword(
+          currentPassword,
+          newPassword
+        );
+
+        form.reset();
+
+        message.textContent =
+          "Contraseña actualizada correctamente.";
+
+        showToast(
+          "Contraseña actualizada correctamente"
+        );
+
+      } catch (error) {
+
+        console.error(
+          "No se pudo cambiar la contraseña:",
+          error
+        );
+
+        const errorText =
+          String(
+            error?.message || ""
+          );
+
+        if (
+          /current|password|credential|invalid/i
+            .test(errorText)
+        ) {
+          message.textContent =
+            "La contraseña actual no es correcta o la nueva contraseña no cumple los requisitos.";
+        } else {
+          message.textContent =
+            "No se pudo cambiar la contraseña.";
+        }
+
+      } finally {
+
+        submit.disabled = false;
+
+      }
+    }
+  );
+}
+
+function renderSettings() {
+  const isAdmin =
+    DATA.settings.role === "admin";
 
   const workDayLabels = [[1,"Lunes"],[2,"Martes"],[3,"Miércoles"],[4,"Jueves"],[5,"Viernes"],[6,"Sábado"],[0,"Domingo"]];
   const blockRows = (DATA.availabilityBlocks || [])
@@ -1128,7 +1331,125 @@ function renderSettings() {
       </summary>
       <div class="settings-accordion-body">${content}</div>
     </details>`;
+  const securityContent = `
+  <div class="settings-subsection">
 
+    <h3>Tu contraseña</h3>
+
+    <p class="settings-note">
+      Cambiá la contraseña de la cuenta
+      con la que estás conectado actualmente.
+    </p>
+
+    <form
+      id="changePasswordForm"
+      autocomplete="off"
+    >
+
+      <div class="form-grid">
+
+        <label class="field">
+          <span>Contraseña actual</span>
+
+          <input
+            type="password"
+            name="currentPassword"
+            autocomplete="current-password"
+            required
+          >
+        </label>
+
+        <label class="field">
+          <span>Nueva contraseña</span>
+
+          <input
+            type="password"
+            name="newPassword"
+            autocomplete="new-password"
+            minlength="8"
+            required
+          >
+        </label>
+
+        <label class="field">
+          <span>Repetir nueva contraseña</span>
+
+          <input
+            type="password"
+            name="confirmPassword"
+            autocomplete="new-password"
+            minlength="8"
+            required
+          >
+        </label>
+
+      </div>
+
+      <div
+        id="changePasswordMessage"
+        class="settings-note"
+        aria-live="polite"
+      ></div>
+
+      <button
+        type="submit"
+        class="btn primary-btn"
+      >
+        <i class="bi bi-shield-lock"></i>
+        Cambiar contraseña
+      </button>
+
+    </form>
+
+  </div>
+`;
+
+  if (!isAdmin) {
+
+  $("#settingsView").innerHTML = `
+    <div class="grid-page">
+
+      <div class="page-heading compact-page-heading">
+        <div>
+          <span class="eyebrow">
+            CUENTA
+          </span>
+
+          <h1>
+            Configuración
+          </h1>
+
+          <p>
+            Administrá la seguridad de tu cuenta.
+          </p>
+        </div>
+
+        <span class="badge">
+          <i class="bi bi-person-check"></i>
+          Profesional
+        </span>
+      </div>
+
+      <div class="settings-accordion-list">
+
+        ${group({
+          icon: "bi-shield-lock",
+          title: "Mi cuenta y seguridad",
+          description:
+            "Contraseña de acceso.",
+          content: securityContent,
+          open: true
+        })}
+
+      </div>
+
+    </div>
+  `;
+
+  bindPasswordForm();
+
+  return;
+}
   const profileContent = `
     <div class="settings-subsection">
       <h3>Perfil administrador</h3>
@@ -1221,6 +1542,15 @@ function renderSettings() {
       <span class="badge status-complete"><i class="bi bi-shield-check"></i>Administrador</span>
     </div>
 
+    <div class="settings-accordion-list">
+      ${group({
+        icon:"bi-shield-lock",
+        title:"Mi cuenta y seguridad",
+        description:"Cambiá la contraseña de tu usuario.",
+        content:securityContent
+      })}
+    </div>
+
     <form id="settingsForm" class="settings-accordion-list">
       ${group({icon:"bi-person-circle", title:"Perfil y local", description:"Nombre, contacto, moneda y seña.", content:profileContent, open:true})}
       ${group({icon:"bi-calendar2-week", title:"Agenda y reservas", description:"Horarios, días, señas y confirmaciones.", content:bookingContent})}
@@ -1239,6 +1569,7 @@ function renderSettings() {
   </div>`;
 
   $("#settingsForm").addEventListener("submit", saveSettings);
+  bindPasswordForm();
   $("#settingsForm [name='primaryColor']").addEventListener("input", event => { DATA.settings.primaryColor = event.target.value; applyAppearance(); });
   $("#settingsForm [name='appearance']").addEventListener("change", event => { DATA.settings.appearance = event.target.value; localStorage.setItem("lashflow_theme", event.target.value); applyAppearance(); });
   $("#addBlockBtn")?.addEventListener("click", addAvailabilityBlockFromSettings);
@@ -3104,38 +3435,3 @@ function summaryPane(client, insight) {
   renderStaticViews();
   refreshRemoteData(false);
 })();
-
-async function changeOwnPassword(
-  currentPassword,
-  newPassword,
-  confirmPassword
-) {
-  if (!currentPassword) {
-    throw new Error(
-      "Ingresá tu contraseña actual."
-    );
-  }
-
-  if (!newPassword) {
-    throw new Error(
-      "Ingresá la nueva contraseña."
-    );
-  }
-
-  if (newPassword.length < 8) {
-    throw new Error(
-      "La nueva contraseña debe tener al menos 8 caracteres."
-    );
-  }
-
-  if (newPassword !== confirmPassword) {
-    throw new Error(
-      "Las nuevas contraseñas no coinciden."
-    );
-  }
-
-  await window.ByAleeDB.changePassword(
-    currentPassword,
-    newPassword
-  );
-}
