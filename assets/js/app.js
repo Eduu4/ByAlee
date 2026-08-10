@@ -1398,6 +1398,103 @@ function renderSettings() {
     openClientRecord(client.id, "personal");
   }
 
+  async function deleteClient(clientId) {
+    if (DATA.settings.role !== "admin") {
+      showToast("Solo la administradora puede eliminar clientas");
+      return;
+    }
+
+    const id = Number(clientId);
+    const client = clientById(id);
+
+    if (!client) {
+      showToast("No se encontró la clienta");
+      return;
+    }
+
+    // Los borradores nuevos se descartan cerrando la ficha; no necesitan eliminación definitiva.
+    if (Number(newClientDraftId) === id) {
+      closeRecordModal();
+      return;
+    }
+
+    const appointments = DATA.appointments.filter(appointment => Number(appointment.clientId) === id);
+    const visits = DATA.visits.filter(visit => Number(visit.clientId) === id);
+    const futureAppointments = appointments.filter(appointment =>
+      appointment.date >= todayISO && !appointmentFreesSlot(appointment)
+    );
+
+    const details = [
+      `${visits.length} visita(s)`,
+      `${appointments.length} cita(s)`
+    ];
+
+    const confirmed = confirm(
+      `¿Eliminar definitivamente a ${client.name}?\n\n` +
+      `También se eliminarán su ficha, ${details.join(", ")} y sus fotografías.\n\n` +
+      `Esta acción no se puede deshacer.`
+    );
+
+    if (!confirmed) return;
+
+    if (futureAppointments.length) {
+      const futureConfirmed = confirm(
+        `${client.name} tiene ${futureAppointments.length} cita(s) futura(s).\n\n` +
+        `Esas citas también se eliminarán. ¿Continuar?`
+      );
+
+      if (!futureConfirmed) return;
+    }
+
+    try {
+      // Elimina fotografías de la clienta usando la misma capa que ya maneja
+      // IndexedDB o Supabase Storage, según corresponda.
+      const photos = await imageDBGetAll(id);
+      for (const photo of photos) {
+        await imageDBDelete(photo.id);
+      }
+
+      // Elimina comprobantes y citas asociadas antes de borrar la clienta.
+      // Así no quedan referencias locales o remotas apuntando a una clienta inexistente.
+      for (const appointment of appointments) {
+        await bookingProofDeleteByAppointment(appointment.id).catch(error =>
+          console.error("No se pudo eliminar el comprobante de la cita", error)
+        );
+
+        if (window.ByAleeDB?.isRemote?.()) {
+          await window.ByAleeDB.deleteItem("appointments", appointment.id);
+        }
+      }
+
+      // En Supabase, eliminar clients también elimina por cascada la ficha,
+      // las visitas y los archivos relacionados de la base de datos.
+      if (window.ByAleeDB?.isRemote?.()) {
+        await window.ByAleeDB.deleteItem("clients", id);
+      }
+
+      DATA.clients = DATA.clients.filter(item => Number(item.id) !== id);
+      DATA.records = DATA.records.filter(record => Number(record.clientId) !== id);
+      DATA.visits = DATA.visits.filter(visit => Number(visit.clientId) !== id);
+      DATA.appointments = DATA.appointments.filter(appointment => Number(appointment.clientId) !== id);
+
+      if (Number(currentRecordClientId) === id) {
+        $("#recordModal").classList.remove("open");
+        $("#recordModal").setAttribute("aria-hidden", "true");
+        currentRecordClientId = null;
+        editingVisitId = null;
+      }
+
+      persist("clients", "records", "visits", "appointments");
+
+      renderDashboard();
+      renderStaticViews();
+      showToast(`${client.name} fue eliminada`);
+    } catch (error) {
+      console.error("No se pudo eliminar la clienta", error);
+      alert("No se pudo eliminar la clienta por completo. No se modificaron los datos locales restantes. Revisa la conexión e intenta nuevamente.");
+    }
+  }
+
   function emptyRecord(clientId) {
     return {
       clientId: Number(clientId),
@@ -1554,6 +1651,13 @@ function summaryPane(client, insight) {
           <button type="button" class="quick-action" id="copyFormLinkInline"><i class="bi bi-link-45deg"></i><strong>Compartir reserva</strong><span>Envía el enlace público para solicitar una cita.</span></button>
           <button type="button" class="quick-action" data-record-go="history"><i class="bi bi-clock-history"></i><strong>Ver historial</strong><span>Diseños y notas de visitas anteriores.</span></button>
         </div>
+        ${DATA.settings.role === "admin" && Number(newClientDraftId) !== Number(client.id) ? `
+          <div class="info-card">
+            <h4>Administración</h4>
+            <p class="muted">Elimina definitivamente esta clienta junto con su ficha, visitas, citas y fotografías asociadas.</p>
+            <button type="button" class="btn danger-btn" onclick="window.deleteClient(${Number(client.id)})"><i class="bi bi-trash3"></i>Eliminar clienta</button>
+          </div>
+        ` : ""}
       </section>
 
       <section class="record-pane record-section" data-pane="consultation" hidden>
@@ -2671,6 +2775,7 @@ function summaryPane(client, insight) {
   // Exponer acciones usadas por HTML dinámico
   window.showToast = showToast;
   window.openClientRecord = openClientRecord;
+  window.deleteClient = deleteClient;
   window.openWhatsApp = openWhatsApp;
   window.repeatClientService = repeatClientService;
   window.rescheduleClientAppointment = clientId => { const next = DATA.appointments.filter(item => item.clientId === Number(clientId) && item.date >= todayISO && !appointmentFreesSlot(item)).sort((a,b)=>a.date.localeCompare(b.date)||minutes(a.time)-minutes(b.time))[0]; if (next) window.rescheduleAppointment(next.id); else repeatClientService(clientId); };
